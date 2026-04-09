@@ -12,6 +12,24 @@ export async function ensureSchema() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
   `;
+  // Phase 1 referral additions (idempotent)
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS slug TEXT UNIQUE;`;
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by TEXT;`;
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT;`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS referral_events (
+      id SERIAL PRIMARY KEY,
+      inviter_id TEXT NOT NULL,
+      invitee_id TEXT NOT NULL,
+      event_type TEXT NOT NULL,
+      metadata JSONB,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+  `;
+  await sql`
+    CREATE INDEX IF NOT EXISTS idx_referral_events_inviter
+    ON referral_events(inviter_id);
+  `;
   await sql`
     CREATE TABLE IF NOT EXISTS scenario_runs (
       user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -63,12 +81,93 @@ export async function ensureSchema() {
 // ──────────────────────────────────────────
 // Users
 // ──────────────────────────────────────────
-export async function upsertUser(id: string, name: string) {
+export async function upsertUser(
+  id: string,
+  name: string,
+  opts?: { slug?: string; referredBy?: string }
+) {
   await ensureSchema();
+  // Slug 생성 — 안 주면 user.id 그대로 (소문자 normalize)
+  const initialSlug = (opts?.slug || id).toLowerCase().replace(/[^a-z0-9_-]+/g, '_').slice(0, 20);
+  // 충돌 처리: 첫 시도에 실패하면 _2, _3 ...
+  let finalSlug = initialSlug;
+  let attempt = 1;
+  while (true) {
+    const existing = await sql`SELECT id FROM users WHERE slug = ${finalSlug} AND id != ${id};`;
+    if (existing.rows.length === 0) break;
+    attempt++;
+    finalSlug = `${initialSlug}_${attempt}`.slice(0, 20);
+    if (attempt > 50) break; // 안전망
+  }
+
   await sql`
-    INSERT INTO users (id, name) VALUES (${id}, ${name})
-    ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name;
+    INSERT INTO users (id, name, slug, referred_by)
+    VALUES (${id}, ${name}, ${finalSlug}, ${opts?.referredBy ?? null})
+    ON CONFLICT (id) DO UPDATE SET
+      name = EXCLUDED.name,
+      slug = COALESCE(users.slug, EXCLUDED.slug),
+      referred_by = COALESCE(users.referred_by, EXCLUDED.referred_by);
   `;
+
+  // 신규 가입 + referrer 있으면 referral_event 기록
+  if (opts?.referredBy) {
+    const wasNew = await sql`
+      SELECT 1 FROM users WHERE id = ${id} AND referred_by = ${opts.referredBy};
+    `;
+    if (wasNew.rows.length > 0) {
+      // 중복 기록 방지: 같은 (inviter, invitee, signup) 이미 있으면 skip
+      const dupe = await sql`
+        SELECT 1 FROM referral_events
+        WHERE inviter_id = ${opts.referredBy}
+          AND invitee_id = ${id}
+          AND event_type = 'signup';
+      `;
+      if (dupe.rows.length === 0) {
+        await sql`
+          INSERT INTO referral_events (inviter_id, invitee_id, event_type, metadata)
+          VALUES (${opts.referredBy}, ${id}, 'signup', ${JSON.stringify({ via: 'cookie' })});
+        `;
+      }
+    }
+  }
+}
+
+export async function getUserBySlug(slug: string) {
+  await ensureSchema();
+  const r = await sql`
+    SELECT id, name, slug, bio, referred_by, created_at FROM users WHERE slug = ${slug};
+  `;
+  return r.rows[0] as
+    | { id: string; name: string; slug: string; bio: string | null; referred_by: string | null; created_at: string }
+    | undefined;
+}
+
+export async function updateSlug(userId: string, newSlug: string): Promise<{ ok: boolean; error?: string }> {
+  await ensureSchema();
+  // Uniqueness check
+  const existing = await sql`SELECT id FROM users WHERE slug = ${newSlug} AND id != ${userId};`;
+  if (existing.rows.length > 0) {
+    return { ok: false, error: '이미 사용 중인 링크' };
+  }
+  await sql`UPDATE users SET slug = ${newSlug} WHERE id = ${userId};`;
+  return { ok: true };
+}
+
+export async function listMyReferrals(inviterId: string) {
+  const r = await sql`
+    SELECT
+      u.id, u.name, u.slug, u.created_at,
+      (SELECT COUNT(*)::int FROM scenario_payloads sp WHERE sp.user_id = u.id) AS completed_count
+    FROM users u
+    WHERE u.referred_by = ${inviterId}
+    ORDER BY u.created_at DESC;
+  `;
+  return r.rows as { id: string; name: string; slug: string; created_at: string; completed_count: number }[];
+}
+
+export async function countMyReferrals(inviterId: string) {
+  const r = await sql`SELECT COUNT(*)::int AS c FROM users WHERE referred_by = ${inviterId};`;
+  return (r.rows[0] as { c: number }).c;
 }
 
 export async function listUsers(excludeId?: string) {
@@ -105,8 +204,10 @@ export async function listUsersWithProgress(excludeId?: string) {
 }
 
 export async function getUser(id: string) {
-  const r = await sql`SELECT id, name FROM users WHERE id = ${id};`;
-  return r.rows[0] as { id: string; name: string } | undefined;
+  const r = await sql`SELECT id, name, slug, bio, referred_by FROM users WHERE id = ${id};`;
+  return r.rows[0] as
+    | { id: string; name: string; slug: string | null; bio: string | null; referred_by: string | null }
+    | undefined;
 }
 
 // ──────────────────────────────────────────
