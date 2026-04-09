@@ -18,19 +18,45 @@ export async function ensureSchema(): Promise<void> {
   return schemaPromise;
 }
 
+// 각 statement가 독립적으로 실행 + 실패 시 명확한 에러 로그.
+// UNIQUE constraint는 인라인 X (Neon에서 ALTER ADD COLUMN UNIQUE 가 묘하게 실패하는 케이스 회피)
+// 대신 partial unique index로 분리.
+async function safeRun(label: string, run: () => Promise<unknown>) {
+  try {
+    await run();
+  } catch (e: any) {
+    console.error(`[ensureSchema] ${label} failed:`, e?.message || e);
+    throw e;
+  }
+}
+
 async function runSchemaBootstrap() {
-  await sql`
+  await safeRun('users table', () => sql`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
-  `;
-  // Phase 1 referral additions (idempotent)
-  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS slug TEXT UNIQUE;`;
-  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by TEXT;`;
-  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT;`;
-  await sql`
+  `);
+
+  // Phase 1 referral 컬럼들 — UNIQUE 제거, 단순 ADD COLUMN
+  await safeRun('users.slug column', () =>
+    sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS slug TEXT;`
+  );
+  await safeRun('users.referred_by column', () =>
+    sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by TEXT;`
+  );
+  await safeRun('users.bio column', () =>
+    sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT;`
+  );
+
+  // Slug uniqueness — partial unique index (NULL 다중 허용)
+  await safeRun('users.slug unique index', () => sql`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_users_slug_unique
+    ON users(slug) WHERE slug IS NOT NULL;
+  `);
+
+  await safeRun('referral_events table', () => sql`
     CREATE TABLE IF NOT EXISTS referral_events (
       id SERIAL PRIMARY KEY,
       inviter_id TEXT NOT NULL,
@@ -39,11 +65,12 @@ async function runSchemaBootstrap() {
       metadata JSONB,
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
-  `;
-  await sql`
+  `);
+
+  await safeRun('referral_events index', () => sql`
     CREATE INDEX IF NOT EXISTS idx_referral_events_inviter
     ON referral_events(inviter_id);
-  `;
+  `);
   await sql`
     CREATE TABLE IF NOT EXISTS scenario_runs (
       user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
