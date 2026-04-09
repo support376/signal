@@ -83,6 +83,15 @@ export default async function DashboardPage() {
         </div>
       </section>
 
+      <section className="mb-12">
+        <Link
+          href="/history"
+          className="block p-4 bg-card border border-line rounded-xl hover:border-accent transition text-center"
+        >
+          <p className="text-sm">📚 내 과거 내역 — 시나리오 + 벡터 + 케미 모두</p>
+        </Link>
+      </section>
+
       <footer className="mt-16 pt-6 border-t border-line text-xs text-dim text-center">
         <Link href="/" className="hover:text-accent">로그아웃 / 다른 ID로 시작</Link>
       </footer>
