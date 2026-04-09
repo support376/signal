@@ -34,11 +34,11 @@ export default async function ChemistryLensPickerPage({
     );
   }
 
-  // 양쪽 모두 5/5 완료 확인
+  // 1개 이상 완료 확인 (부분 데이터로도 케미 가능)
   const myCompleted = await getCompletedScenarios(myId);
   const otherCompleted = await getCompletedScenarios(other.id);
 
-  if (myCompleted.length < 5 || otherCompleted.length < 5) {
+  if (myCompleted.length < 1 || otherCompleted.length < 1) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-12">
         <Link href="/chemistry" className="text-xs text-dim hover:text-accent">← 케미 목록</Link>
@@ -47,11 +47,13 @@ export default async function ChemistryLensPickerPage({
           <p className="text-dim">
             나: {myCompleted.length}/5 · {other.name}: {otherCompleted.length}/5
           </p>
-          <p className="text-dim mt-2">두 사람 모두 5개 시나리오를 완료해야 해.</p>
+          <p className="text-dim mt-2">두 사람 모두 시나리오 1개 이상 완료해야 해.</p>
         </div>
       </div>
     );
   }
+
+  const isPartial = myCompleted.length < 5 || otherCompleted.length < 5;
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-12">
@@ -64,8 +66,19 @@ export default async function ChemistryLensPickerPage({
           <span className="text-dim mx-3">×</span>
           <span className="text-accent2">{other.name}</span>
         </h1>
-        <p className="text-sm text-dim mt-2">이제 어떤 관계로 볼지 선택해.</p>
+        <p className="text-sm text-dim mt-2">
+          나 {myCompleted.length}/5 · {other.name} {otherCompleted.length}/5
+        </p>
       </header>
+
+      {isPartial && (
+        <div className="mb-6 p-4 bg-amber-900/20 border border-amber-700/40 rounded-xl text-sm">
+          <p className="text-amber-300 font-semibold mb-1">⚠️ 부분 데이터 — 정확도 낮음</p>
+          <p className="text-dim text-xs leading-relaxed">
+            한쪽 또는 양쪽이 5개 시나리오를 모두 완료하지 않았어. 케미 분석은 가능하지만 narrative가 *"첫 인상"* 수준일 수 있어. 5/5 완료 후 *다시 분석* 버튼으로 더 정확한 결과를 받을 수 있어.
+          </p>
+        </div>
+      )}
 
       <div className="space-y-3">
         {LENSES.map((lens) => {

@@ -70,7 +70,8 @@ export default function ChemistryListPage() {
     );
   }, [users, query]);
 
-  const myReady = myProgress >= 5;
+  const myReady = myProgress >= 1; // 1개 이상 완료하면 케미 가능
+  const myFullyReady = myProgress >= 5;
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
@@ -78,15 +79,23 @@ export default function ChemistryListPage() {
 
       <header className="mt-4 mb-8">
         <h1 className="text-3xl font-bold">케미 테스트</h1>
-        <p className="text-sm text-dim mt-2">상대방을 선택해.</p>
+        <p className="text-sm text-dim mt-2">상대방을 선택해. 부분 데이터로도 가능 (정확도는 낮아).</p>
       </header>
 
       {/* 내 상태 경고 */}
       {!myReady && (
         <div className="mb-6 p-4 bg-amber-900/20 border border-amber-700/40 rounded-xl text-sm">
-          <p className="text-amber-300 font-semibold mb-1">먼저 너의 5개 시나리오를 끝내야 해</p>
+          <p className="text-amber-300 font-semibold mb-1">먼저 시나리오 1개라도 완료해야 해</p>
           <p className="text-dim text-xs">
-            현재 진행: <span className="text-accent3">{myProgress}/5</span>. 5개 모두 완료해야 케미 분석이 활성화돼.
+            현재 진행: <span className="text-accent3">{myProgress}/5</span>. 1개 이상부터 케미 가능 (단 정확도 낮음).
+          </p>
+        </div>
+      )}
+      {myReady && !myFullyReady && (
+        <div className="mb-6 p-4 bg-amber-900/10 border border-amber-700/30 rounded-xl text-sm">
+          <p className="text-amber-300 font-semibold mb-1">⚠️ 완성도 낮음</p>
+          <p className="text-dim text-xs">
+            시나리오 {myProgress}/5 완료. 케미 분석은 가능하지만 정확도가 낮을 수 있어. 5개 모두 완료하면 더 깊은 분석이 나와.
           </p>
         </div>
       )}
@@ -113,8 +122,9 @@ export default function ChemistryListPage() {
       {/* 사용자 목록 */}
       <div className="space-y-2">
         {filtered.map((u) => {
-          const otherReady = u.completed_count >= 5;
+          const otherReady = u.completed_count >= 1;
           const canCompare = myReady && otherReady;
+          const otherFullyReady = u.completed_count >= 5;
 
           return (
             <button
@@ -134,13 +144,19 @@ export default function ChemistryListPage() {
                 </div>
                 <div className="text-right">
                   <p className="text-xs">
-                    {otherReady ? (
+                    {otherFullyReady ? (
                       <span className="text-accent3">✓ 5/5 완료</span>
+                    ) : otherReady ? (
+                      <span className="text-amber-300">{u.completed_count}/5 (부분)</span>
                     ) : (
-                      <span className="text-dim">{u.completed_count}/5</span>
+                      <span className="text-dim">시나리오 0개</span>
                     )}
                   </p>
-                  {canCompare && <p className="text-xs text-accent2 mt-1">선택 →</p>}
+                  {canCompare && (
+                    <p className={`text-xs mt-1 ${otherFullyReady ? 'text-accent2' : 'text-amber-300'}`}>
+                      선택 →
+                    </p>
+                  )}
                 </div>
               </div>
             </button>

@@ -174,7 +174,10 @@ export default function ScenarioPage() {
             <div>
               <p className="text-xs text-dim uppercase tracking-wider">상황</p>
               <h1 className="text-2xl font-bold mt-1">{SCENARIO_LABELS[scenarioId]}</h1>
-              <p className="text-xs text-accent3 mt-2">{ctx.domainHint}</p>
+              <div className="flex items-baseline gap-3 mt-2">
+                <p className="text-xs text-accent3">{ctx.domainHint}</p>
+                <p className="text-xs text-dim">· {ctx.estimatedMinutes}</p>
+              </div>
             </div>
 
             <div className="space-y-4 border-t border-line pt-6">

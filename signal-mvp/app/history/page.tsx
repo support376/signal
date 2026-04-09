@@ -8,6 +8,7 @@ import {
   listMyChemistries,
   getIntegratedVector,
 } from '@/lib/db';
+import { computeCompleteness } from '@/lib/integrator';
 import { SCENARIO_ORDER, SCENARIO_LABELS, SCENARIO_CONTEXTS } from '@/lib/prompts/scenarios';
 
 export const dynamic = 'force-dynamic';
@@ -31,18 +32,44 @@ export default async function HistoryPage() {
   const selfReport = await getSelfReport(userId);
   const chemistries = await listMyChemistries(userId);
   const integrated = await getIntegratedVector(userId);
+  const completeness = computeCompleteness(integrated);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
       <Link href="/dashboard" className="text-xs text-dim hover:text-accent">← 대시보드</Link>
 
-      <header className="mt-4 mb-12">
+      <header className="mt-4 mb-8">
         <h1 className="text-3xl font-bold">{me.name}의 과거 내역</h1>
         <p className="text-sm text-dim mt-2">
           {completed.length}/5 시나리오 · {chemistries.length}건 케미 · 자기 분석{' '}
           {selfReport ? '있음' : '없음'}
         </p>
       </header>
+
+      {/* 완성도 카드 */}
+      <section className="mb-12 bg-card border border-line rounded-2xl p-5">
+        <div className="flex items-baseline justify-between mb-3">
+          <p className="text-xs text-dim uppercase tracking-wider">추정 완성도</p>
+          <p className="text-2xl font-bold bg-gradient-to-r from-accent to-accent2 bg-clip-text text-transparent">
+            {completeness.percent}%
+          </p>
+        </div>
+        <div className="w-full h-1.5 bg-bg rounded-full overflow-hidden mb-3">
+          <div
+            className="h-full bg-gradient-to-r from-accent to-accent2"
+            style={{ width: `${completeness.percent}%` }}
+          />
+        </div>
+        <div className="text-xs text-dim space-y-1">
+          <p>레벨: <span className="text-accent3">{completeness.level}</span></p>
+          <p>측정된 축: {completeness.measured_axes}/{completeness.axes_total}</p>
+          <p>고신뢰 축 (≥0.65): {completeness.high_confidence_axes}/{completeness.axes_total}</p>
+          <p>평균 확실도: {completeness.average_confidence}</p>
+        </div>
+        {completeness.warning && (
+          <p className="text-xs text-amber-300 mt-3 leading-relaxed">{completeness.warning}</p>
+        )}
+      </section>
 
       {/* ─────── 시나리오별 ─────── */}
       <section className="mb-12">
