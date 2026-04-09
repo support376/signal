@@ -1,66 +1,151 @@
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { listUsers, getUser, getCompletedScenarios } from '@/lib/db';
-import { LENSES } from '@/lib/types';
 
-export const dynamic = 'force-dynamic';
+interface UserRow {
+  id: string;
+  name: string;
+  completed_count: number;
+}
 
-const LENS_LABELS: Record<string, string> = {
-  friend: '친구',
-  romantic: '연인',
-  family: '가족',
-  work: '동료',
-};
+function readCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const m = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return m ? decodeURIComponent(m[2]) : null;
+}
 
-export default async function ChemistryListPage() {
-  const userId = cookies().get('signal_user_id')?.value;
-  if (!userId) redirect('/');
+export default function ChemistryListPage() {
+  const router = useRouter();
+  const [me, setMe] = useState<{ id: string; name: string } | null>(null);
+  const [users, setUsers] = useState<UserRow[]>([]);
+  const [query, setQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [myProgress, setMyProgress] = useState<number>(0);
 
-  const me = await getUser(userId);
-  if (!me) redirect('/');
+  useEffect(() => {
+    const id = readCookie('signal_user_id');
+    const name = readCookie('signal_user_name');
+    if (!id) {
+      router.push('/');
+      return;
+    }
+    setMe({ id, name: name || id });
+    void loadUsers(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const allUsers = await listUsers(userId);
-  // 5개 시나리오 모두 완료한 사용자만
-  const usersWithVector: { id: string; name: string }[] = [];
-  for (const u of allUsers) {
-    const completed = await getCompletedScenarios(u.id);
-    if (completed.length >= 5) usersWithVector.push(u);
+  async function loadUsers(myId: string) {
+    setLoading(true);
+    try {
+      const r = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ excludeId: myId }),
+      });
+      const data = await r.json();
+      setUsers(data.users || []);
+      // 내 진행 상태 별도 fetch (전체 목록에 포함되지 않으므로)
+      const r2 = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      const data2 = await r2.json();
+      const meRow = (data2.users || []).find((u: UserRow) => u.id === myId);
+      setMyProgress(meRow?.completed_count || 0);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
   }
+
+  const filtered = useMemo(() => {
+    if (!query.trim()) return users;
+    const q = query.trim().toLowerCase();
+    return users.filter(
+      (u) => u.id.toLowerCase().includes(q) || u.name.toLowerCase().includes(q)
+    );
+  }, [users, query]);
+
+  const myReady = myProgress >= 5;
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
       <Link href="/dashboard" className="text-xs text-dim hover:text-accent">← 대시보드</Link>
 
-      <h1 className="text-3xl font-bold mt-4">케미 테스트</h1>
-      <p className="text-sm text-dim mt-2">상대방을 선택하고 렌즈를 골라.</p>
+      <header className="mt-4 mb-8">
+        <h1 className="text-3xl font-bold">케미 테스트</h1>
+        <p className="text-sm text-dim mt-2">상대방을 선택해.</p>
+      </header>
 
-      {usersWithVector.length === 0 && (
-        <div className="mt-8 p-6 bg-card border border-line rounded-xl text-center text-dim">
-          아직 5개 시나리오를 완료한 다른 사용자가 없어. 친구가 풀고 오면 여기에 표시돼.
+      {/* 내 상태 경고 */}
+      {!myReady && (
+        <div className="mb-6 p-4 bg-amber-900/20 border border-amber-700/40 rounded-xl text-sm">
+          <p className="text-amber-300 font-semibold mb-1">먼저 너의 5개 시나리오를 끝내야 해</p>
+          <p className="text-dim text-xs">
+            현재 진행: <span className="text-accent3">{myProgress}/5</span>. 5개 모두 완료해야 케미 분석이 활성화돼.
+          </p>
         </div>
       )}
 
-      <div className="mt-8 space-y-3">
-        {usersWithVector.map((u) => (
-          <div key={u.id} className="bg-card border border-line rounded-xl p-5">
-            <div className="flex items-baseline justify-between mb-3">
-              <p className="font-semibold text-lg">{u.name}</p>
-              <p className="text-xs text-dim">{u.id}</p>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              {LENSES.map((lens) => (
-                <Link
-                  key={lens}
-                  href={`/chemistry/${u.id}/${lens}`}
-                  className="text-center py-2 px-3 bg-bg border border-line rounded-lg text-sm hover:border-accent2 transition"
-                >
-                  {LENS_LABELS[lens]}
-                </Link>
-              ))}
-            </div>
-          </div>
-        ))}
+      {/* 검색 */}
+      <div className="mb-6">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="이름 또는 ID로 검색"
+          className="w-full px-4 py-3 bg-card border border-line rounded-xl text-fg placeholder:text-dim focus:border-accent focus:outline-none"
+        />
+      </div>
+
+      {loading && <p className="text-dim text-sm">불러오는 중...</p>}
+
+      {!loading && filtered.length === 0 && (
+        <div className="p-8 bg-card border border-line rounded-xl text-center text-dim text-sm">
+          {query ? `"${query}" 검색 결과 없음` : '아직 등록된 다른 사용자가 없어.'}
+        </div>
+      )}
+
+      {/* 사용자 목록 */}
+      <div className="space-y-2">
+        {filtered.map((u) => {
+          const otherReady = u.completed_count >= 5;
+          const canCompare = myReady && otherReady;
+
+          return (
+            <button
+              key={u.id}
+              onClick={() => canCompare && router.push(`/chemistry/${u.id}`)}
+              disabled={!canCompare}
+              className={`w-full text-left p-5 border rounded-xl transition ${
+                canCompare
+                  ? 'bg-card border-line hover:border-accent2 cursor-pointer'
+                  : 'bg-card/50 border-line/40 cursor-not-allowed opacity-50'
+              }`}
+            >
+              <div className="flex items-baseline justify-between">
+                <div>
+                  <p className="font-semibold text-lg">{u.name}</p>
+                  <p className="text-xs text-dim mt-1">{u.id}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs">
+                    {otherReady ? (
+                      <span className="text-accent3">✓ 5/5 완료</span>
+                    ) : (
+                      <span className="text-dim">{u.completed_count}/5</span>
+                    )}
+                  </p>
+                  {canCompare && <p className="text-xs text-accent2 mt-1">선택 →</p>}
+                </div>
+              </div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
