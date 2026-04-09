@@ -79,6 +79,31 @@ export async function listUsers(excludeId?: string) {
   return result.rows as { id: string; name: string }[];
 }
 
+/**
+ * 사용자 + 각자의 시나리오 완료 수를 한 번에 가져옴.
+ * 케미 페이지에서 "5/5 완료한 사람만 비교 가능" 표시용.
+ */
+export async function listUsersWithProgress(excludeId?: string) {
+  await ensureSchema();
+  const result = excludeId
+    ? await sql`
+        SELECT u.id, u.name, COUNT(sp.scenario_id)::int AS completed_count
+        FROM users u
+        LEFT JOIN scenario_payloads sp ON sp.user_id = u.id
+        WHERE u.id != ${excludeId}
+        GROUP BY u.id, u.name, u.created_at
+        ORDER BY u.created_at DESC;
+      `
+    : await sql`
+        SELECT u.id, u.name, COUNT(sp.scenario_id)::int AS completed_count
+        FROM users u
+        LEFT JOIN scenario_payloads sp ON sp.user_id = u.id
+        GROUP BY u.id, u.name, u.created_at
+        ORDER BY u.created_at DESC;
+      `;
+  return result.rows as { id: string; name: string; completed_count: number }[];
+}
+
 export async function getUser(id: string) {
   const r = await sql`SELECT id, name FROM users WHERE id = ${id};`;
   return r.rows[0] as { id: string; name: string } | undefined;
@@ -140,6 +165,18 @@ export async function getPayloads(userId: string): Promise<ScenarioPayload[]> {
     SELECT payload FROM scenario_payloads WHERE user_id = ${userId};
   `;
   return r.rows.map((row: any) => row.payload as ScenarioPayload);
+}
+
+export async function getPayload(
+  userId: string,
+  scenarioId: ScenarioId
+): Promise<ScenarioPayload | null> {
+  const r = await sql`
+    SELECT payload FROM scenario_payloads
+    WHERE user_id = ${userId} AND scenario_id = ${scenarioId};
+  `;
+  if (r.rows.length === 0) return null;
+  return r.rows[0].payload as ScenarioPayload;
 }
 
 export async function getCompletedScenarios(userId: string): Promise<ScenarioId[]> {
@@ -216,4 +253,31 @@ export async function getChemistry(aId: string, bId: string, lens: Lens) {
   `;
   if (r.rows.length === 0) return null;
   return r.rows[0] as { score: number; narrative: string; raw_data: any };
+}
+
+/**
+ * 사용자가 참여한 모든 케미 결과 + 상대방 이름.
+ * 과거 내역 페이지용.
+ */
+export async function listMyChemistries(userId: string) {
+  const r = await sql`
+    SELECT
+      cr.user_a_id, cr.user_b_id, cr.lens, cr.score, cr.created_at,
+      ua.name AS user_a_name,
+      ub.name AS user_b_name
+    FROM chemistry_results cr
+    JOIN users ua ON ua.id = cr.user_a_id
+    JOIN users ub ON ub.id = cr.user_b_id
+    WHERE cr.user_a_id = ${userId} OR cr.user_b_id = ${userId}
+    ORDER BY cr.created_at DESC;
+  `;
+  return r.rows as {
+    user_a_id: string;
+    user_b_id: string;
+    user_a_name: string;
+    user_b_name: string;
+    lens: string;
+    score: number;
+    created_at: string;
+  }[];
 }
