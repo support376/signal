@@ -60,6 +60,12 @@ export interface ChemistryMathResult {
   group_similarities: Record<Group, number>;
   axis_similarities: Record<Axis, number>;
   lens: Lens;
+
+  // 부분 벡터 지원 — 양쪽 모두 측정된 축의 비율 + 신뢰도 평균
+  effective_axes: number;       // conf > 0 양쪽 모두인 축 수
+  effective_ratio: number;      // 0..1
+  avg_pair_confidence: number;  // 0..1
+  reliability_label: '낮음' | '중간' | '높음';
 }
 
 export function computeChemistry(
@@ -67,15 +73,26 @@ export function computeChemistry(
   b: IntegratedVector,
   lens: Lens
 ): ChemistryMathResult {
-  // 1. Axis similarities
+  // 1. Axis similarities + 양쪽 confidence
   const axisSim: Record<Axis, number> = {} as any;
+  const pairConfs: number[] = [];
+  let effectiveAxes = 0;
+
   for (const ax of AXES) {
     const va = a.axes[ax].value;
     const vb = b.axes[ax].value;
+    const ca = a.axes[ax].confidence;
+    const cb = b.axes[ax].confidence;
+
     axisSim[ax] = 1 - Math.abs(va - vb) / 100;
+    const pairConf = Math.min(ca, cb);
+    pairConfs.push(pairConf);
+    if (pairConf > 0) effectiveAxes++;
   }
 
-  // 2. Group means
+  // 2. Group means — confidence weighted
+  // 양쪽 모두 측정된 축이 더 큰 영향력을 가지고,
+  // 한쪽이라도 측정 안 된 축은 weight 0 → 점수에 영향 X
   const groupAxes: Record<Group, Axis[]> = {
     value: [], big5: [], attachment: [], moral: [], behavior: [],
   };
@@ -83,15 +100,27 @@ export function computeChemistry(
 
   const groupSim: Record<Group, number> = {} as any;
   for (const g of ['value', 'big5', 'attachment', 'moral', 'behavior'] as Group[]) {
-    const sims = groupAxes[g].map((ax) => axisSim[ax]);
-    groupSim[g] = sims.reduce((s, v) => s + v, 0) / sims.length;
+    const items = groupAxes[g].map((ax) => ({
+      sim: axisSim[ax],
+      weight: Math.min(a.axes[ax].confidence, b.axes[ax].confidence),
+    }));
+    const totalWeight = items.reduce((s, i) => s + i.weight, 0);
+    groupSim[g] =
+      totalWeight > 0
+        ? items.reduce((s, i) => s + i.sim * i.weight, 0) / totalWeight
+        : 0.5; // 측정 0 → 중립 가정
   }
 
-  // 3. Attachment matrix override
+  // 3. Attachment matrix override (단, 양쪽 모두 측정된 경우만)
   const attA = classifyAttachment(a.axes.attach_anxiety.value, a.axes.attach_avoidance.value);
   const attB = classifyAttachment(b.axes.attach_anxiety.value, b.axes.attach_avoidance.value);
+  const attConfA = Math.min(a.axes.attach_anxiety.confidence, a.axes.attach_avoidance.confidence);
+  const attConfB = Math.min(b.axes.attach_anxiety.confidence, b.axes.attach_avoidance.confidence);
   const attVal = ATTACHMENT_MATRIX[attA][attB];
-  groupSim.attachment = attVal;
+  if (attConfA > 0.3 && attConfB > 0.3) {
+    groupSim.attachment = attVal;
+  }
+  // else: 위에서 계산된 weighted similarity 그대로 사용
 
   // 4. Raw base with lens weights
   const w = LENS_WEIGHTS[lens];
@@ -102,7 +131,7 @@ export function computeChemistry(
     w.moral * groupSim.moral +
     w.behavior * groupSim.behavior;
 
-  // 5. Major conflict penalty
+  // 5. Major conflict penalty (양쪽 conf > 0.5 인 경우만)
   const majorConflicts: Axis[] = [];
   for (const ax of AXES) {
     const va = a.axes[ax].value;
@@ -119,6 +148,15 @@ export function computeChemistry(
   // 6. Calibration
   const display = Math.max(0, Math.min(100, Math.round(((rawScore - 0.35) / 0.6) * 100)));
 
+  // 7. Reliability metadata
+  const effectiveRatio = effectiveAxes / 15;
+  const avgPairConf =
+    pairConfs.reduce((s, c) => s + c, 0) / pairConfs.length;
+  let reliability: ChemistryMathResult['reliability_label'];
+  if (effectiveRatio < 0.4 || avgPairConf < 0.2) reliability = '낮음';
+  else if (effectiveRatio < 0.75 || avgPairConf < 0.45) reliability = '중간';
+  else reliability = '높음';
+
   return {
     display,
     raw_score: rawScore,
@@ -132,5 +170,9 @@ export function computeChemistry(
     group_similarities: groupSim,
     axis_similarities: axisSim,
     lens,
+    effective_axes: effectiveAxes,
+    effective_ratio: effectiveRatio,
+    avg_pair_confidence: avgPairConf,
+    reliability_label: reliability,
   };
 }
