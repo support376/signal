@@ -41,19 +41,18 @@ export async function POST(req: Request) {
     // 2. 저장
     await savePayload(userId, sid, payload);
 
-    // 3. 5개 모두 완료되면 자동 통합
+    // 3. 매 시나리오마다 자동 통합 (1개부터 5개까지 모두)
+    // 부분 통합 벡터로도 self-report / chemistry 가능
     const allPayloads = await getPayloads(userId);
-    let integrated = null;
-    if (allPayloads.length >= 5) {
-      integrated = integrate(allPayloads, user?.name || userId);
-      await saveIntegratedVector(userId, integrated);
-    }
+    const integrated = integrate(allPayloads, user?.name || userId);
+    await saveIntegratedVector(userId, integrated);
 
     return NextResponse.json({
       ok: true,
       payload,
       completed_count: allPayloads.length,
-      integrated: integrated !== null,
+      integrated: true,
+      completeness: integrated.summary,
     });
   } catch (e: any) {
     console.error('[scenario/finalize] error', e);

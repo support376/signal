@@ -4,6 +4,8 @@ import { CHEMISTRY_NARRATIVE_SYSTEM, buildChemistryUserMessage } from '@/lib/pro
 import { computeChemistry } from '@/lib/chemistry-math';
 import { getIntegratedVector, getChemistry, saveChemistry, getUser } from '@/lib/db';
 import { LENSES, type Lens } from '@/lib/types';
+import { sanitizeNarrative, logSanitizerReport } from '@/lib/sanitizer';
+import { computeCompleteness } from '@/lib/integrator';
 
 export async function POST(req: Request) {
   try {
@@ -35,7 +37,7 @@ export async function POST(req: Request) {
     const vB = await getIntegratedVector(userBId);
     if (!vA || !vB) {
       return NextResponse.json(
-        { error: '두 사용자 모두 5개 시나리오 완료해야 함.' },
+        { error: '두 사용자 모두 최소 1개 이상의 시나리오를 완료해야 함.' },
         { status: 400 }
       );
     }
@@ -45,7 +47,10 @@ export async function POST(req: Request) {
     const nameA = userA?.name || userAId;
     const nameB = userB?.name || userBId;
 
-    // Layer 2: 수학
+    const compA = computeCompleteness(vA);
+    const compB = computeCompleteness(vB);
+
+    // Layer 2: 수학 (confidence-weighted, 부분 벡터 지원)
     const math = computeChemistry(vA, vB, lens as Lens);
 
     // Layer 3: narrative
@@ -66,13 +71,27 @@ export async function POST(req: Request) {
       temperature: 0.7,
     });
 
-    await saveChemistry(userAId, userBId, lens as Lens, math.display, narrative, math);
+    // Output sanitizer (관찰 모드 — 위반 발견 시 console.warn)
+    const report = sanitizeNarrative(narrative);
+    logSanitizerReport(`chemistry ${nameA}×${nameB}/${lens}`, report);
+
+    const enrichedRaw = {
+      ...math,
+      completeness_a: compA,
+      completeness_b: compB,
+      sanitizer_violations: report.total_violations,
+    };
+
+    await saveChemistry(userAId, userBId, lens as Lens, math.display, narrative, enrichedRaw);
 
     return NextResponse.json({
       score: math.display,
       narrative,
-      raw_data: math,
+      raw_data: enrichedRaw,
       cached: false,
+      reliability: math.reliability_label,
+      completeness_a: compA,
+      completeness_b: compB,
     });
   } catch (e: any) {
     console.error('[chemistry] error', e);
