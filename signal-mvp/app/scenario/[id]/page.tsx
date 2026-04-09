@@ -4,6 +4,8 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { SCENARIO_LABELS, SCENARIO_CONTEXTS } from '@/lib/scenario-meta';
 import { SCENARIOS, type ScenarioId } from '@/lib/types';
+import LoadingState from '@/app/components/loading-state';
+import { FINALIZE_PHASES } from '@/lib/loading-messages';
 
 interface Turn {
   turn_idx: number;
@@ -286,17 +288,26 @@ export default function ScenarioPage() {
         </div>
       )}
 
-      {finished && (
+      {finished && !finalizing && (
         <div className="bg-card border border-accent3 rounded-2xl p-6 text-center">
           <p className="text-accent3 font-semibold mb-2">✓ 시나리오 완료</p>
           <p className="text-sm text-dim mb-4">분석을 시작하면 결과가 저장됩니다.</p>
           <button
             onClick={finalize}
-            disabled={finalizing}
-            className="px-6 py-3 bg-accent3 text-bg rounded-lg font-semibold hover:opacity-80 disabled:opacity-50"
+            className="px-6 py-3 bg-accent3 text-bg rounded-lg font-semibold hover:opacity-80"
           >
-            {finalizing ? '분석 중...' : '분석하기'}
+            분석하기
           </button>
+        </div>
+      )}
+
+      {finalizing && (
+        <div className="bg-card border border-line rounded-2xl p-6">
+          <LoadingState
+            phases={FINALIZE_PHASES}
+            estimatedSec={20}
+            hint="대화에서 15축을 추출 + 통합 + 자기 분석에 반영하는 중. 보통 15~25초"
+          />
         </div>
       )}
     </div>

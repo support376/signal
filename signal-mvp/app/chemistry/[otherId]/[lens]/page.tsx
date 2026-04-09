@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { LENSES, type Lens } from '@/lib/types';
+import LoadingState from '@/app/components/loading-state';
+import { CHEMISTRY_PHASES } from '@/lib/loading-messages';
 
 interface CompletenessReport {
   percent: number;
@@ -118,7 +120,15 @@ export default function ChemistryResultPage() {
         )}
       </header>
 
-      {loading && <p className="text-dim">분석 생성 중... (15~30초)</p>}
+      {(loading || regenerating) && (
+        <div className="bg-card border border-line rounded-2xl p-6">
+          <LoadingState
+            phases={CHEMISTRY_PHASES}
+            estimatedSec={30}
+            hint={regenerating ? '새 케미 분석 재생성 중' : '두 사람의 벡터 비교 + 관계 narrative. 보통 20~35초'}
+          />
+        </div>
+      )}
 
       {error && (
         <div className="p-4 bg-red-900/20 border border-red-900/40 rounded-lg text-red-400 text-sm">

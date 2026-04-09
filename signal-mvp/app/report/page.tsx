@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import LoadingState from '@/app/components/loading-state';
+import { SELF_REPORT_PHASES } from '@/lib/loading-messages';
 
 interface CompletenessReport {
   percent: number;
@@ -95,7 +97,15 @@ export default function ReportPage() {
     <div className="max-w-2xl mx-auto px-4 py-12">
       <Link href="/dashboard" className="text-xs text-dim hover:text-accent">← 대시보드</Link>
 
-      {loading && <p className="text-dim mt-8">분석 생성 중... (10~20초)</p>}
+      {(loading || regenerating) && (
+        <div className="mt-8 bg-card border border-line rounded-2xl p-6">
+          <LoadingState
+            phases={SELF_REPORT_PHASES}
+            estimatedSec={20}
+            hint={regenerating ? '새 narrative 재생성 중' : '15축 벡터 → 자기 분석 narrative. 보통 15~25초'}
+          />
+        </div>
+      )}
 
       {error && (
         <div className="mt-8 p-4 bg-red-900/20 border border-red-900/40 rounded-lg text-red-400 text-sm">

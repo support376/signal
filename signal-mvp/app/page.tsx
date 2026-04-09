@@ -2,6 +2,8 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import LoadingState from './components/loading-state';
+import { LOGIN_PHASES } from '@/lib/loading-messages';
 
 function LoginInner() {
   const [id, setId] = useState('');
@@ -81,39 +83,47 @@ function LoginInner() {
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="text-xs text-dim uppercase tracking-wider">ID (영문/숫자)</label>
-            <input
-              type="text"
-              value={id}
-              onChange={(e) => setId(e.target.value)}
-              placeholder="예: junhyeok"
-              className="w-full mt-1 px-4 py-3 bg-bg border border-line rounded-lg text-fg focus:border-accent focus:outline-none"
-              autoFocus
-            />
-          </div>
-          <div>
-            <label className="text-xs text-dim uppercase tracking-wider">이름 (선택)</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="예: 박준혁"
-              className="w-full mt-1 px-4 py-3 bg-bg border border-line rounded-lg text-fg focus:border-accent focus:outline-none"
-            />
-          </div>
+        {loading ? (
+          <LoadingState
+            phases={LOGIN_PHASES}
+            estimatedSec={5}
+            hint="첫 로그인은 서버 콜드 스타트로 5~10초 걸릴 수 있어요"
+            size="md"
+          />
+        ) : (
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="text-xs text-dim uppercase tracking-wider">ID (영문/숫자)</label>
+              <input
+                type="text"
+                value={id}
+                onChange={(e) => setId(e.target.value)}
+                placeholder="예: junhyeok"
+                className="w-full mt-1 px-4 py-3 bg-bg border border-line rounded-lg text-fg focus:border-accent focus:outline-none"
+                autoFocus
+              />
+            </div>
+            <div>
+              <label className="text-xs text-dim uppercase tracking-wider">이름 (선택)</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="예: 박준혁"
+                className="w-full mt-1 px-4 py-3 bg-bg border border-line rounded-lg text-fg focus:border-accent focus:outline-none"
+              />
+            </div>
 
-          {error && <p className="text-sm text-red-400">{error}</p>}
+            {error && <p className="text-sm text-red-400">{error}</p>}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-accent text-bg font-semibold rounded-lg hover:bg-accent2 transition disabled:opacity-50"
-          >
-            {loading ? '...' : '시작'}
-          </button>
-        </form>
+            <button
+              type="submit"
+              className="w-full py-3 bg-accent text-bg font-semibold rounded-lg hover:bg-accent2 transition"
+            >
+              시작
+            </button>
+          </form>
+        )}
 
         <p className="text-xs text-dim mt-6 text-center leading-relaxed">
           ID는 식별자입니다. 같은 ID로 다시 들어오면 진행 상태가 이어집니다.
