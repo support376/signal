@@ -2,9 +2,23 @@ import { sql } from '@vercel/postgres';
 import type { ScenarioId, ScenarioPayload, IntegratedVector, Turn, Lens } from './types';
 
 // ──────────────────────────────────────────
-// Schema bootstrap (idempotent)
+// Schema bootstrap (idempotent + cached)
+// 한 번 성공하면 다시 안 돔. 모든 read/write 함수에서 호출.
 // ──────────────────────────────────────────
-export async function ensureSchema() {
+let schemaPromise: Promise<void> | null = null;
+
+export async function ensureSchema(): Promise<void> {
+  if (schemaPromise) return schemaPromise;
+  schemaPromise = (async () => {
+    await runSchemaBootstrap();
+  })().catch((e) => {
+    schemaPromise = null; // 실패 시 다음 호출에서 재시도
+    throw e;
+  });
+  return schemaPromise;
+}
+
+async function runSchemaBootstrap() {
   await sql`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
@@ -154,6 +168,7 @@ export async function updateSlug(userId: string, newSlug: string): Promise<{ ok:
 }
 
 export async function listMyReferrals(inviterId: string) {
+  await ensureSchema();
   const r = await sql`
     SELECT
       u.id, u.name, u.slug, u.created_at,
@@ -166,6 +181,7 @@ export async function listMyReferrals(inviterId: string) {
 }
 
 export async function countMyReferrals(inviterId: string) {
+  await ensureSchema();
   const r = await sql`SELECT COUNT(*)::int AS c FROM users WHERE referred_by = ${inviterId};`;
   return (r.rows[0] as { c: number }).c;
 }
@@ -204,6 +220,7 @@ export async function listUsersWithProgress(excludeId?: string) {
 }
 
 export async function getUser(id: string) {
+  await ensureSchema();
   const r = await sql`SELECT id, name, slug, bio, referred_by FROM users WHERE id = ${id};`;
   return r.rows[0] as
     | { id: string; name: string; slug: string | null; bio: string | null; referred_by: string | null }
@@ -214,6 +231,7 @@ export async function getUser(id: string) {
 // Scenario runs (turn-by-turn conversation)
 // ──────────────────────────────────────────
 export async function getTurns(userId: string, scenarioId: ScenarioId): Promise<Turn[]> {
+  await ensureSchema();
   const r = await sql`
     SELECT turn_idx, agent_msg, user_msg FROM scenario_runs
     WHERE user_id = ${userId} AND scenario_id = ${scenarioId}
@@ -229,6 +247,7 @@ export async function appendTurn(
   agentMsg: string,
   userMsg: string | null
 ) {
+  await ensureSchema();
   await sql`
     INSERT INTO scenario_runs (user_id, scenario_id, turn_idx, agent_msg, user_msg)
     VALUES (${userId}, ${scenarioId}, ${turnIdx}, ${agentMsg}, ${userMsg})
@@ -243,6 +262,7 @@ export async function setUserResponse(
   turnIdx: number,
   userMsg: string
 ) {
+  await ensureSchema();
   await sql`
     UPDATE scenario_runs SET user_msg = ${userMsg}
     WHERE user_id = ${userId} AND scenario_id = ${scenarioId} AND turn_idx = ${turnIdx};
@@ -253,6 +273,7 @@ export async function setUserResponse(
 // Scenario payloads (extracted vectors)
 // ──────────────────────────────────────────
 export async function savePayload(userId: string, scenarioId: ScenarioId, payload: ScenarioPayload) {
+  await ensureSchema();
   await sql`
     INSERT INTO scenario_payloads (user_id, scenario_id, payload)
     VALUES (${userId}, ${scenarioId}, ${JSON.stringify(payload)})
@@ -262,6 +283,7 @@ export async function savePayload(userId: string, scenarioId: ScenarioId, payloa
 }
 
 export async function getPayloads(userId: string): Promise<ScenarioPayload[]> {
+  await ensureSchema();
   const r = await sql`
     SELECT payload FROM scenario_payloads WHERE user_id = ${userId};
   `;
@@ -272,6 +294,7 @@ export async function getPayload(
   userId: string,
   scenarioId: ScenarioId
 ): Promise<ScenarioPayload | null> {
+  await ensureSchema();
   const r = await sql`
     SELECT payload FROM scenario_payloads
     WHERE user_id = ${userId} AND scenario_id = ${scenarioId};
@@ -281,6 +304,7 @@ export async function getPayload(
 }
 
 export async function getCompletedScenarios(userId: string): Promise<ScenarioId[]> {
+  await ensureSchema();
   const r = await sql`
     SELECT scenario_id FROM scenario_payloads WHERE user_id = ${userId};
   `;
@@ -291,6 +315,7 @@ export async function getCompletedScenarios(userId: string): Promise<ScenarioId[
 // Integrated vectors
 // ──────────────────────────────────────────
 export async function saveIntegratedVector(userId: string, vector: IntegratedVector) {
+  await ensureSchema();
   await sql`
     INSERT INTO integrated_vectors (user_id, vector)
     VALUES (${userId}, ${JSON.stringify(vector)})
@@ -299,6 +324,7 @@ export async function saveIntegratedVector(userId: string, vector: IntegratedVec
 }
 
 export async function getIntegratedVector(userId: string): Promise<IntegratedVector | null> {
+  await ensureSchema();
   const r = await sql`SELECT vector FROM integrated_vectors WHERE user_id = ${userId};`;
   if (r.rows.length === 0) return null;
   return r.rows[0].vector as IntegratedVector;
@@ -308,6 +334,7 @@ export async function getIntegratedVector(userId: string): Promise<IntegratedVec
 // Self-reports
 // ──────────────────────────────────────────
 export async function saveSelfReport(userId: string, narrative: string) {
+  await ensureSchema();
   await sql`
     INSERT INTO self_reports (user_id, narrative)
     VALUES (${userId}, ${narrative})
@@ -316,6 +343,7 @@ export async function saveSelfReport(userId: string, narrative: string) {
 }
 
 export async function getSelfReport(userId: string): Promise<string | null> {
+  await ensureSchema();
   const r = await sql`SELECT narrative FROM self_reports WHERE user_id = ${userId};`;
   if (r.rows.length === 0) return null;
   return r.rows[0].narrative as string;
@@ -336,6 +364,7 @@ export async function saveChemistry(
   narrative: string,
   rawData: object
 ) {
+  await ensureSchema();
   const [x, y] = pairKey(aId, bId);
   await sql`
     INSERT INTO chemistry_results (user_a_id, user_b_id, lens, score, narrative, raw_data)
@@ -347,6 +376,7 @@ export async function saveChemistry(
 }
 
 export async function getChemistry(aId: string, bId: string, lens: Lens) {
+  await ensureSchema();
   const [x, y] = pairKey(aId, bId);
   const r = await sql`
     SELECT score, narrative, raw_data FROM chemistry_results
@@ -361,6 +391,7 @@ export async function getChemistry(aId: string, bId: string, lens: Lens) {
  * 과거 내역 페이지용.
  */
 export async function listMyChemistries(userId: string) {
+  await ensureSchema();
   const r = await sql`
     SELECT
       cr.user_a_id, cr.user_b_id, cr.lens, cr.score, cr.created_at,
