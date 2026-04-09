@@ -1,14 +1,29 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function LoginPage() {
+function LoginInner() {
   const [id, setId] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // ?ref=df 처리 — 쿠키에 30일 저장
+  const refParam = searchParams.get('ref');
+  useEffect(() => {
+    if (refParam) {
+      document.cookie = `signal_ref=${encodeURIComponent(refParam)}; path=/; max-age=${60 * 60 * 24 * 30}`;
+    }
+  }, [refParam]);
+
+  function readRefCookie(): string | null {
+    if (typeof document === 'undefined') return null;
+    const m = document.cookie.match(/(^|;\s*)signal_ref=([^;]+)/);
+    return m ? decodeURIComponent(m[2]) : null;
+  }
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -19,16 +34,27 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
     try {
+      const referrerSlug = refParam || readRefCookie() || undefined;
       const r = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: id.trim(), name: name.trim() || id.trim() }),
+        body: JSON.stringify({
+          id: id.trim(),
+          name: name.trim() || id.trim(),
+          referrerSlug,
+        }),
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || 'login failed');
-      // 쿠키 저장 (브라우저)
+
       document.cookie = `signal_user_id=${data.id}; path=/; max-age=${60 * 60 * 24 * 30}`;
       document.cookie = `signal_user_name=${encodeURIComponent(data.name)}; path=/; max-age=${60 * 60 * 24 * 30}`;
+
+      // 신규 가입 후 referral 쿠키 삭제 (한 번만 사용)
+      if (data.isNew) {
+        document.cookie = 'signal_ref=; path=/; max-age=0';
+      }
+
       router.push('/dashboard');
     } catch (e: any) {
       setError(e.message);
@@ -44,8 +70,16 @@ export default function LoginPage() {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-accent to-accent2 bg-clip-text text-transparent">
             Signal
           </h1>
-          <p className="text-dim text-sm mt-2">Internal MVP</p>
+          <p className="text-dim text-sm mt-2">잠재의식 + 케미 분석</p>
         </div>
+
+        {refParam && (
+          <div className="mb-6 p-3 bg-accent/10 border border-accent/30 rounded-lg text-sm text-center">
+            <p className="text-accent">
+              <span className="font-semibold">@{refParam}</span> 가 너를 초대했어
+            </p>
+          </div>
+        )}
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
@@ -87,5 +121,13 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginInner />
+    </Suspense>
   );
 }

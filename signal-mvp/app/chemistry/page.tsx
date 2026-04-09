@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import ShareModal from '@/app/components/share-modal';
 
 interface UserRow {
   id: string;
@@ -18,11 +19,12 @@ function readCookie(name: string): string | null {
 
 export default function ChemistryListPage() {
   const router = useRouter();
-  const [me, setMe] = useState<{ id: string; name: string } | null>(null);
+  const [me, setMe] = useState<{ id: string; name: string; slug: string } | null>(null);
   const [users, setUsers] = useState<UserRow[]>([]);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [myProgress, setMyProgress] = useState<number>(0);
+  const [shareOpen, setShareOpen] = useState(false);
 
   useEffect(() => {
     const id = readCookie('signal_user_id');
@@ -31,10 +33,28 @@ export default function ChemistryListPage() {
       router.push('/');
       return;
     }
-    setMe({ id, name: name || id });
+    void loadMe(id, name || id);
     void loadUsers(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function loadMe(id: string, fallbackName: string) {
+    try {
+      const r = await fetch('/api/me', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: id }),
+      });
+      const data = await r.json();
+      if (r.ok) {
+        setMe({ id: data.id, name: data.name, slug: data.slug });
+      } else {
+        setMe({ id, name: fallbackName, slug: id });
+      }
+    } catch {
+      setMe({ id, name: fallbackName, slug: id });
+    }
+  }
 
   async function loadUsers(myId: string) {
     setLoading(true);
@@ -83,6 +103,22 @@ export default function ChemistryListPage() {
         <p className="text-sm text-dim mt-2">상대방을 선택해. 부분 데이터로도 가능 (정확도는 낮아).</p>
       </header>
 
+      {/* 친구 초대 안내 카드 — 검색해도 없으면 초대 */}
+      <div className="mb-6 p-4 bg-card border border-line rounded-xl">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold">상대가 여기 없어?</p>
+            <p className="text-xs text-dim mt-1">너의 Signal 링크 / QR 보내서 초대해.</p>
+          </div>
+          <button
+            onClick={() => setShareOpen(true)}
+            className="px-4 py-2 bg-accent text-bg text-sm font-semibold rounded-lg hover:bg-accent2 transition whitespace-nowrap"
+          >
+            📤 초대하기
+          </button>
+        </div>
+      </div>
+
       {/* 내 상태 경고 */}
       {!myReady && (
         <div className="mb-6 p-4 bg-amber-900/20 border border-amber-700/40 rounded-xl text-sm">
@@ -118,6 +154,16 @@ export default function ChemistryListPage() {
         <div className="p-8 bg-card border border-line rounded-xl text-center text-dim text-sm">
           {query ? `"${query}" 검색 결과 없음` : '아직 등록된 다른 사용자가 없어.'}
         </div>
+      )}
+
+      {/* Share modal */}
+      {me && (
+        <ShareModal
+          open={shareOpen}
+          onClose={() => setShareOpen(false)}
+          slug={me.slug}
+          name={me.name}
+        />
       )}
 
       {/* 사용자 목록 */}

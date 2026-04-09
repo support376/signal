@@ -5,9 +5,11 @@ import {
   getCompletedScenarios,
   getUser,
   getIntegratedVector,
+  countMyReferrals,
 } from '@/lib/db';
 import { computeCompleteness } from '@/lib/integrator';
 import { SCENARIO_ORDER, SCENARIO_LABELS, SCENARIO_CONTEXTS } from '@/lib/scenario-meta';
+import MyLinkCard from '@/app/components/my-link-card';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,15 +24,29 @@ export default async function DashboardPage() {
   const completedSet = new Set(completed);
   const vector = await getIntegratedVector(userId);
   const completeness = computeCompleteness(vector);
+  const referredCount = await countMyReferrals(userId);
 
   const hasAnyData = completeness.scenarios_completed > 0;
+  // Slug fallback: 기존 사용자가 NULL이면 user.id 사용
+  const userSlug = user.slug || user.id;
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
       <header className="mb-12">
         <p className="text-xs text-dim uppercase tracking-wider">로그인됨</p>
         <h1 className="text-3xl font-bold mt-1">{user.name}</h1>
+        <p className="text-xs text-dim mt-1 font-mono">@{userSlug}</p>
       </header>
+
+      {/* ─────────────────────────────────────
+          내 Signal 링크 카드 (slug, 공유, 변경, referral 카운트)
+      ──────────────────────────────────── */}
+      <MyLinkCard
+        userId={userId}
+        initialSlug={userSlug}
+        name={user.name}
+        referredCount={referredCount}
+      />
 
       {/* ─────────────────────────────────────
           추정 완성도 카드
