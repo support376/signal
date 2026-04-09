@@ -2,14 +2,30 @@ import { sql } from '@vercel/postgres';
 import type { ScenarioId, ScenarioPayload, IntegratedVector, Turn, Lens } from './types';
 
 // ──────────────────────────────────────────
-// Schema bootstrap (idempotent + cached)
-// 한 번 성공하면 다시 안 돔. 모든 read/write 함수에서 호출.
+// Schema bootstrap (idempotent + cached + fast-path)
+// 한 번 성공하면 다시 안 돔. fast-path: 1개 SELECT로 schema 존재 확인
+// → 있으면 모든 ALTER 스킵. cold start 마다 ~500ms-1s 절약.
 // ──────────────────────────────────────────
 let schemaPromise: Promise<void> | null = null;
+
+async function schemaFastCheck(): Promise<boolean> {
+  try {
+    const r = await sql`
+      SELECT 1 FROM information_schema.columns
+      WHERE table_name = 'users' AND column_name = 'slug'
+      LIMIT 1;
+    `;
+    return r.rows.length > 0;
+  } catch {
+    return false; // table 자체가 없음 → 풀 마이그레이션 필요
+  }
+}
 
 export async function ensureSchema(): Promise<void> {
   if (schemaPromise) return schemaPromise;
   schemaPromise = (async () => {
+    // Fast-path: schema 이미 최신이면 풀 bootstrap 스킵
+    if (await schemaFastCheck()) return;
     await runSchemaBootstrap();
   })().catch((e) => {
     schemaPromise = null; // 실패 시 다음 호출에서 재시도

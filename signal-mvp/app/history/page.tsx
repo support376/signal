@@ -27,11 +27,14 @@ export default async function HistoryPage() {
   const me = await getUser(userId);
   if (!me) redirect('/');
 
-  const completed = await getCompletedScenarios(userId);
+  // 4개 read 병렬화
+  const [completed, selfReport, chemistries, integrated] = await Promise.all([
+    getCompletedScenarios(userId),
+    getSelfReport(userId),
+    listMyChemistries(userId),
+    getIntegratedVector(userId),
+  ]);
   const completedSet = new Set(completed);
-  const selfReport = await getSelfReport(userId);
-  const chemistries = await listMyChemistries(userId);
-  const integrated = await getIntegratedVector(userId);
   const completeness = computeCompleteness(integrated);
 
   return (
