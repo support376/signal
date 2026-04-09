@@ -39,22 +39,23 @@ export default function ChemistryListPage() {
   async function loadUsers(myId: string) {
     setLoading(true);
     try {
-      const r = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ excludeId: myId }),
-      });
-      const data = await r.json();
-      setUsers(data.users || []);
-      // 내 진행 상태 별도 fetch (전체 목록에 포함되지 않으므로)
-      const r2 = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
-      });
-      const data2 = await r2.json();
-      const meRow = (data2.users || []).find((u: UserRow) => u.id === myId);
-      setMyProgress(meRow?.completed_count || 0);
+      // 다른 사용자 목록 + 내 완성도를 병렬로 한 번에
+      const [usersR, compR] = await Promise.all([
+        fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ excludeId: myId }),
+        }),
+        fetch('/api/completeness', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: myId }),
+        }),
+      ]);
+      const usersData = await usersR.json();
+      const compData = await compR.json();
+      setUsers(usersData.users || []);
+      setMyProgress(compData?.completeness?.scenarios_completed || 0);
     } catch (e) {
       console.error(e);
     } finally {

@@ -126,8 +126,8 @@ export default function ChemistryResultPage() {
         </div>
       )}
 
-      {/* 부분 데이터 경고 */}
-      {(compA || compB) && (compA?.percent || 0) < 80 && (compB?.percent || 0) < 80 && narrative && (
+      {/* 부분 데이터 경고 — 한쪽이라도 80% 미만이면 표시 */}
+      {narrative && ((compA?.percent ?? 100) < 80 || (compB?.percent ?? 100) < 80) && (
         <div className="mb-6 p-4 bg-amber-900/20 border border-amber-700/40 rounded-xl">
           <p className="text-amber-300 text-sm font-semibold mb-1">⚠️ 부분 데이터 기반</p>
           <p className="text-xs text-dim leading-relaxed">
