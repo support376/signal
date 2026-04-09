@@ -9,7 +9,7 @@ import {
   getIntegratedVector,
 } from '@/lib/db';
 import { computeCompleteness } from '@/lib/integrator';
-import { SCENARIO_ORDER, SCENARIO_LABELS, SCENARIO_CONTEXTS } from '@/lib/prompts/scenarios';
+import { SCENARIO_ORDER, SCENARIO_LABELS, SCENARIO_CONTEXTS } from '@/lib/scenario-meta';
 
 export const dynamic = 'force-dynamic';
 

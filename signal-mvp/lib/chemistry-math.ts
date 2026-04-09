@@ -148,13 +148,13 @@ export function computeChemistry(
   // 6. Calibration
   const display = Math.max(0, Math.min(100, Math.round(((rawScore - 0.35) / 0.6) * 100)));
 
-  // 7. Reliability metadata
+  // 7. Reliability metadata (strict thresholds — 1/5 vs 5/5는 명백히 낮음)
   const effectiveRatio = effectiveAxes / 15;
   const avgPairConf =
     pairConfs.reduce((s, c) => s + c, 0) / pairConfs.length;
   let reliability: ChemistryMathResult['reliability_label'];
-  if (effectiveRatio < 0.4 || avgPairConf < 0.2) reliability = '낮음';
-  else if (effectiveRatio < 0.75 || avgPairConf < 0.45) reliability = '중간';
+  if (effectiveRatio < 0.5 || avgPairConf < 0.25) reliability = '낮음';
+  else if (effectiveRatio < 0.85 || avgPairConf < 0.50) reliability = '중간';
   else reliability = '높음';
 
   return {

@@ -2,8 +2,8 @@ import { cookies } from 'next/headers';
 import { redirect, notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getTurns, getPayload, getUser } from '@/lib/db';
-import { SCENARIO_LABELS, SCENARIO_CONTEXTS } from '@/lib/prompts/scenarios';
-import { SCENARIOS, type ScenarioId } from '@/lib/types';
+import { SCENARIO_LABELS, SCENARIO_CONTEXTS } from '@/lib/scenario-meta';
+import { SCENARIOS, AXIS_LABELS_KO, type ScenarioId, type Axis } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -89,16 +89,20 @@ export default async function ScenarioVectorPage({
 
             {Object.entries(payload.axes_measured).map(([axis, m]) => {
               if (!m) return null;
+              const koLabel = AXIS_LABELS_KO[axis as Axis];
               return (
                 <div
                   key={axis}
                   className="bg-card border border-line rounded-xl p-4"
                 >
-                  <div className="flex items-baseline justify-between mb-2">
-                    <p className="font-mono text-xs text-accent3">{axis}</p>
-                    <div className="flex items-baseline gap-3 text-xs">
-                      <span className="text-fg font-semibold">value: {m.value}</span>
-                      <span className="text-dim">conf: {m.confidence.toFixed(2)}</span>
+                  <div className="flex items-baseline justify-between mb-2 gap-3">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-sm text-fg">{koLabel}</p>
+                      <p className="font-mono text-xs text-dim mt-0.5">{axis}</p>
+                    </div>
+                    <div className="flex items-baseline gap-3 text-xs whitespace-nowrap">
+                      <span className="text-accent3 font-semibold">{m.value}</span>
+                      <span className="text-dim">conf {m.confidence.toFixed(2)}</span>
                       {m.strength && (
                         <span className={STRENGTH_COLOR[m.strength] || 'text-dim'}>
                           {m.strength}
@@ -126,7 +130,9 @@ export default async function ScenarioVectorPage({
             {payload.axes_skipped.length > 0 && (
               <div className="text-xs text-dim mt-4">
                 <p className="uppercase tracking-wider mb-1">측정 안 된 축</p>
-                <p className="font-mono">{payload.axes_skipped.join(', ')}</p>
+                <p className="leading-relaxed">
+                  {payload.axes_skipped.map((a) => AXIS_LABELS_KO[a]).join(' · ')}
+                </p>
               </div>
             )}
 
