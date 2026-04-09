@@ -373,6 +373,37 @@ export async function getIntegratedVector(userId: string): Promise<IntegratedVec
   return r.rows[0].vector as IntegratedVector;
 }
 
+/**
+ * 전체 사용자 + integrated_vector + 시나리오 진행도 한 번에.
+ * 친구찾기 (수학 기반 즉시 매칭) 페이지용.
+ */
+export async function listAllUsersWithVectors(excludeId?: string) {
+  await ensureSchema();
+  const r = excludeId
+    ? await sql`
+        SELECT u.id, u.name, u.slug, iv.vector,
+               (SELECT COUNT(*)::int FROM scenario_payloads sp WHERE sp.user_id = u.id) AS completed_count
+        FROM users u
+        LEFT JOIN integrated_vectors iv ON iv.user_id = u.id
+        WHERE u.id != ${excludeId}
+        ORDER BY u.created_at DESC;
+      `
+    : await sql`
+        SELECT u.id, u.name, u.slug, iv.vector,
+               (SELECT COUNT(*)::int FROM scenario_payloads sp WHERE sp.user_id = u.id) AS completed_count
+        FROM users u
+        LEFT JOIN integrated_vectors iv ON iv.user_id = u.id
+        ORDER BY u.created_at DESC;
+      `;
+  return r.rows as {
+    id: string;
+    name: string;
+    slug: string | null;
+    vector: IntegratedVector | null;
+    completed_count: number;
+  }[];
+}
+
 // ──────────────────────────────────────────
 // Self-reports
 // ──────────────────────────────────────────

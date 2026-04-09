@@ -4,12 +4,25 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ShareModal from '@/app/components/share-modal';
+import { LENSES, type Lens } from '@/lib/types';
 
-interface UserRow {
+interface ScoredUser {
   id: string;
   name: string;
+  slug: string;
   completed_count: number;
+  score: number | null;
+  reliability: '낮음' | '중간' | '높음' | null;
+  effective_axes: number;
+  major_conflicts_count: number;
 }
+
+const LENS_LABELS: Record<Lens, string> = {
+  friend: '친구',
+  romantic: '연인',
+  family: '가족',
+  work: '동료',
+};
 
 function readCookie(name: string): string | null {
   if (typeof document === 'undefined') return null;
@@ -17,14 +30,30 @@ function readCookie(name: string): string | null {
   return m ? decodeURIComponent(m[2]) : null;
 }
 
+function scoreColor(score: number | null): string {
+  if (score === null) return 'text-dim';
+  if (score >= 75) return 'text-accent3';
+  if (score >= 50) return 'text-accent';
+  if (score >= 30) return 'text-amber-300';
+  return 'text-red-400';
+}
+
+function reliabilityColor(rel: string | null): string {
+  if (rel === '높음') return 'text-accent3';
+  if (rel === '중간') return 'text-amber-300';
+  return 'text-dim';
+}
+
 export default function ChemistryListPage() {
   const router = useRouter();
   const [me, setMe] = useState<{ id: string; name: string; slug: string } | null>(null);
-  const [users, setUsers] = useState<UserRow[]>([]);
+  const [lens, setLens] = useState<Lens>('friend');
+  const [users, setUsers] = useState<ScoredUser[]>([]);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [myProgress, setMyProgress] = useState<number>(0);
   const [shareOpen, setShareOpen] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const id = readCookie('signal_user_id');
@@ -34,9 +63,13 @@ export default function ChemistryListPage() {
       return;
     }
     void loadMe(id, name || id);
-    void loadUsers(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (me) void loadScores(me.id, lens);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [me, lens]);
 
   async function loadMe(id: string, fallbackName: string) {
     try {
@@ -56,28 +89,26 @@ export default function ChemistryListPage() {
     }
   }
 
-  async function loadUsers(myId: string) {
+  async function loadScores(myId: string, currentLens: Lens) {
     setLoading(true);
+    setError('');
     try {
-      // 다른 사용자 목록 + 내 완성도를 병렬로 한 번에
-      const [usersR, compR] = await Promise.all([
-        fetch('/api/users', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ excludeId: myId }),
-        }),
-        fetch('/api/completeness', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: myId }),
-        }),
-      ]);
-      const usersData = await usersR.json();
-      const compData = await compR.json();
-      setUsers(usersData.users || []);
-      setMyProgress(compData?.completeness?.scenarios_completed || 0);
-    } catch (e) {
-      console.error(e);
+      const r = await fetch('/api/chemistry/scores', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: myId, lens: currentLens }),
+      });
+      const data = await r.json();
+      if (!r.ok) {
+        setError(data.error || '실패');
+        setUsers([]);
+        setMyProgress(data.my_completed || 0);
+      } else {
+        setUsers(data.users || []);
+        setMyProgress(data.my_completed || 0);
+      }
+    } catch (e: any) {
+      setError(e.message);
     } finally {
       setLoading(false);
     }
@@ -91,19 +122,20 @@ export default function ChemistryListPage() {
     );
   }, [users, query]);
 
-  const myReady = myProgress >= 1; // 1개 이상 완료하면 케미 가능
   const myFullyReady = myProgress >= 5;
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
       <Link href="/dashboard" className="text-xs text-dim hover:text-accent">← 대시보드</Link>
 
-      <header className="mt-4 mb-8">
-        <h1 className="text-3xl font-bold">케미 테스트</h1>
-        <p className="text-sm text-dim mt-2">상대방을 선택해. 부분 데이터로도 가능 (정확도는 낮아).</p>
+      <header className="mt-4 mb-6">
+        <h1 className="text-3xl font-bold">친구찾기</h1>
+        <p className="text-sm text-dim mt-2">
+          가입한 모든 사람과 너의 즉시 일치도 (수학 기반, LLM 호출 없음).
+        </p>
       </header>
 
-      {/* 친구 초대 안내 카드 — 검색해도 없으면 초대 */}
+      {/* 친구 초대 카드 */}
       <div className="mb-6 p-4 bg-card border border-line rounded-xl">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
@@ -114,47 +146,45 @@ export default function ChemistryListPage() {
             onClick={() => setShareOpen(true)}
             className="px-4 py-2 bg-accent text-bg text-sm font-semibold rounded-lg hover:bg-accent2 transition whitespace-nowrap"
           >
-            📤 초대하기
+            📤 초대
           </button>
         </div>
       </div>
 
-      {/* 내 상태 경고 */}
-      {!myReady && (
+      {/* 내 진행도 안내 */}
+      {myProgress < 1 && (
         <div className="mb-6 p-4 bg-amber-900/20 border border-amber-700/40 rounded-xl text-sm">
-          <p className="text-amber-300 font-semibold mb-1">먼저 시나리오 1개라도 완료해야 해</p>
+          <p className="text-amber-300 font-semibold mb-1">먼저 시나리오 1개 이상 완료해야 해</p>
           <p className="text-dim text-xs">
-            현재 진행: <span className="text-accent3">{myProgress}/5</span>. 1개 이상부터 케미 가능 (단 정확도 낮음).
+            현재 진행: <span className="text-accent3">{myProgress}/5</span>.
           </p>
         </div>
       )}
-      {myReady && !myFullyReady && (
-        <div className="mb-6 p-4 bg-amber-900/10 border border-amber-700/30 rounded-xl text-sm">
-          <p className="text-amber-300 font-semibold mb-1">⚠️ 완성도 낮음</p>
-          <p className="text-dim text-xs">
-            시나리오 {myProgress}/5 완료. 케미 분석은 가능하지만 정확도가 낮을 수 있어. 5개 모두 완료하면 더 깊은 분석이 나와.
-          </p>
+      {myProgress >= 1 && !myFullyReady && (
+        <div className="mb-6 p-3 bg-amber-900/10 border border-amber-700/30 rounded-xl text-xs text-dim">
+          나의 시나리오 {myProgress}/5 — 더 많이 풀수록 점수가 더 정확해져.
         </div>
       )}
 
-      {/* 검색 */}
+      {/* 렌즈 토글 */}
       <div className="mb-6">
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="이름 또는 ID로 검색"
-          className="w-full px-4 py-3 bg-card border border-line rounded-xl text-fg placeholder:text-dim focus:border-accent focus:outline-none"
-        />
-      </div>
-
-      {loading && <p className="text-dim text-sm">불러오는 중...</p>}
-
-      {!loading && filtered.length === 0 && (
-        <div className="p-8 bg-card border border-line rounded-xl text-center text-dim text-sm">
-          {query ? `"${query}" 검색 결과 없음` : '아직 등록된 다른 사용자가 없어.'}
+        <p className="text-xs text-dim uppercase tracking-wider mb-2">관계 렌즈</p>
+        <div className="grid grid-cols-4 gap-2">
+          {LENSES.map((l) => (
+            <button
+              key={l}
+              onClick={() => setLens(l)}
+              className={`py-2 px-3 text-sm rounded-lg border transition ${
+                lens === l
+                  ? 'bg-accent text-bg border-accent font-semibold'
+                  : 'bg-card border-line text-dim hover:border-accent'
+              }`}
+            >
+              {LENS_LABELS[l]}
+            </button>
+          ))}
         </div>
-      )}
+      </div>
 
       {/* Share modal */}
       {me && (
@@ -166,17 +196,41 @@ export default function ChemistryListPage() {
         />
       )}
 
-      {/* 사용자 목록 */}
+      {/* 검색 */}
+      <div className="mb-4">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="이름 또는 ID로 검색"
+          className="w-full px-4 py-3 bg-card border border-line rounded-xl text-fg placeholder:text-dim focus:border-accent focus:outline-none"
+        />
+      </div>
+
+      {error && (
+        <div className="mb-4 p-3 bg-red-900/20 border border-red-900/40 rounded-lg text-red-400 text-sm">
+          {error}
+        </div>
+      )}
+
+      {loading && <p className="text-dim text-sm text-center py-8">계산 중...</p>}
+
+      {!loading && filtered.length === 0 && (
+        <div className="p-8 bg-card border border-line rounded-xl text-center text-dim text-sm">
+          {query ? `"${query}" 검색 결과 없음` : '아직 등록된 다른 사용자가 없어.'}
+        </div>
+      )}
+
+      {/* 사용자 목록 (점수순 정렬) */}
       <div className="space-y-2">
         {filtered.map((u) => {
           const otherReady = u.completed_count >= 1;
-          const canCompare = myReady && otherReady;
-          const otherFullyReady = u.completed_count >= 5;
+          const canCompare = myProgress >= 1 && otherReady;
 
           return (
             <button
               key={u.id}
-              onClick={() => canCompare && router.push(`/chemistry/${u.id}`)}
+              onClick={() => canCompare && router.push(`/chemistry/${u.id}/${lens}`)}
               disabled={!canCompare}
               className={`w-full text-left p-5 border rounded-xl transition ${
                 canCompare
@@ -184,25 +238,35 @@ export default function ChemistryListPage() {
                   : 'bg-card/50 border-line/40 cursor-not-allowed opacity-50'
               }`}
             >
-              <div className="flex items-baseline justify-between">
-                <div>
-                  <p className="font-semibold text-lg">{u.name}</p>
-                  <p className="text-xs text-dim mt-1">{u.id}</p>
+              <div className="flex items-center justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-lg truncate">{u.name}</p>
+                  <p className="text-xs text-dim mt-0.5 font-mono">@{u.slug}</p>
+                  <div className="flex items-center gap-3 mt-2 text-xs text-dim">
+                    <span>{u.completed_count}/5 시나리오</span>
+                    {u.reliability && (
+                      <span className={reliabilityColor(u.reliability)}>
+                        신뢰도 {u.reliability}
+                      </span>
+                    )}
+                    {u.major_conflicts_count > 0 && (
+                      <span className="text-amber-300">
+                        충돌 {u.major_conflicts_count}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs">
-                    {otherFullyReady ? (
-                      <span className="text-accent3">✓ 5/5 완료</span>
-                    ) : otherReady ? (
-                      <span className="text-amber-300">{u.completed_count}/5 (부분)</span>
-                    ) : (
-                      <span className="text-dim">시나리오 0개</span>
-                    )}
-                  </p>
-                  {canCompare && (
-                    <p className={`text-xs mt-1 ${otherFullyReady ? 'text-accent2' : 'text-amber-300'}`}>
-                      선택 →
+                  {u.score !== null ? (
+                    <p className={`text-3xl font-bold ${scoreColor(u.score)}`}>
+                      {u.score}
+                      <span className="text-base text-dim">%</span>
                     </p>
+                  ) : (
+                    <p className="text-xs text-dim">측정 안 됨</p>
+                  )}
+                  {canCompare && (
+                    <p className="text-xs text-accent2 mt-1">narrative →</p>
                   )}
                 </div>
               </div>
@@ -210,6 +274,13 @@ export default function ChemistryListPage() {
           );
         })}
       </div>
+
+      {!loading && filtered.length > 0 && (
+        <p className="text-xs text-dim text-center mt-6">
+          점수는 두 사람의 15축 벡터를 수학적으로 비교한 결과 (LLM 호출 없음).
+          클릭하면 narrative 분석이 생성됩니다.
+        </p>
+      )}
     </div>
   );
 }
