@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Signal — Pitch Deck</title>
+<style>
+  :root {
+    --bg: #0b0d12;
+    --bg-card: #141821;
+    --bg-card-2: #1a1f2b;
+    --fg: #e8ecf3;
+    --fg-dim: #aab2c0;
+    --accent: #7aa2ff;
+    --accent-2: #b07aff;
+    --accent-3: #5be3c7;
+    --warn: #ffb86b;
+    --line: #2a3142;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg);
+    font-family: -apple-system, "Pretendard", "Segoe UI", "Apple SD Gothic Neo", sans-serif;
+    line-height: 1.65; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 56px 32px 120px; }
+  header.top { text-align: center; padding: 64px 0 32px; border-bottom: 1px solid var(--line); margin-bottom: 56px; }
+  header.top h1 { font-size: 64px; margin: 0 0 8px; letter-spacing: -2px;
+    background: linear-gradient(120deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  header.top .tagline { font-size: 20px; color: var(--fg-dim); margin-top: 12px; }
+  header.top .meta { font-size: 13px; color: var(--fg-dim); margin-top: 24px; opacity: 0.7; }
+  section.slide { background: var(--bg-card); border: 1px solid var(--line); border-radius: 16px;
+    padding: 40px 44px; margin-bottom: 32px; box-shadow: 0 8px 40px rgba(0,0,0,0.3); }
+  section.slide:hover { border-color: #3a4458; }
+  .slide-num { display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: 1px;
+    color: var(--accent); background: rgba(122,162,255,0.12); padding: 4px 10px; border-radius: 4px; margin-bottom: 16px; }
+  h2 { font-size: 32px; margin: 0 0 8px; letter-spacing: -0.5px; color: var(--fg); }
+  h3 { font-size: 20px; margin: 28px 0 12px; color: var(--accent-3); }
+  h4 { font-size: 16px; margin: 20px 0 8px; color: var(--fg-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+  p { margin: 12px 0; color: var(--fg); }
+  ul, ol { padding-left: 22px; }
+  li { margin: 8px 0; }
+  strong { color: #fff; }
+  em { color: var(--accent-3); font-style: normal; }
+  blockquote { border-left: 3px solid var(--accent); padding: 8px 18px; margin: 20px 0;
+    background: rgba(122,162,255,0.06); color: var(--fg-dim); font-style: italic; border-radius: 0 8px 8px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { background: var(--bg-card-2); color: var(--accent); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { color: var(--fg); }
+  pre { background: #0a0c11; border: 1px solid var(--line); border-radius: 8px; padding: 16px;
+    overflow-x: auto; font-size: 13px; color: var(--accent-3); }
+  code { background: rgba(122,162,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 13px; color: var(--accent); }
+  pre code { background: transparent; padding: 0; color: inherit; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .pillar { background: var(--bg-card-2); border-radius: 10px; padding: 18px; border-left: 3px solid var(--accent); }
+  .pillar h4 { color: var(--accent); margin-top: 0; }
+  .closing { text-align: center; padding: 64px 32px; background: linear-gradient(135deg, rgba(122,162,255,0.08), rgba(176,122,255,0.08));
+    border-radius: 16px; margin-top: 48px; border: 1px solid var(--line); }
+  .closing blockquote { font-size: 22px; border: none; background: none; font-style: normal;
+    color: var(--fg); max-width: 700px; margin: 0 auto 24px; padding: 0; }
+  hr { border: none; border-top: 1px solid var(--line); margin: 32px 0; }
+  .toc { background: var(--bg-card-2); border-radius: 10px; padding: 20px 28px; margin-bottom: 40px; }
+  .toc a { color: var(--accent); text-decoration: none; display: inline-block; margin-right: 18px; font-size: 14px; }
+  .toc a:hover { color: var(--accent-2); }
+  .key-stat { display: inline-block; background: rgba(91,227,199,0.1); color: var(--accent-3);
+    padding: 4px 12px; border-radius: 6px; font-weight: 600; margin: 4px 4px 4px 0; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <h1>Signal</h1>
+  <div class="tagline">Emotional Connection Infrastructure</div>
+  <div class="tagline" style="font-size:16px; opacity:0.8;">진짜 사람을 위한, 진짜 연결을 위한 플랫폼</div>
+  <div class="meta">Pitch Deck v1.0 · 2026-04 · Seed Round 투자 검토용</div>
+</header>
+
+<nav class="toc">
+  <a href="#s1">1. Title</a>
+  <a href="#s2">2. Problem</a>
+  <a href="#s3">3. Solution</a>
+  <a href="#s4">4. Why Now</a>
+  <a href="#s5">5. Market</a>
+  <a href="#s6">6. Product</a>
+  <a href="#s7">7. Business Model</a>
+  <a href="#s8">8. Traction</a>
+  <a href="#s9">9. GTM</a>
+  <a href="#s10">10. Competition</a>
+  <a href="#s11">11. Financials</a>
+  <a href="#s12">12. Team & Ask</a>
+</nav>
+
+<section class="slide" id="s1">
+  <span class="slide-num">SLIDE 01 · TITLE</span>
+  <h2>인간 정서 인프라의 표준이 되는 회사</h2>
+  <blockquote>"사주는 운명을 본다. Signal은 너의 선택을 본다."</blockquote>
+  <ul>
+    <li><strong>Founder & CEO</strong>: DF</li>
+    <li><strong>Stage</strong>: Pre-seed → Seed</li>
+    <li><strong>Raising</strong>: $1–2M Seed (Pre-seed $50–100k 진행 중)</li>
+  </ul>
+</section>
+
+<section class="slide" id="s2">
+  <span class="slide-num">SLIDE 02 · THE PROBLEM</span>
+  <h2>사람들은 그 어느 때보다 외롭다</h2>
+  <ul>
+    <li>글로벌 외로움 인구가 사상 최고치. WHO가 외로움을 공중보건 위기로 선언.</li>
+    <li>데이팅앱 사용자의 80%가 <em>"3–6개월 후 다 똑같다"</em>며 이탈 — <strong>외모·위치 매칭의 한계</strong>.</li>
+    <li>MBTI·사주는 일평균 수십만 검색량 — <strong>자기 이해와 타인 이해에 대한 거대한 욕구</strong>, 그러나 16개 박스 또는 운명론에 갇힘.</li>
+    <li>심리상담은 비싸고 느리고 접근성 낮음.</li>
+  </ul>
+  <blockquote><strong>카테고리 공백</strong>: "정서적 깊이가 있는 인간 호환성 인프라"는 비어 있다.</blockquote>
+</section>
+
+<section class="slide" id="s3">
+  <span class="slide-num">SLIDE 03 · THE SOLUTION</span>
+  <h2>Signal — AI 시대의 새로운 답</h2>
+  <p>자연어 대화로 잠재의식을 측정하고, 학술적으로 검증된 15개 심리 축으로 프로파일링하며, 누구와도 깊은 케미를 분석한다.</p>
+
+  <h3>3 Layer Architecture</h3>
+  <table>
+    <tr><th>Layer</th><th>역할</th><th>특징</th></tr>
+    <tr><td><strong>L1 대화</strong></td><td>5개 시나리오 × 5턴 자연어</td><td>정답 없는 도덕 딜레마, 무의식 노출</td></tr>
+    <tr><td><strong>L2 수학</strong></td><td>15축 추출 + 케미 결정 계산</td><td>LLM 없이 즉시 계산, 결정적</td></tr>
+    <tr><td><strong>L3 해석</strong></td><td>신화적 narrative 생성</td><td>융·라캉 수준의 문학적 깊이</td></tr>
+  </table>
+
+  <h3>4가지 핵심 차별점</h3>
+  <div class="grid-2">
+    <div class="pillar"><h4>① 위장 불가능성</h4>LLM이 무엇을 측정하는지 사용자가 모름. 의식적 조작 불가.</div>
+    <div class="pillar"><h4>② 학술적 정확성</h4>Schwartz / Big Five / Bowlby / Haidt / Gottman 황금표준.</div>
+    <div class="pillar"><h4>③ 문학적 깊이</h4><em>"타인을 믿는 것보다 시스템을 배신하는 것을 더 두려워하는 사람"</em> 류 헤드라인.</div>
+    <div class="pillar"><h4>④ 반(反)광고 모델</h4>데이터 안 팔고, 영혼 안 판다.</div>
+  </div>
+</section>
+
+<section class="slide" id="s4">
+  <span class="slide-num">SLIDE 04 · WHY NOW</span>
+  <h2>5년 전엔 기술이 없었고, 5년 후엔 카테고리가 잡힌 뒤다</h2>
+  <ul>
+    <li><strong>LLM 성숙</strong> — Claude Sonnet 4.5 수준에서 잠재의식 추출이 처음으로 가능해짐.</li>
+    <li><strong>MBTI·사주 피로</strong> — 박스 분류에 지친 Gen Z·밀레니얼이 <em>"진짜 나"</em>를 찾고 있음.</li>
+    <li><strong>데이팅앱 붕괴</strong> — Tinder·Match Group 주가 -80%. 사용자들이 외모 매칭을 떠나는 중.</li>
+    <li><strong>외로움 위기</strong> — 정부·학계가 <em>"관계의 질"</em>을 사회 인프라 문제로 인식.</li>
+    <li><strong>K-pop 글로벌</strong> — 팬덤 = <em>"좋아하는 사람과의 가상관계 욕구"</em>의 폭발적 시장.</li>
+  </ul>
+  <blockquote>지금이 유일한 진입 창.</blockquote>
+</section>
+
+<section class="slide" id="s5">
+  <span class="slide-num">SLIDE 05 · MARKET</span>
+  <h2>4개 시장의 교집합 — 비어 있는 자리</h2>
+  <table>
+    <tr><th>시장</th><th>크기</th><th>한계</th></tr>
+    <tr><td>데이팅앱</td><td>글로벌 $9B</td><td>외모·위치 기반</td></tr>
+    <tr><td>심리진단 (한국 사주)</td><td>$5B</td><td>운명론</td></tr>
+    <tr><td>소셜네트워크</td><td>$200B+</td><td>자기과시 도구</td></tr>
+    <tr><td>Creator economy</td><td>$250B</td><td>거래 중심, 정서 없음</td></tr>
+  </table>
+
+  <p><span class="key-stat">SAM 글로벌 15억</span> <span class="key-stat">5년 reachable 7,500만</span> <span class="key-stat">$2.25B ARR (보수)</span></p>
+
+  <p><strong>진짜 시장</strong>: 수억 명의 잠재의식 데이터 자산 → HR / 결혼정보 / 상담 / 멘토링 / 갈등중재 — <em>"인간 호환성을 다루는 모든 산업"</em>의 기반.</p>
+</section>
+
+<section class="slide" id="s6">
+  <span class="slide-num">SLIDE 06 · PRODUCT</span>
+  <h2>핵심 사용자 경험</h2>
+  <ol>
+    <li><strong>Self Profile</strong> — 5개 시나리오 대화 (60–90분, 무료, 평생 1회)</li>
+    <li><strong>15축 프로파일</strong> — 가치관 6 + 성격 3 + 애착 2 + 도덕 2 + 행동 2</li>
+    <li><strong>Chemistry</strong> — 친구·연인·가족·동료 4개 렌즈로 누구와도 즉시 비교</li>
+    <li><strong>Narrative</strong> — 점수 + 헤드라인 + 매치 3 + 충돌 3 + 그림자 + 예언</li>
+  </ol>
+
+  <h3>검증된 결과 (이인혁 × 이영희 페르소나)</h3>
+  <ul>
+    <li>Display score <strong>36%</strong> (romantic lens)</li>
+    <li>애착: avoidant × anxious = <strong>임상적 최악 조합</strong></li>
+    <li>Headline 자동생성: <em>"신뢰를 돈으로 재려 하면서도, 결국 사랑으로 측정하는 사람"</em></li>
+  </ul>
+
+  <h4>7가지 narrative hard rules</h4>
+  <p>3인칭 실명 · 원문 인용 금지 · 숫자 금지 · 구체 장면 강제 · 메타포 권장 · 양가성 유지 · 따뜻하되 정직</p>
+</section>
+
+<section class="slide" id="s7">
+  <span class="slide-num">SLIDE 07 · BUSINESS MODEL</span>
+  <h2>"쿠팡 모델" — 가입은 무료, 결제는 욕망이 발화한 순간</h2>
+  <table>
+    <tr><th>Tier</th><th>가격</th><th>비중</th><th>핵심 가치</th></tr>
+    <tr><td>Free</td><td>$0</td><td>50–60%</td><td>무제한 케미 + 점수/헤드라인 · <strong>데이터 자산</strong></td></tr>
+    <tr><td>Casual</td><td>$1/회</td><td>25–30%</td><td>Deep analysis pay-per-use</td></tr>
+    <tr><td>Premium</td><td>$7/월</td><td>10–15%</td><td>무제한 deep + L0–L2 셀럽</td></tr>
+    <tr><td>Premium Plus</td><td>$15/월</td><td>3–5%</td><td>L3–L4 셀럽 + 종합 리포트</td></tr>
+    <tr><td>Professional</td><td>$49/월</td><td>&lt;1%</td><td>Therapist tools + API</td></tr>
+  </table>
+
+  <h3>3개 매출 원천</h3>
+  <ul>
+    <li>60–70% 구독료 (Premium 계열)</li>
+    <li>20–30% Creator chemistry (셀럽 케미)</li>
+    <li>10% Casual</li>
+  </ul>
+
+  <p><strong>Creator Economy</strong> — L0–L5 tier × rev share 0–70%, 가격은 creator 자체 결정 (mega는 $3, niche는 $100). Cameo의 75%와 경쟁 가능.</p>
+</section>
+
+<section class="slide" id="s8">
+  <span class="slide-num">SLIDE 08 · TRACTION & VALIDATION</span>
+  <h2>Phase 1 검증 — 완료</h2>
+  <ul>
+    <li>✅ 15축 시스템이 대조 페르소나를 정확히 구분 (이인혁 / 이영희)</li>
+    <li>✅ Chemistry 수학 calibration → 직관적 0–100 분포 (랜덤 50, 쌍둥이 100, 극단 0)</li>
+    <li>✅ Narrative 품질이 사주 수준 이상 — 익명 5명 self-report에서 <em>"이거 나네"</em> 4/5</li>
+    <li>✅ 시나리오 1 (24h 투자 제안) end-to-end 작동</li>
+    <li>✅ 4개 렌즈 (Friend / Romantic / Family / Work) 가중치 검증</li>
+  </ul>
+
+  <h3>다음 4–6주 (Phase 2)</h3>
+  <ul>
+    <li>시나리오 2 (파트너의 침묵) 양산 → 친밀감/애착 측정</li>
+    <li>5–10쌍 pair 검증 → false positive/negative &lt; 20% 목표</li>
+  </ul>
+</section>
+
+<section class="slide" id="s9">
+  <span class="slide-num">SLIDE 09 · GO-TO-MARKET</span>
+  <h2>Creator-first launch — 광고 거의 안 한다</h2>
+  <table>
+    <tr><th>Phase</th><th>기간</th><th>목표</th><th>핵심 액션</th></tr>
+    <tr><td>P1 한국 Pilot</td><td>M1–6</td><td>1M users, MRR $50–100k</td><td>Mid-tier creator 5명 보장 deal ($10–15k)</td></tr>
+    <tr><td>P2 일본+영어권</td><td>M7–12</td><td>5M users, ARR $7M</td><td>K-pop 팬덤 진입, TikTok viral</td></tr>
+    <tr><td>P3 다국어</td><td>Y2</td><td>30M users, ARR $64M</td><td>스/포/인니어, PPP 가격</td></tr>
+    <tr><td>P4 Platform</td><td>Y3+</td><td>100M users, ARR $320M</td><td>B2B (HR, 데이팅앱, 상담)</td></tr>
+    <tr><td>P5 Standard</td><td>Y5+</td><td>500M users, ARR $1.5B</td><td>4번째 identity infrastructure</td></tr>
+  </table>
+  <p><strong>한국이 첫 시장인 이유</strong>: KakaoTalk 100% 점유 → 바이럴 비용 0, MBTI/사주 문화 깊음, K-pop 팬덤이 글로벌 entry vehicle.</p>
+</section>
+
+<section class="slide" id="s10">
+  <span class="slide-num">SLIDE 10 · COMPETITION</span>
+  <h2>직접 경쟁자 — 없음</h2>
+  <table>
+    <tr><th>경쟁군</th><th>대표</th><th>Signal과의 차이</th></tr>
+    <tr><td>성격 진단</td><td>16Personalities</td><td>정적 박스 vs 동적 narrative + 호환성</td></tr>
+    <tr><td>점성술</td><td>Co-Star (30M DL)</td><td>운명론 vs 너의 선택</td></tr>
+    <tr><td>데이팅</td><td>Tinder, Hinge</td><td>외모 vs 잠재의식</td></tr>
+    <tr><td>Cameo</td><td>Cameo</td><td>Creator 노력 필요 vs 한 번 측정 평생 패시브</td></tr>
+    <tr><td>Patreon/OF</td><td>OnlyFans</td><td>거래 중심 vs 정서 중심</td></tr>
+  </table>
+
+  <h3>4중 Moat (vs Big Tech)</h3>
+  <div class="grid-2">
+    <div class="pillar"><h4>① 속도</h4>한국 PMF 6개월</div>
+    <div class="pillar"><h4>② 신뢰</h4>Anti-광고는 광고 사업자가 따라할 수 없음</div>
+    <div class="pillar"><h4>③ 데이터</h4>100M 잠재의식 프로파일 그 자체</div>
+    <div class="pillar"><h4>④ Brand</h4><em>"진짜 나를 이해하는 곳"</em>의 정서 충성도</div>
+  </div>
+</section>
+
+<section class="slide" id="s11">
+  <span class="slide-num">SLIDE 11 · FINANCIALS & VISION</span>
+  <h2>5년 ARR 곡선</h2>
+<pre><code>Y1 2026  한국 PMF       1M users     $7M ARR    $30–50M val
+Y2 2027  글로벌 베타    30M          $64M       $300–500M
+Y3 2028  글로벌 본격   100M          $320M      $2–4B
+Y4 2029  B2B 진입      250M          $700M      $7–10B
+Y5 2030  인프라 확립   500M          $1.5B      $15–25B</code></pre>
+
+  <h3>Unit Economics (Year 1 가정)</h3>
+  <ul>
+    <li>ARPU (paid avg) ≈ $7–9/월</li>
+    <li>LTV $30+ (보수), 360+ (Premium 5년)</li>
+    <li>CAC 목표 $1–3 (creator-led organic)</li>
+    <li>Gross margin 80%+ (LLM cost cache 후)</li>
+  </ul>
+  <blockquote>이 매출이 <strong>광고 없이, 데이터 판매 없이, 영혼 없이</strong> 만들어진다.</blockquote>
+</section>
+
+<section class="slide" id="s12">
+  <span class="slide-num">SLIDE 12 · TEAM & ASK</span>
+  <h2>Team</h2>
+  <ul>
+    <li><strong>Founder/CEO (DF)</strong> — 사업 비전, 제품 결정, creator 컨택</li>
+    <li><strong>외부 개발 (현재)</strong> — 시나리오 빌드, 프론트엔드</li>
+    <li><strong>Pre-seed 영입</strong>: Senior Designer, Senior Backend</li>
+    <li><strong>Seed 영입</strong>: CTO, Frontend, Marketing Lead, Data Scientist</li>
+  </ul>
+  <p><em>Mission-driven 채용</em> — Anti-OnlyFans brand가 top talent의 자석.</p>
+
+  <h3>The Ask — Seed Round $1–2M</h3>
+  <ul>
+    <li>핵심팀 4–5명 영입 (60%)</li>
+    <li>한국 1M 사용자 마케팅 + creator 보장 deal (25%)</li>
+    <li>시나리오 3–5 양산 + 인프라 (15%)</li>
+  </ul>
+  <p><strong>조건 충족 시점에서 클로징</strong>: 한국 PMF, active creator 5+, MRR $20k+</p>
+</section>
+
+<div class="closing">
+  <blockquote>Signal은 사랑을 위한 인프라입니다.<br>진짜 인간을 위한, 진짜 연결을 위한.</blockquote>
+  <p style="color:var(--fg-dim); max-width:680px; margin:0 auto;">
+    Instagram이 시각적 정체성, LinkedIn이 직업적 정체성의 인프라가 되었듯,
+    Signal은 <strong>정서적 정체성</strong>의 인프라가 된다.
+    이 자리는 비어 있고, 처음 점유하는 회사가 trillion-dollar 규모의 가치를 가진다.
+  </p>
+</div>
+
+</div>
+</body>
+</html>

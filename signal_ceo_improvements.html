@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>CEO Response Memo — Signal</title>
+<style>
+  :root {
+    --bg: #fafaf7;
+    --bg-card: #ffffff;
+    --bg-soft: #f0ede4;
+    --fg: #1a1a1a;
+    --fg-dim: #555;
+    --accent: #1d4ed8;
+    --accent-2: #0891b2;
+    --green: #15803d;
+    --red: #b91c1c;
+    --amber: #b45309;
+    --line: #e2e0d4;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; background: var(--bg); color: var(--fg);
+    font-family: -apple-system, "Pretendard", "Inter", "Segoe UI", "Apple SD Gothic Neo", sans-serif;
+    line-height: 1.7; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 56px 36px 120px; }
+  header.top { padding-bottom: 28px; margin-bottom: 40px; border-bottom: 4px solid var(--accent); }
+  header.top .label { display: inline-block; font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    color: #fff; background: var(--accent); padding: 5px 12px; border-radius: 4px; font-weight: 700; }
+  header.top h1 { font-size: 40px; margin: 14px 0 6px; letter-spacing: -0.8px; }
+  header.top .sub { color: var(--fg-dim); font-size: 17px; }
+  header.top .meta { font-size: 13px; color: var(--fg-dim); margin-top: 18px; }
+  header.top .meta span { display: inline-block; margin-right: 18px; }
+  .persona { background: var(--bg-soft); border-left: 4px solid var(--accent-2); padding: 18px 24px; margin-bottom: 36px; font-size: 14px; color: var(--fg-dim); border-radius: 0 6px 6px 0; }
+  .persona strong { color: var(--accent); }
+  h2 { font-size: 26px; margin: 48px 0 14px; padding-bottom: 10px; border-bottom: 2px solid var(--line); color: var(--accent); letter-spacing: -0.3px; }
+  h3 { font-size: 19px; margin: 28px 0 10px; color: var(--fg); }
+  h4 { font-size: 15px; margin: 20px 0 8px; color: var(--accent-2); text-transform: uppercase; letter-spacing: 0.5px; }
+  p { margin: 12px 0; }
+  ul, ol { padding-left: 22px; }
+  li { margin: 7px 0; }
+  strong { color: #000; font-weight: 700; }
+  em { color: var(--accent); font-style: normal; font-weight: 600; }
+  blockquote { border-left: 4px solid var(--accent-2); background: var(--bg-soft); margin: 18px 0; padding: 14px 22px;
+    font-style: italic; color: var(--fg); border-radius: 0 6px 6px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14px; }
+  th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--bg-soft); color: var(--accent); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  pre { background: #0f172a; color: #cbd5e1; border-radius: 6px; padding: 18px; overflow-x: auto; font-size: 13px; line-height: 1.6; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 18px 0; }
+  .card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 8px; padding: 18px 22px; }
+  .card.green { border-left: 4px solid var(--green); }
+  .card.red { border-left: 4px solid var(--red); }
+  .card.amber { border-left: 4px solid var(--amber); }
+  .card h4 { margin-top: 0; }
+  .badge-green { display: inline-block; background: var(--green); color: #fff; padding: 2px 10px; border-radius: 3px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+  .badge-red { display: inline-block; background: var(--red); color: #fff; padding: 2px 10px; border-radius: 3px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+  .badge-amber { display: inline-block; background: var(--amber); color: #fff; padding: 2px 10px; border-radius: 3px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+  .insight { background: linear-gradient(135deg, #eff6ff, #ecfeff); border: 1px solid #bfdbfe; border-radius: 10px; padding: 22px 26px; margin: 18px 0; }
+  .insight h3 { margin-top: 0; color: var(--accent); }
+  .closing { background: var(--accent); color: #fff; padding: 32px 36px; border-radius: 10px; margin-top: 56px; text-align: center; }
+  .closing blockquote { border: none; background: none; color: #fff; font-size: 19px; margin: 0; font-style: normal; }
+  hr { border: none; border-top: 1px solid var(--line); margin: 32px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div class="label">Internal · CEO Response</div>
+  <h1>CEO Response Memo</h1>
+  <div class="sub">VC 평가에 대한 개선안 — Signal</div>
+  <div class="meta">
+    <span><strong>작성일:</strong> 2026-04-09</span>
+    <span><strong>입력:</strong> VC Investment Memo (Conditional PASS, 6.5/10)</span>
+    <span><strong>대상:</strong> 내부 의사결정 + VC follow-up</span>
+  </div>
+</header>
+
+<div class="persona">
+  <strong>CEO Agent Persona</strong> — Signal Founder/CEO. 사업의 본질을 <em>"진짜 사람을 위한, 진짜 연결을 위한 platform"</em>으로 정의하고, anti-pattern 5가지를 영구히 거절하는 mission-driven founder.
+  평가 원칙: (1) VC의 우려를 방어가 아니라 <em>"내가 보지 못한 것"</em>으로 받아들인다; (2) 미션은 절대 양보하지 않지만, 미션 외 모든 것은 데이터로 조정한다; (3) 검증되지 않은 가설은 <em>"내가 옳다"</em>가 아니라 <em>"내가 틀릴 수 있다"</em>로 다룬다; (4) 단기 매출이 mission에 어긋나면 거절, mission에 부합하면 단기 비용을 감수한다.
+</div>
+
+<h2>0. 자기 평가</h2>
+
+<h3>VC가 100% 옳다 (즉시 수정) <span class="badge-red">ACCEPT</span></h3>
+<ol>
+  <li><strong>Retention 가설이 약하다.</strong> Self-discovery 앱 LTV ceiling을 너무 낙관적으로 봤다.</li>
+  <li><strong>Creator cold start 위험이 단일 의존 가설이다.</strong> 첫 1명에 모든 게 걸린 비대칭은 사실.</li>
+  <li><strong>CTO 부재가 founder dependency다.</strong> Phase 2 작업을 1인이 6개월 안에 못한다.</li>
+  <li><strong>LLM cost projection이 deck에 없다.</strong> 말로만 했지 숫자가 없었다.</li>
+  <li><strong>법무 예산이 너무 작게 잡혔다.</strong> Day 1 compliance는 substantial.</li>
+</ol>
+
+<h3>VC가 부분적으로 옳다 (재해석 필요) <span class="badge-amber">REFRAME</span></h3>
+<ol start="6">
+  <li><strong>DAU/MAU &lt; 10% 가능성</strong>: 사실이지만 <em>"일일 사용 습관"</em>은 우리 KPI가 아니다. Instagram의 daily가 아니라 LinkedIn의 weekly가 reference. 이 frame을 deck에서 명확히 못한 게 실수.</li>
+  <li><strong>글로벌 narrative quality 리스크</strong>: 인정. 검증 비용 문제이지 본질적 불가능은 아님. 각 단계에 narrative 검증 게이트.</li>
+</ol>
+
+<h3>VC가 놓친 것 (내가 더 강하게 본다) <span class="badge-green">DEFEND</span></h3>
+<ol start="8">
+  <li><strong>Anti-광고 mission의 talent gravity</strong>: brand moat뿐 아니라 채용·partnership·media coverage 3중 자석. Hidden compounding.</li>
+  <li><strong>데이터 자산의 시간 가치</strong>: 100M 잠재의식 프로파일은 <em>"존재 자체"</em>가 unprecedented research dataset.</li>
+  <li><strong><em>"위장 불가능성"</em>의 진짜 의미</strong>: 차별점이 아니라 <em>"AI 시대의 신뢰 layer"</em>. Deepfake가 폭증할수록 비선형으로 가치 증가.</li>
+</ol>
+
+<h2>1. 즉시 변경 — 사업기획서 v3.1 수정사항</h2>
+
+<h3>1.1 Retention KPI 재정의</h3>
+<ul>
+  <li>기존 <em>"DAU 형성"</em> 표현 삭제</li>
+  <li>신규 KPI: <strong>L7 (Lifetime sessions per user) ≥ 12</strong>, <strong>Reactivation rate (90일 dormant) ≥ 25%</strong>, <strong>Chemistry/user/lifetime ≥ 8</strong></li>
+  <li>새로운 retention hook 3가지:
+    <ol>
+      <li><em>"오늘의 사람"</em> — 매주 1명 anonymous matching 추천</li>
+      <li><em>"관계 변화 알림"</em> — 6개월 후 답변 재풀이 시 narrative 변화</li>
+      <li><em>"내 사람들의 새 면"</em> — 친구가 새 시나리오 풀면 notification</li>
+    </ol>
+  </li>
+</ul>
+
+<h3>1.2 Unit Economics 재모델링</h3>
+<ul>
+  <li>LTV $30 → <strong>$12 / $30 / $50 3-시나리오</strong></li>
+  <li>Year 5 ARR <strong>$1.5B → base $800M / upside $1.5B</strong></li>
+  <li>LLM cost 곡선 명시:
+    <ul>
+      <li>Phase 1: $0.40/lifetime (no cache)</li>
+      <li>Phase 2: $0.18/lifetime</li>
+      <li>Phase 3: $0.08/lifetime</li>
+    </ul>
+  </li>
+  <li>Gross margin trajectory: <strong>30% → 55% → 78%</strong></li>
+</ul>
+
+<h3>1.3 Creator GTM 재설계 — 3-tier funnel</h3>
+<table>
+  <tr><th>Tier</th><th>대상</th><th>전략</th><th>예산</th></tr>
+  <tr><td>A — Mega</td><td>1M+ followers</td><td>Zero-effort hook 직접 컨택</td><td>보장 deal 없음</td></tr>
+  <tr><td>B — Big</td><td>100k–1M</td><td>"한국 첫 5인" prestige</td><td>$3k × 3명 = $9k</td></tr>
+  <tr><td>C — Niche</td><td>Deep community</td><td>공동체 가치 어필</td><td>없음</td></tr>
+</table>
+<p><strong>단일 의존 제거</strong>: A·B·C 동시 진행. <strong>Founder가 직접 모든 컨택</strong>. 첫 50명은 founder 본인 시간으로.</p>
+
+<h3>1.4 채용 우선순위 재배치</h3>
+<ul>
+  <li>기존: Pre-seed에 Designer + Backend</li>
+  <li>변경: <strong>Pre-seed 첫 영입은 CTO / Tech Co-founder</strong>. Backend는 그 다음.</li>
+  <li>CTO criteria: LLM ops 경험 + mission-driven + Korean/English bilingual</li>
+</ul>
+
+<h3>1.5 법무·컴플라이언스 예산 증액</h3>
+<ul>
+  <li>Pre-seed 법무: <strong>$5k → $20k</strong></li>
+  <li>Day 1 GDPR DPO appointment, 한국 개인정보보호법 자체점검</li>
+  <li>자살 신호 감지 시스템: <strong>Phase 2 mandatory</strong> (was Phase 3)</li>
+</ul>
+
+<h2>2. Phase 2 Sprint Plan (4–6주)</h2>
+<p>VC 5개 정량 게이트를 <em>"우리의 self-validation 게이트"</em>로 채택. 통과 못하면 사업기획서를 다시 쓴다.</p>
+
+<div class="grid-2">
+  <div class="card">
+    <h4>Week 1–2 · Pair 검증 인프라</h4>
+    <ul>
+      <li>시나리오 2 분석 프롬프트 완성</li>
+      <li>5쌍 (실제 커플) 모집</li>
+      <li>Pair 검증 protocol 작성</li>
+      <li>LLM cost dashboard 셋업</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>Week 3–4 · 검증 실행 + 시나리오 3</h4>
+    <ul>
+      <li>5쌍 검증 데이터 수집</li>
+      <li>시나리오 3 프롬프트</li>
+      <li>Creator outreach Tier A·B 30명</li>
+      <li>CTO candidate 5명 shortlist</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>Week 5–6 · 시나리오 4–5 + 보고서</h4>
+    <ul>
+      <li>시나리오 4·5 draft</li>
+      <li>Pair 검증 결과 리포트</li>
+      <li>5개 게이트 통합 보고서</li>
+      <li>VC에 transparent 공유</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>5개 게이트 (Phase 2 종료)</h4>
+    <ol>
+      <li>Pair 5쌍 중 3쌍 4+/5</li>
+      <li>Creator 20명 중 4명 응답</li>
+      <li>False pos/neg &lt; 25%</li>
+      <li>LLM cost &lt; $0.50/lifetime</li>
+      <li>CTO shortlist 3 + verbal 1</li>
+    </ol>
+  </div>
+</div>
+
+<h2>3. VC Diligence 8개 질문 답변</h2>
+<ol>
+  <li><strong>Retention hook</strong>: 위 1.1의 3가지 hook + L7 KPI. Daily가 아니라 <em>"새 사람 만났을 때"</em> trigger model.</li>
+  <li><strong>첫 Creator 컨택</strong>: 현재 0명. Phase 2 Week 3부터 founder 직접 30명. <strong>Pre-seed 자금 사용 전 Tier A 1명 / Tier B 2명 응답을 self-게이트로</strong>.</li>
+  <li><strong>Pair 검증 baseline</strong>: 현재 없음. Phase 2 Week 3–4에 첫 5쌍 실측. Raw data 형태로 VC 공개.</li>
+  <li><strong>LLM Unit Economics 실측</strong>: 시나리오 1 기준 사용자당 ~12k tokens, $0.05/시나리오. 5개 → $0.25/lifetime. Cache 60% 도달 시 $0.10.</li>
+  <li><strong>CTO 영입</strong>: 후보 3명 사전 점찍음. 1명과 informal 진행 중. Phase 2 Week 6 안에 verbal commit 목표.</li>
+  <li><strong>Big Tech 대응</strong>: 4중 방어 + <strong>5번째 방어 = 공개 학술 논문 + 학계 advisory board</strong>. Year 1 안에 첫 논문.</li>
+  <li><strong>B2B Buyer (Y4–5)</strong>: HR (Workday), 데이팅앱 (Match Group <em>"Signal verified"</em>), 결혼정보 (한국 듀오), 상담 (Talkspace), 학교 멘토링. 현재 한국 결혼정보회사 1곳과 informal 대화.</li>
+  <li><strong>Exit</strong>: IPO base case (Year 6–7). Strategic acquirer: Match, Spotify, Apple, Microsoft. <strong>Mission lock charter가 acquisition을 어렵게 만드는 것은 의도적</strong>.</li>
+</ol>
+
+<h2>4. 사업기획서 v3.0 → v3.1 변경 항목</h2>
+<table>
+  <tr><th>섹션</th><th>변경</th></tr>
+  <tr><td>§2.3 글로벌 시장</td><td>LTV $30 → 3-시나리오 ($12/$30/$50)</td></tr>
+  <tr><td>§3.x</td><td>LLM cost 곡선 명시 추가</td></tr>
+  <tr><td>§4.6 매출 모델</td><td>Year 5 $1.5B → base $800M / upside $1.5B</td></tr>
+  <tr><td>§5.1 Phase 1</td><td>Creator 5명 → 3-tier funnel (A/B/C 동시)</td></tr>
+  <tr><td>§7.x</td><td>Retention KPI에 L7, Reactivation 추가</td></tr>
+  <tr><td>§8 위험</td><td>LLM cost / Pair 검증 / Creator cold start 명시</td></tr>
+  <tr><td>§10 자금</td><td>Pre-seed 법무 $5k → $20k, CTO를 첫 우선순위로</td></tr>
+  <tr><td>§11 팀</td><td>Pre-seed 첫 영입 = CTO (was Designer)</td></tr>
+  <tr><td>부록 D 신설</td><td>Phase 2 5개 게이트 + VC follow-up commitment</td></tr>
+</table>
+
+<h2>5. 미션 lock 재확인 — 무엇이 변하지 않는가</h2>
+<p>VC 평가는 가설을 흔들었지만 <strong>미션은 흔들지 못했다</strong>. 다음 5가지는 변경 후에도 그대로다:</p>
+<ol>
+  <li>Anti-광고 모델 — 데이터 광고 판매 영원히 거절</li>
+  <li>Anti-OnlyFans — 성인 콘텐츠 영원히 거절</li>
+  <li>Anti-외모 매칭 — 사진 기반 swiping 영원히 거절</li>
+  <li>Anti-deepfake 셀럽 — 본인 시나리오 풀이만 인정</li>
+  <li>Anti-점수 환원 — narrative 형태 강제</li>
+</ol>
+<blockquote>VC가 <em>"단기 매출을 위해 한 가지만 풀어달라"</em>고 요구한다면 그 자금은 거절한다. 미션 lock이 우선이다.</blockquote>
+
+<h2>6. CEO 새 인사이트 — VC 평가가 가르쳐준 것</h2>
+
+<div class="insight">
+  <h3>Insight 1 — "카테고리가 비어 있다"는 frame은 양날이다</h3>
+  <p>빈 자리는 매력적이지만, <em>"왜 비어 있는가"</em>의 답이 <em>"카테고리가 본질적으로 작다"</em>일 수 있다. Co-Star comparable이 그 가능성을 보여준다. <strong>빈 자리의 진짜 크기를 검증할 때까지 valuation 곡선을 보수적으로 그려야 한다.</strong></p>
+</div>
+
+<div class="insight">
+  <h3>Insight 2 — Founder dependency는 mission-driven brand의 부작용이다</h3>
+  <p>Mission-driven brand의 강력함은 founder의 personal vision에서 나온다. 그러나 그 강력함이 동시에 <em>"founder 1인에게 baked-in"</em>이라는 약점이 된다. <strong>CTO 영입 우선순위를 올린 것은 단순한 채용 결정이 아니라 brand vulnerability 해소 결정.</strong></p>
+</div>
+
+<div class="insight">
+  <h3>Insight 3 — VC의 "Conditional PASS"는 미션을 시험한다는 뜻이다</h3>
+  <p>VC는 모든 우려를 <em>"미션을 약화하면 풀린다"</em>는 방향으로 조정 가능하다. Series A 단계에서 <em>"광고 조금 받으면 LLM cost 해결된다"</em> 같은 제안이 반드시 나온다. 이때 거절할 수 있는 founder만이 mission lock의 진짜 가치를 만든다. <strong>Phase 2 검증을 통과하는 것보다, 미션 lock을 흔들지 않고 통과하는 것이 100배 더 중요하다.</strong></p>
+</div>
+
+<div class="insight">
+  <h3>Insight 4 — "위장 불가능성"의 사회적 위치</h3>
+  <p>VC가 이걸 차별점으로만 봤지만, AI 시대에 <em>"조작 불가능한 측정"</em>은 새로운 사회 인프라다. Deepfake가 보편화될수록, self-curated identity가 만연할수록, <em>"진짜 너"</em>를 측정하는 도구의 가치가 비선형으로 커진다. <strong>Deck v3.1의 "why now" 5번째 항목으로 추가.</strong></p>
+</div>
+
+<div class="insight">
+  <h3>Insight 5 — 데이터 자산의 가치는 매출이 아니라 정체성 곡선이다</h3>
+  <p>100M 잠재의식 프로파일은 매출이 아니라 <em>"인류가 자기 자신을 이해하는 방법"</em>에 대한 새 layer다. 학계·정부·산업이 <em>"기준점"</em>으로 삼는 위치. Wikipedia가 매출이 작아도 사회 인프라인 것처럼, Signal의 진짜 가치는 정체성 layer라는 위치 그 자체. <strong>Series A 이후 deck의 closing message로 사용한다.</strong></p>
+</div>
+
+<div class="closing">
+  <blockquote>"VC는 미션을 시험했고, 미션은 시험을 통과했다.<br>이제 가설을 검증할 차례다.<br>Phase 2 5개 게이트를 미션 양보 없이 통과한다."</blockquote>
+</div>
+
+</div>
+</body>
+</html>

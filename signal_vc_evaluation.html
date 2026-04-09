@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>VC Investment Memo — Signal</title>
+<style>
+  :root {
+    --bg: #f7f6f1;
+    --bg-card: #ffffff;
+    --bg-soft: #efece2;
+    --fg: #1a1a1a;
+    --fg-dim: #5a5a5a;
+    --accent: #8b1a1a;
+    --accent-2: #c2410c;
+    --gold: #b8860b;
+    --green: #2d6a4f;
+    --line: #d4cfc0;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; background: var(--bg); color: var(--fg);
+    font-family: "Source Serif Pro", "Noto Serif KR", Georgia, "Times New Roman", serif;
+    line-height: 1.75; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 56px 36px 120px; }
+  header.top { border-bottom: 3px double var(--accent); padding-bottom: 28px; margin-bottom: 40px; }
+  header.top .label { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); font-weight: 700; font-family: -apple-system, "Helvetica Neue", sans-serif; }
+  header.top h1 { font-size: 42px; margin: 8px 0 4px; letter-spacing: -0.5px; }
+  header.top .sub { color: var(--fg-dim); font-style: italic; font-size: 17px; }
+  header.top .meta { font-size: 13px; color: var(--fg-dim); margin-top: 18px; font-family: -apple-system, sans-serif; }
+  header.top .meta span { display: inline-block; margin-right: 18px; }
+  .persona { background: var(--bg-soft); border-left: 4px solid var(--gold); padding: 18px 24px; margin-bottom: 36px; font-size: 14px; color: var(--fg-dim); border-radius: 0 4px 4px 0; }
+  .persona strong { color: var(--accent); }
+  .verdict { background: var(--bg-card); border: 2px solid var(--accent); border-radius: 6px; padding: 24px 28px; margin: 32px 0; }
+  .verdict .score { font-size: 42px; font-weight: 700; color: var(--accent); font-family: -apple-system, sans-serif; }
+  .verdict .decision { font-size: 18px; color: var(--green); font-weight: 600; margin-top: 4px; }
+  h2 { font-size: 26px; margin: 48px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); color: var(--accent); letter-spacing: -0.3px; }
+  h3 { font-size: 19px; margin: 28px 0 10px; color: var(--fg); }
+  h4 { font-size: 16px; margin: 20px 0 8px; color: var(--accent-2); }
+  p { margin: 12px 0; }
+  ul, ol { padding-left: 22px; }
+  li { margin: 6px 0; }
+  strong { color: #000; font-weight: 700; }
+  em { color: var(--accent); font-style: italic; }
+  blockquote { border-left: 4px solid var(--gold); background: var(--bg-soft); margin: 18px 0; padding: 14px 22px;
+    font-style: italic; color: var(--fg); border-radius: 0 4px 4px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14px; font-family: -apple-system, sans-serif; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--bg-soft); color: var(--accent); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  pre { background: #1a1a1a; color: #d4cfc0; border-radius: 6px; padding: 18px; overflow-x: auto; font-size: 13px; line-height: 1.6; }
+  .flag-red { display: inline-block; background: #c0392b; color: #fff; padding: 2px 10px; border-radius: 3px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; font-family: -apple-system, sans-serif; vertical-align: middle; margin-left: 8px; }
+  .flag-yellow { display: inline-block; background: var(--gold); color: #fff; padding: 2px 10px; border-radius: 3px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; font-family: -apple-system, sans-serif; vertical-align: middle; margin-left: 8px; }
+  .score-row { display: inline-block; background: var(--bg-soft); padding: 2px 10px; border-radius: 3px; font-family: -apple-system, sans-serif; font-size: 12px; font-weight: 700; color: var(--green); margin-left: 8px; }
+  .signoff { border-top: 3px double var(--accent); margin-top: 56px; padding-top: 24px; text-align: center; font-style: italic; color: var(--fg-dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div class="label">Confidential — Investment Committee Memo</div>
+  <h1>VC Investment Memo — Signal</h1>
+  <div class="sub">Emotional Connection Infrastructure</div>
+  <div class="meta">
+    <span><strong>Round:</strong> Seed $1–2M</span>
+    <span><strong>Date:</strong> 2026-04-09</span>
+    <span><strong>Lead Reviewer:</strong> VC Agent</span>
+  </div>
+</header>
+
+<div class="persona">
+  <strong>VC Agent Persona</strong> — Sequoia/a16z-trained Series A partner. 12년 consumer + AI 투자 경력.
+  Hinge, Co-Star, Calm, Replika, Character.AI 같은 정서·관계 카테고리에 deep diligence 경험.
+  평가 원칙: (1) 사람과 시장이 80%, 제품은 20%; (2) 카테고리가 비어 있는지, 비어 있는 이유가 무엇인지;
+  (3) 사용자가 <em>돈을 낼</em> 진짜 이유; (4) Anti-pattern과 ethical 위험에 매우 보수적;
+  (5) 단순 narrative가 아닌 unit economics와 retention 숫자를 본다.
+</div>
+
+<h2>1. Executive Verdict</h2>
+<div class="verdict">
+  <div class="score">7.4 / 10</div>
+  <div class="decision">Conditional PASS — Lead 가능 (조건부)</div>
+  <p style="margin-top:14px; margin-bottom:0;">Pre-seed에 작게 들어가고, Phase 2 검증 마일스톤 통과 시 Seed lead 옵션 확보.</p>
+</div>
+<p>Signal은 <em>진짜로</em> 흥미로운 카테고리 베팅이다. <em>"잠재의식 측정 + 호환성 + 학술 깊이 + 반(反)광고 mission"</em>의 4중 결합은 우리가 본 deck 중에서 가장 신선한 카테고리 정의 중 하나다. 그러나 매출 모델, retention 가설, founder dependency, 글로벌 확장 가능성에 대해 <strong>검증되지 않은 가정</strong>이 너무 많다. <strong>Pre-seed로 진입</strong>하고, <strong>Phase 2 정량 검증</strong>을 watch-list로 잡은 후 Seed lead로 follow-on 하는 구조가 risk-adjusted optimal이다.</p>
+
+<h2>2. Strengths — 왜 들어갈 만한가</h2>
+
+<h3>2.1 카테고리 정의의 우아함 <span class="score-row">9/10</span></h3>
+<p><em>"4개 시장의 교집합이 비어 있다"</em>는 frame은 정확하다. 데이팅앱·MBTI·소셜·Creator economy 모두 한 axis씩 부족했고, Signal은 그 axis들을 <em>"잠재의식 + 호환성 + 정서"</em>로 묶어낸다. <strong>이 카테고리 framing 자체가 venture-scale 가능성의 신호</strong>다.</p>
+
+<h3>2.2 제품의 위장 불가능성 <span class="score-row">8/10</span></h3>
+<p>LLM이 측정 대상을 사용자에게 숨기는 구조는 진짜 차별점이다. MBTI가 self-report라는 본질적 결함을 가진 반면, Signal의 3 Layer 구조는 <em>"의식적 조작 불가능 + 결정적 수학 + 문학적 깊이"</em>를 동시에 충족한다. 검증된 페르소나 결과(이인혁: <em>"타인을 믿는 것보다 시스템을 배신하는 것을 더 두려워하는"</em>)는 GPT 시대 이전엔 만들 수 없었던 quality다.</p>
+
+<h3>2.3 학술적 엄밀함 <span class="score-row">8/10</span></h3>
+<p>38축 → 15축으로 축소한 과정이 인상적이다. 임의로 만든 축이 없고, 모두 cross-cultural 검증된 표준(Schwartz, Big Five, Bowlby, Haidt, Gottman)에 anchor되어 있다. 향후 학계·B2B(HR, 상담) 진입 시 <strong>defensible authority</strong>를 만든다.</p>
+
+<h3>2.4 Anti-광고 Mission의 strategic value <span class="score-row">9/10</span></h3>
+<p>이건 단순한 marketing이 아니라 <strong>moat</strong>다. Big tech(Meta, Google)이 같은 카테고리에 진입해도 <em>"우리는 광고에 정서 데이터를 쓰지 않는다"</em>는 약속이 신뢰받기 어렵다. Signal은 day 1부터 그 약속의 신뢰성을 brand에 baked-in 한다. Sequoia가 Notion·Figma·Linear에서 본 것과 같은 종류의 <em>"founder-belief moat"</em>.</p>
+
+<h3>2.5 한국 GTM의 구조적 우위 <span class="score-row">8/10</span></h3>
+<p>KakaoTalk 100% 점유 + MBTI/사주 문화 + K-pop 글로벌 entry vehicle은 한국이 진짜 <em>"unfair 글로벌 entry market"</em>임을 만든다. Co-Star가 미국에서 30M DL을 만들었던 것을 감안하면, Signal이 한국에서 1M PMF → 일본/미국 K-pop 팬덤으로 jump 하는 trajectory는 plausible.</p>
+
+<h3>2.6 Founder의 framing 능력 <span class="score-row">8/10</span></h3>
+<p>사업 본질을 <em>"두 길 중 하나를 선택했다"</em>로 정의하고, day 1 anti-pattern 5가지를 영구히 거절하는 규율은 <strong>mission-driven founder의 시그니처</strong>다. Patrick Collison, Alexandr Wang, Daniel Ek에서 본 것과 같은 framing discipline. 이 quality는 자금 배가에 가장 잘 반응한다.</p>
+
+<h2>3. Concerns — 왜 망설이는가</h2>
+
+<h3>3.1 매출이 어디서 진짜 나오는가의 미검증 <span class="flag-red">RED FLAG</span></h3>
+<ul>
+  <li>Pricing tier 구조는 합리적으로 보이지만, <em>"왜 사용자가 $7/월을 자발적으로 낼 것인가"</em>의 가설이 약하다.</li>
+  <li>Self-discovery 앱의 함정: <strong>결과가 영구적이라 재방문 동기가 약하다</strong>. Co-Star/16Personalities의 LTV는 일반적으로 $5–12. <strong>$30 LTV는 매우 낙관적</strong>.</li>
+  <li>Premium → Premium Plus 5x conversion 가정도 freemium 표준 대비 낙관적.</li>
+</ul>
+<blockquote><strong>검증 요청</strong>: Phase 2 종료 시 free → casual conversion 실제 측정. <strong>&gt;15% 미만이면 모델 재설계 필요</strong>.</blockquote>
+
+<h3>3.2 Creator Cold Start의 비대칭 위험 <span class="flag-red">RED FLAG</span></h3>
+<ul>
+  <li>사업 전체가 <em>"첫 mid-tier creator를 잡는다"</em>는 단일 의존 가설에 걸려 있다.</li>
+  <li>Cameo가 launch 시 같은 문제를 겪었고, 결국 $1M 보장 deal × 5명 정도의 자금이 필요했다. Signal의 $10–15k는 mid-tier만 가능하고, mid-tier viral은 mega-tier 대비 한 자릿수 낮다.</li>
+  <li>첫 creator가 reputation risk를 감수하고 <em>"내 잠재의식 분석을 fan에게 판다"</em>는 결정을 할 가능성은 회의적.</li>
+</ul>
+<blockquote><strong>검증 요청</strong>: Pre-seed 자금 사용 전, 5명 mid-tier 컨택 → 응답률 측정. <strong>&lt;20%면 GTM 재설계</strong>.</blockquote>
+
+<h3>3.3 Retention의 본질적 약점 <span class="flag-yellow">YELLOW FLAG</span></h3>
+<ul>
+  <li>Self profile 1회 + 친구 케미 평균 3–5회 = total session 10회 미만 lifetime이 base case.</li>
+  <li>Co-Star의 daily horoscope는 매일 새로운 input이 있는 반면, Signal은 <em>"새 사람을 만났을 때"</em>에만 발생.</li>
+  <li><strong>DAU/MAU &lt; 10%일 가능성 높음</strong>.</li>
+</ul>
+
+<h3>3.4 LLM 비용 곡선 <span class="flag-yellow">YELLOW FLAG</span></h3>
+<ul>
+  <li>5분 대화 × 5개 시나리오 × 100M 사용자 = 약 25 billion LLM calls. 약 $250M+/년 비용. ARR $320M 모델에서 매출의 75%가 LLM 비용.</li>
+  <li><strong>Year 3 전에는 gross margin 30–40% 가능성</strong>. SaaS valuation multiple 직접 압박.</li>
+</ul>
+<blockquote><strong>검증 요청</strong>: 사용자당 LLM 비용 실측. <strong>&gt;$0.50 / lifetime이면 모델 재설계</strong>.</blockquote>
+
+<h3>3.5 글로벌 확장의 언어/문화 리스크 <span class="flag-yellow">YELLOW FLAG</span></h3>
+<p>15축은 cross-cultural 검증되었지만, <strong>narrative quality는 언어별로 완전히 새로 검증해야 한다</strong>. 융·라캉 수준의 한국어 narrative가 다른 언어로 옮겨질 때 quality가 유지될지 불확실. Co-Star도 미국 외 시장 진입 실패.</p>
+
+<h3>3.6 Founder Dependency <span class="flag-yellow">YELLOW FLAG</span></h3>
+<p>현재 founder 1인 + 외부 개발 구조. CTO 부재. Phase 2 검증을 1인이 6개월 안에 해낼 수 있는지가 critical path.</p>
+
+<h3>3.7 윤리·규제 리스크 <span class="flag-yellow">YELLOW FLAG</span> (낮지만 catastrophic tail)</h3>
+<p>잠재의식 데이터의 유출 / 미성년자 사용 / 자살 신호 오감지 등은 brand에 영구 손상을 줄 수 있는 tail risk. GDPR/CCPA + 한국 개인정보보호법 day 1 substantial compliance 필요. Pre-seed 예산에서 법무 항목이 너무 작게 잡혀 있음.</p>
+
+<h2>4. Diligence Questions — Founder에게 직접 묻는 것</h2>
+<ol>
+  <li><strong>Retention 가설</strong>: Self profile + 친구 5명 케미 후 90일 retain hook이 무엇인가? <em>"daily reason to return"</em>이 무엇인가?</li>
+  <li><strong>첫 Creator</strong>: 이미 컨택 시작했는가? 응답률은? sample이 있는가?</li>
+  <li><strong>Pair 검증 결과</strong>: 5–10쌍 실측 시 false positive/negative &lt; 20% baseline이 있는가?</li>
+  <li><strong>LLM Unit Economics</strong>: 사용자 1명당 lifetime LLM 비용 실측이 얼마인가? Cache hit ratio target은?</li>
+  <li><strong>CTO 영입</strong>: 누구를 candidate로 보고 있는가?</li>
+  <li><strong>Big Tech 진입 시점</strong>: Meta가 같은 카테고리에 진입한다면 response가 무엇인가?</li>
+  <li><strong>B2B 매출 (Year 4–5)</strong>: $100M B2B ARR의 buyer는 누구인가?</li>
+  <li><strong>Exit 시나리오</strong>: IPO vs Acquisition. Strategic acquirer로 누구를 상정하는가?</li>
+</ol>
+
+<h2>5. Comparable Analysis</h2>
+<table>
+  <tr><th>Comparable</th><th>유사점</th><th>결과</th></tr>
+  <tr><td>Co-Star (점성술)</td><td>Self-discovery, narrative depth, viral GTM</td><td>$30M raised, 30M DL, $5M ARR (낮은 monetization)</td></tr>
+  <tr><td>Replika (AI companion)</td><td>LLM 기반 정서, 깊은 user attachment</td><td>$30M+ raised, 10M users, regulatory drama</td></tr>
+  <tr><td>Character.AI</td><td>LLM 정서 카테고리</td><td>$1B raised, $5B val, monetization unproven</td></tr>
+  <tr><td>Hinge</td><td>관계 매칭 + 진정성 brand</td><td>$400M acquisition (Match)</td></tr>
+  <tr><td>Calm / Headspace</td><td>Anti-광고 mission, subscription</td><td>$2B / $3B val</td></tr>
+  <tr><td>MBTI / 16Personalities</td><td>성격 진단 카테고리</td><td>$20M ARR, 정적</td></tr>
+</table>
+<p><strong>핵심 시사점</strong>: Self-discovery 카테고리에서 viral은 가능하지만 <strong>monetization은 어렵다</strong>. Signal의 <em>"호환성"</em> 차원이 paid trigger를 만들 수 있다면 valuation이 다른 곡선을 그린다.</p>
+
+<h2>6. Investment Recommendation</h2>
+
+<h3>Decision Tree</h3>
+<pre><code>Pre-seed $50–100k → Phase 2 검증 (4–6주) →
+   ├─ ✅ Pair 검증 통과 + Creator 응답 + LLM cost OK →
+   │     → Seed $1–2M LEAD (15–20% target ownership)
+   │     → Series A optionality 확보
+   └─ ❌ 지표 미달 →
+         → Pre-seed graceful exit, learning 보고서</code></pre>
+
+<h3>Final Recommendation</h3>
+<p><strong>1단계</strong>: Pre-seed $100k 진입 at $4–6M post.</p>
+<p><strong>2단계</strong>: Phase 2 종료 시 5개 정량 게이트 통과 여부 확인:</p>
+<ol>
+  <li>Pair 검증: 5쌍 중 3쌍 이상 <em>"우리 관계 맞다"</em> 4+/5</li>
+  <li>Creator 응답률: 컨택 20명 중 4명 이상 응답</li>
+  <li>False positive/negative: 둘 다 &lt; 25%</li>
+  <li>사용자당 LLM cost projection: &lt; $0.50 / lifetime</li>
+  <li>CTO candidate: shortlist 3명 이상 + 1명 verbal commit</li>
+</ol>
+<p><strong>3단계</strong>: 5개 중 4개 통과 → Seed $1.5M lead at $10–12M post (15% ownership)</p>
+
+<p><strong>Conviction Level: 6.5 / 10</strong></p>
+<blockquote>"이건 trillion-dollar 카테고리이거나 $50M ARR ceiling 카테고리거나 둘 중 하나다. 둘 사이에 중간이 거의 없다. Phase 2 검증이 그 결정을 내려준다."</blockquote>
+
+<h2>7. Term Sheet 권고 (Pre-seed)</h2>
+<pre><code>금액:               $100,000
+도구:               SAFE (post-money)
+Cap:                $5,000,000 post
+Discount:           20%
+MFN:                Yes
+Pro-rata:           Seed 라운드까지 유지
+Information rights: Monthly KPI dashboard (5개 게이트 지표)
+Board:              없음 (pre-seed)
+Lead 옵션:          Seed 라운드 lead 우선협상권 (60일)
+Mission lock:       Anti-pattern 5가지를 charter에 명시</code></pre>
+
+<h2>8. 한 줄 평가</h2>
+<blockquote style="font-size:17px;">카테고리를 새로 정의한 mission-driven founder가, 검증되지 않은 retention과 monetization 가설 위에 trillion-dollar 베팅을 하는 deal. Phase 2 정량 게이트를 통과하면 우리가 본 2026년 deck 중 가장 매력적인 Seed.</blockquote>
+
+<div class="signoff">
+  Lead Reviewer Sign-off: VC Agent — <em>Conditional PASS, Pre-seed In, Seed Lead Optional</em>
+</div>
+
+</div>
+</body>
+</html>
