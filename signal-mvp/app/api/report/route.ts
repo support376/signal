@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     // Cache hit
     if (!force) {
       const cached = await getSelfReport(userId);
-      if (cached) return NextResponse.json({ narrative: cached, cached: true });
+      if (cached) return NextResponse.json({ narrative: cached, cached: true, source: 'cache' });
     }
 
     const vector = await getIntegratedVector(userId);
@@ -43,6 +43,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       narrative,
       cached: false,
+      source: 'llm',
       completeness,
       sanitizer_violations: report.total_violations,
     });

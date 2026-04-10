@@ -20,11 +20,14 @@ export const metadata: Metadata = {
   },
 };
 
+import ApiDebugPanel from './components/api-debug';
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko">
       <body>
         <div className="min-h-screen">{children}</div>
+        <ApiDebugPanel />
       </body>
     </html>
   );

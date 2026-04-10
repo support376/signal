@@ -8,6 +8,7 @@ import AttachmentQuadrant from '@/app/components/attachment-quadrant';
 import SectionCard from '@/app/components/section-card';
 import LoadingState from '@/app/components/loading-state';
 import ShareModal from '@/app/components/share-modal';
+import { trackedFetch } from '@/app/components/api-debug';
 import { SELF_REPORT_PHASES } from '@/lib/loading-messages';
 import { parseTags } from '@/lib/parse-tags';
 import type { IntegratedVector } from '@/lib/types';
@@ -90,27 +91,23 @@ export default function ReportPage() {
     else setLoading(true);
     setError('');
     try {
-      // 병렬: me + completeness + vector + report
-      const [meR, compR, vecR, repR] = await Promise.all([
-        fetch('/api/me', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: uid }) }),
-        fetch('/api/completeness', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: uid }) }),
-        // vector는 직접 API 없음 — report API가 같이 반환하거나, 별도 호출
-        // 간단하게: completeness API 안에 vector가 있으면 쓰고, 없으면 skip
-        Promise.resolve(null),
-        fetch('/api/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: uid, force }) }),
+      // 병렬: me + completeness + report
+      const [meResult, compResult, , repResult] = await Promise.all([
+        trackedFetch('/api/me', { body: JSON.stringify({ userId: uid }) }),
+        trackedFetch('/api/completeness', { body: JSON.stringify({ userId: uid }) }),
+        Promise.resolve({ response: new Response(), data: null }),
+        trackedFetch('/api/report', { body: JSON.stringify({ userId: uid, force }) }),
       ]);
 
-      const meData = await meR.json();
-      if (meR.ok) {
-        userName.current = meData.name;
-        userSlug.current = meData.slug;
+      if (meResult.response.ok) {
+        userName.current = meResult.data.name;
+        userSlug.current = meResult.data.slug;
       }
 
-      const compData = await compR.json();
-      if (compR.ok) setCompleteness(compData.completeness);
+      if (compResult.response.ok) setCompleteness(compResult.data.completeness);
 
-      const repData = await repR.json();
-      if (!repR.ok) throw new Error(repData.error);
+      const repData = repResult.data;
+      if (!repResult.response.ok) throw new Error(repData.error);
 
       const { tags: t, body: b } = parseTags(repData.narrative);
       setNarrative(repData.narrative);

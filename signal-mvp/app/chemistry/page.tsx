@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ShareModal from '@/app/components/share-modal';
+import { trackedFetch } from '@/app/components/api-debug';
 import { LENSES, type Lens } from '@/lib/types';
 
 interface ScoredUser {
@@ -73,17 +74,8 @@ export default function ChemistryListPage() {
 
   async function loadMe(id: string, fallbackName: string) {
     try {
-      const r = await fetch('/api/me', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: id }),
-      });
-      const data = await r.json();
-      if (r.ok) {
-        setMe({ id: data.id, name: data.name, slug: data.slug });
-      } else {
-        setMe({ id, name: fallbackName, slug: id });
-      }
+      const { data } = await trackedFetch('/api/me', { body: JSON.stringify({ userId: id }) });
+      setMe({ id: data.id, name: data.name, slug: data.slug });
     } catch {
       setMe({ id, name: fallbackName, slug: id });
     }
@@ -93,12 +85,9 @@ export default function ChemistryListPage() {
     setLoading(true);
     setError('');
     try {
-      const r = await fetch('/api/chemistry/scores', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const { response: r, data } = await trackedFetch('/api/chemistry/scores', {
         body: JSON.stringify({ userId: myId, lens: currentLens }),
       });
-      const data = await r.json();
       if (!r.ok) {
         setError(data.error || '실패');
         setUsers([]);

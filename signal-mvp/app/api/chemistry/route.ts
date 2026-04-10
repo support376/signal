@@ -29,6 +29,7 @@ export async function POST(req: Request) {
           narrative: cached.narrative,
           raw_data: cached.raw_data,
           cached: true,
+          source: 'cache',
         });
       }
     }
@@ -89,6 +90,7 @@ export async function POST(req: Request) {
       narrative,
       raw_data: enrichedRaw,
       cached: false,
+      source: 'llm',
       reliability: math.reliability_label,
       completeness_a: compA,
       completeness_b: compB,

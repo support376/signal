@@ -9,6 +9,7 @@ import AttachmentQuadrant from '@/app/components/attachment-quadrant';
 import SectionCard from '@/app/components/section-card';
 import LoadingState from '@/app/components/loading-state';
 import ShareModal from '@/app/components/share-modal';
+import { trackedFetch } from '@/app/components/api-debug';
 import { CHEMISTRY_PHASES } from '@/lib/loading-messages';
 import { parseTags } from '@/lib/parse-tags';
 import { computeRadarDimensions, getAttachmentPoint } from '@/lib/radar-dimensions';
@@ -81,12 +82,9 @@ export default function ChemistryResultPage() {
     else setLoading(true);
     setError('');
     try {
-      const r = await fetch('/api/chemistry', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const { response: r, data } = await trackedFetch('/api/chemistry', {
         body: JSON.stringify({ userAId: uid, userBId: otherId, lens, force }),
       });
-      const data = await r.json();
       if (!r.ok) throw new Error(data.error);
 
       setScore(data.score);
