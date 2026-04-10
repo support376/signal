@@ -265,7 +265,7 @@ function ScenarioPageInner() {
             </div>
 
             <div className="border-t border-line pt-6 text-xs text-dim leading-relaxed">
-              5턴 동안 카톡 대화를 나눠. 정답은 없어. 떠오르는 대로 답하면 돼. 언제든 멈출 수 있고, 사고 실험이야.
+              카톡처럼 대화하면 돼. 정답은 없어. 떠오르는 대로. 케미를 보려면 이 과정이 필요해.
             </div>
 
             {error && <p className="text-sm text-red-400">{error}</p>}

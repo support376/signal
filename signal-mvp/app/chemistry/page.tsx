@@ -48,7 +48,7 @@ function reliabilityColor(rel: string | null): string {
 export default function ChemistryListPage() {
   const router = useRouter();
   const [me, setMe] = useState<{ id: string; name: string; slug: string } | null>(null);
-  const [lens, setLens] = useState<Lens>('friend');
+  const [lens, setLens] = useState<Lens>('romantic');
   const [users, setUsers] = useState<ScoredUser[]>([]);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
@@ -118,18 +118,16 @@ export default function ChemistryListPage() {
       <Link href="/dashboard" className="text-xs text-dim hover:text-accent">← 대시보드</Link>
 
       <header className="mt-4 mb-6">
-        <h1 className="text-3xl font-bold">친구찾기</h1>
-        <p className="text-sm text-dim mt-2">
-          가입한 모든 사람과 너의 즉시 일치도 (수학 기반, LLM 호출 없음).
-        </p>
+        <h1 className="text-2xl font-bold">궁금한 사람</h1>
+        <p className="text-sm text-white/40 mt-2">진짜 맞는지, 여기서 확인해.</p>
       </header>
 
       {/* 친구 초대 카드 */}
       <div className="mb-6 p-4 bg-card border border-line rounded-xl">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-sm font-semibold">상대가 여기 없어?</p>
-            <p className="text-xs text-dim mt-1">너의 Signalogy 링크 / QR 보내서 초대해.</p>
+            <p className="text-sm font-semibold">궁금한 사람이 여기 없어?</p>
+            <p className="text-xs text-white/40 mt-1">링크 보내서 초대하면 케미 결과가 나와.</p>
           </div>
           <button
             onClick={() => setShareOpen(true)}
@@ -265,9 +263,8 @@ export default function ChemistryListPage() {
       </div>
 
       {!loading && filtered.length > 0 && (
-        <p className="text-xs text-dim text-center mt-6">
-          점수는 두 사람의 15축 벡터를 수학적으로 비교한 결과 (LLM 호출 없음).
-          클릭하면 narrative 분석이 생성됩니다.
+        <p className="text-xs text-white/15 text-center mt-6 font-mono">
+          점수 = 즉시 계산 (무료). 클릭 = 상세 분석 (크레딧 1)
         </p>
       )}
     </div>

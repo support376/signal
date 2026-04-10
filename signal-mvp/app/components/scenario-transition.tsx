@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SCENARIO_LABELS, SCENARIO_CONTEXTS, SCENARIO_ORDER } from '@/lib/scenario-meta';
 import type { ScenarioId } from '@/lib/types';
@@ -11,99 +10,70 @@ interface Props {
   completenessPercent: number;
 }
 
-export default function ScenarioTransition({
-  completedScenarioId,
-  completedCount,
-  completenessPercent,
-}: Props) {
+export default function ScenarioTransition({ completedScenarioId, completedCount, completenessPercent }: Props) {
   const router = useRouter();
-  const [countdown, setCountdown] = useState<number | null>(null);
-
   const currentIdx = SCENARIO_ORDER.indexOf(completedScenarioId);
-  const nextScenarioId = currentIdx < SCENARIO_ORDER.length - 1 ? SCENARIO_ORDER[currentIdx + 1] : null;
+  const nextSid = currentIdx < SCENARIO_ORDER.length - 1 ? SCENARIO_ORDER[currentIdx + 1] : null;
   const allDone = completedCount >= 5;
-
-  const nextCtx = nextScenarioId ? SCENARIO_CONTEXTS[nextScenarioId] : null;
-
-  // 메시지 — 시나리오 진행에 따라 변화
-  const messages = [
-    '좋아. 너에 대해 조금 알 것 같아.',
-    '점점 보이기 시작한다.',
-    '벌써 많이 알겠어. 조금만 더.',
-    '거의 다 왔어. 마지막 이야기만.',
-    '다 봤어. 결과 볼 준비 됐어.',
-  ];
-  const msg = messages[Math.min(completedCount - 1, messages.length - 1)];
-
-  function goNext() {
-    if (allDone) {
-      router.push('/report');
-    } else if (nextScenarioId) {
-      router.push(`/scenario/${nextScenarioId}`);
-    }
-  }
+  const remaining = 5 - completedCount;
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
-      {/* 5/5 완료 시 축하 glow */}
-      {allDone && (
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-accent3/20 rounded-full blur-[100px] animate-pulse" />
-          <div className="absolute top-1/3 left-1/3 w-32 h-32 bg-accent/20 rounded-full blur-[60px] animate-pulse" style={{ animationDelay: '0.5s' }} />
-          <div className="absolute top-1/3 right-1/3 w-32 h-32 bg-accent2/20 rounded-full blur-[60px] animate-pulse" style={{ animationDelay: '1s' }} />
-        </div>
-      )}
-      <div className="w-full max-w-md bg-card border border-line rounded-2xl p-8 text-center relative z-10">
-        {/* 완료 표시 */}
-        <div className="text-4xl mb-4">{allDone ? '🎉' : '✓'}</div>
-        <p className="text-accent3 text-sm font-semibold mb-6">
-          {SCENARIO_LABELS[completedScenarioId]} 완료
-        </p>
+    <div className="min-h-screen flex items-center justify-center px-5">
+      <div className="w-full max-w-sm text-center">
 
         {/* 진행 바 */}
-        <div className="mb-6">
-          <div className="flex justify-between text-xs text-dim mb-2">
-            <span>추정 완성도</span>
-            <span className="text-accent">{completenessPercent}%</span>
-          </div>
-          <div className="w-full h-2 bg-bg rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-accent to-accent2 transition-all duration-1000"
-              style={{ width: `${completenessPercent}%` }}
-            />
-          </div>
-          <p className="text-xs text-dim mt-2">{completedCount}/5 시나리오</p>
+        <div className="flex gap-1.5 mb-8">
+          {SCENARIO_ORDER.map((_, i) => (
+            <div key={i} className={`flex-1 h-1.5 rounded-full ${i < completedCount ? 'bg-white/60' : 'bg-white/10'}`} />
+          ))}
         </div>
 
-        {/* 메시지 */}
-        <p className="text-fg text-lg font-medium mb-8 leading-relaxed">
-          {msg}
-        </p>
+        {allDone ? (
+          <>
+            <p className="text-2xl font-bold mb-3">signal 읽기 완료.</p>
+            <p className="text-white/40 text-sm mb-10">이제 누구와든 진짜 호환성을 볼 수 있어.</p>
 
-        {/* 다음 시나리오 미리보기 */}
-        {!allDone && nextCtx && (
-          <div className="mb-6 p-4 bg-bg border border-line rounded-xl text-left">
-            <p className="text-xs text-dim uppercase tracking-wider mb-1">다음</p>
-            <p className="font-semibold">{nextScenarioId ? SCENARIO_LABELS[nextScenarioId] : ''}</p>
-            <p className="text-xs text-dim mt-1">{nextCtx.estimatedMinutes} · {nextCtx.domainHint}</p>
-          </div>
+            <button onClick={() => router.push('/chemistry')}
+              className="w-full py-4 border border-white/20 text-white rounded-xl hover:bg-white/5 transition mb-3">
+              궁금한 사람 찾기 →
+            </button>
+
+            <button onClick={() => router.push('/dashboard')}
+              className="w-full text-xs text-white/20 py-2 hover:text-white/40 transition">
+              홈으로
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="text-lg font-bold mb-8 text-white/80">
+              {completedCount === 1 && '너에 대해 조금 알 것 같아.'}
+              {completedCount === 2 && '점점 보이기 시작한다.'}
+              {completedCount === 3 && '벌써 많이 알겠어.'}
+              {completedCount === 4 && '거의 다 왔어.'}
+            </p>
+
+            {/* 잠긴 케미 미리보기 */}
+            <div className="p-5 border border-white/5 rounded-xl mb-8">
+              <div className="blur-[6px] select-none pointer-events-none">
+                <p className="text-white/50 font-bold">나 × ???  —  ??%</p>
+              </div>
+              <p className="text-[10px] text-white/15 mt-2 font-mono">
+                🔒 {remaining}개 대화 더 하면 공개
+              </p>
+            </div>
+
+            {nextSid && (
+              <button onClick={() => router.push(`/scenario/${nextSid}`)}
+                className="w-full py-4 border border-white/20 text-white rounded-xl hover:bg-white/5 transition mb-3">
+                다음 대화 →
+              </button>
+            )}
+            <button onClick={() => router.push('/dashboard')}
+              className="w-full text-xs text-white/20 py-2 hover:text-white/40 transition">
+              나중에
+            </button>
+          </>
         )}
-
-        {/* 버튼 */}
-        <div className="space-y-3">
-          <button
-            onClick={goNext}
-            className="w-full py-4 bg-accent text-bg font-semibold rounded-xl text-lg hover:bg-accent2 transition"
-          >
-            {allDone ? '✨ 결과 보기' : '이어서 하기 →'}
-          </button>
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="w-full py-3 bg-transparent text-dim text-sm hover:text-accent transition"
-          >
-            나중에 하기
-          </button>
-        </div>
       </div>
     </div>
   );

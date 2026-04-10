@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState, useRef } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import LoadingState from './components/loading-state';
 import { LOGIN_PHASES } from '@/lib/loading-messages';
@@ -46,75 +46,66 @@ function LandingInner() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
+      <div className="max-w-md w-full">
 
-      {/* ══════ HERO — 첫 화면에 다 보이게 ══════ */}
-      <section className="flex-1 flex flex-col items-center justify-center px-6 text-center">
-        <div className="max-w-2xl">
-          <h1 className="text-hero-sm md:text-hero font-bold text-white" style={{ animation: 'flicker 4s ease-in-out infinite' }}>
-            Signalogy
-          </h1>
+        {!showLogin ? (
+          <>
+            {/* ── 욕망 자극 ── */}
+            <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight mb-8">
+              궁금한 사람이<br />있어?
+            </h1>
 
-          <p className="text-sm md:text-base text-white/50 mt-6 leading-relaxed">
-            사주는 운명을 본다. <span className="text-white/90 font-medium">Signalogy는 너의 signal을 본다.</span>
-          </p>
-
-          <p className="text-white/30 text-xs md:text-sm max-w-sm mx-auto mt-6 leading-relaxed font-mono">
-            AI 대화 → 잠재의식 측정 → 진짜 호환성 분석
-          </p>
-
-          {!showLogin ? (
-            <div className="mt-10 space-y-3">
-              <button
-                onClick={() => setShowLogin(true)}
-                className="px-10 py-4 border border-white/20 text-white font-mono text-sm uppercase tracking-wider rounded-xl transition-all hover:bg-white/5 hover:border-white/40"
-              >
-                {'>'} START FREE_
-              </button>
-              <p className="text-[10px] text-white/20 font-mono">~15 min · free</p>
+            <div className="space-y-2 text-white/40 text-sm md:text-base mb-12">
+              <p>왜 자꾸 끌리는지.</p>
+              <p>왜 자꾸 부딪히는지.</p>
+              <p className="text-white/70 font-medium">진짜 맞는 건지.</p>
             </div>
-          ) : (
-            /* ── 인라인 로그인 (스크롤 없이 같은 화면) ── */
-            <div className="mt-10 max-w-xs mx-auto">
-              {refParam && (
-                <div className="mb-6 p-3 border border-white/10 rounded-xl text-sm text-center font-mono">
-                  <span className="text-white/80">@{refParam}</span>
-                  <span className="text-white/30"> invited you</span>
-                </div>
-              )}
 
-              {loading ? (
-                <LoadingState phases={LOGIN_PHASES} estimatedSec={5} hint="서버 준비 중" size="sm" />
-              ) : (
-                <form onSubmit={handleLogin} className="space-y-4">
-                  <div>
-                    <label className="text-[10px] text-white/30 font-mono uppercase tracking-wider">{'>'} ID</label>
-                    <input type="text" value={id} onChange={(e) => setId(e.target.value)} placeholder="영문/숫자"
-                      className="w-full mt-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-mono text-sm focus:border-white/30 focus:outline-none placeholder:text-white/15" autoFocus />
-                  </div>
-                  <div>
-                    <label className="text-[10px] text-white/30 font-mono uppercase tracking-wider">{'>'} NAME</label>
-                    <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="이름"
-                      className="w-full mt-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-mono text-sm focus:border-white/30 focus:outline-none placeholder:text-white/15" />
-                  </div>
-                  {error && <p className="text-sm text-red-400 font-mono">{error}</p>}
-                  <button type="submit" className="w-full py-3 border border-white/20 text-white font-mono text-sm uppercase tracking-wider rounded-xl transition-all hover:bg-white/5">
-                    {'>'} INITIALIZE_
-                  </button>
-                  <button type="button" onClick={() => setShowLogin(false)} className="w-full text-[10px] text-white/20 font-mono hover:text-white/40">
-                    ← back
-                  </button>
-                </form>
-              )}
-            </div>
-          )}
-        </div>
-      </section>
+            <p className="text-white/20 text-xs font-mono mb-8">Signalogy가 알려줄게.</p>
 
-      {/* ── 최하단 미니멀 ── */}
-      <footer className="py-6 text-center text-[10px] text-white/10 font-mono">
-        SIGNALOGY
-      </footer>
+            <button
+              onClick={() => setShowLogin(true)}
+              className="w-full max-w-xs mx-auto block py-4 border border-white/20 text-white font-mono text-sm rounded-xl transition-all hover:bg-white/5 hover:border-white/40"
+            >
+              알아보기
+            </button>
+
+            <p className="text-[10px] text-white/15 mt-4 font-mono">15분 · 무료 · 카톡처럼 대화하면 끝</p>
+
+            {refParam && (
+              <div className="mt-8 p-3 border border-white/10 rounded-xl text-sm font-mono">
+                <span className="text-white/60">@{refParam}</span>
+                <span className="text-white/25"> 가 너와의 케미가 궁금하대</span>
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            {/* ── 로그인 폼 ── */}
+            <p className="text-white/30 text-xs font-mono mb-6">케미를 보려면 먼저 너의 signal을 읽어야 해.</p>
+
+            {loading ? (
+              <LoadingState phases={LOGIN_PHASES} estimatedSec={5} hint="서버 준비 중" size="sm" />
+            ) : (
+              <form onSubmit={handleLogin} className="space-y-4 max-w-xs mx-auto">
+                <input type="text" value={id} onChange={(e) => setId(e.target.value)} placeholder="ID (영문/숫자)"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-white/30 focus:outline-none placeholder:text-white/20" autoFocus />
+                <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="이름"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-white/30 focus:outline-none placeholder:text-white/20" />
+                {error && <p className="text-sm text-red-400">{error}</p>}
+                <button type="submit" className="w-full py-3 border border-white/20 text-white text-sm rounded-xl transition-all hover:bg-white/5">
+                  시작
+                </button>
+                <button type="button" onClick={() => setShowLogin(false)} className="w-full text-xs text-white/20 hover:text-white/40">
+                  ← 돌아가기
+                </button>
+              </form>
+            )}
+          </>
+        )}
+
+      </div>
     </div>
   );
 }
