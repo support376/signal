@@ -13,7 +13,7 @@ export default function MatrixRain({ opacity = 0.04 }: { opacity?: number }) {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!canvas || !ctx) return;
 
     let animId: number;
     let w = 0;
@@ -21,32 +21,33 @@ export default function MatrixRain({ opacity = 0.04 }: { opacity?: number }) {
     let columns = 0;
     const fontSize = 14;
     let drops: number[] = [];
+    const c = canvas;  // non-null alias for closures
+    const g = ctx;     // non-null alias for closures
 
     const chars = 'アイウエオカキクケコサシスセソ01∞Σλθψφ'.split('');
 
     function resize() {
-      if (!canvas) return;
       w = window.innerWidth;
       h = window.innerHeight;
-      canvas.width = w;
-      canvas.height = h;
+      c.width = w;
+      c.height = h;
       columns = Math.floor(w / fontSize);
       drops = Array.from({ length: columns }, () => Math.random() * -100);
     }
 
     function draw() {
-      ctx.fillStyle = `rgba(0, 0, 0, 0.05)`;
-      ctx.fillRect(0, 0, w, h);
+      g.fillStyle = `rgba(0, 0, 0, 0.05)`;
+      g.fillRect(0, 0, w, h);
 
-      ctx.fillStyle = `rgba(0, 255, 136, ${opacity * 3})`;
-      ctx.font = `${fontSize}px "JetBrains Mono", monospace`;
+      g.fillStyle = `rgba(0, 255, 136, ${opacity * 3})`;
+      g.font = `${fontSize}px "JetBrains Mono", monospace`;
 
       for (let i = 0; i < drops.length; i++) {
         const char = chars[Math.floor(Math.random() * chars.length)];
         const x = i * fontSize;
         const y = drops[i] * fontSize;
 
-        ctx.fillText(char, x, y);
+        g.fillText(char, x, y);
 
         if (y > h && Math.random() > 0.975) {
           drops[i] = 0;
