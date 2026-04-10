@@ -9,15 +9,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'challengeId and answer required' }, { status: 400 });
     }
 
-    const challenge = getChallenge(challengeId);
+    const challenge = await getChallenge(challengeId);
     if (!challenge) {
-      return NextResponse.json({ error: '인증 세션이 만료됐어. 다시 시도해줘.' }, { status: 400 });
-    }
-
-    // 5분 만료 체크
-    if (Date.now() - challenge.createdAt > 5 * 60 * 1000) {
-      deleteChallenge(challengeId);
-      return NextResponse.json({ error: '시간 초과. 다시 시도해줘.' }, { status: 400 });
+      return NextResponse.json({ error: 'expired', message: '세션을 찾을 수 없어. 새 질문을 받아줘.' }, { status: 400 });
     }
 
     const raw = await callClaude({
@@ -27,8 +21,9 @@ export async function POST(req: Request) {
 판정 기준:
 - 벡터가 나타내는 성격/가치관의 방향과 답변이 일관되는지 본다
 - 정확한 문장 매칭이 아니라, "이 성격의 사람이라면 이런 방향으로 답할 것인가"를 본다
-- 너무 엄격하지 않게 — 70% 이상 일치하면 통과
-- 너무 짧거나 성의 없는 답변(1-2단어)은 판단 불가로 처리
+- 관대하게 판정해 — 60% 이상 방향이 맞으면 통과시켜
+- 답변이 짧아도 방향만 맞으면 통과
+- 너무 짧거나 성의 없는 답변(1-2단어)만 판단 불가로 처리
 
 JSON으로 답해:
 {
@@ -67,13 +62,14 @@ ${answer}
     }>(raw);
 
     // 사용 후 챌린지 삭제
-    deleteChallenge(challengeId);
+    await deleteChallenge(challengeId);
 
     return NextResponse.json({
       pass: result.pass,
       confidence: result.confidence,
       reason: result.reason,
       userId: challenge.userId,
+      attempt: challenge.attempt,
     });
   } catch (e: any) {
     console.error('[fingerprint/verify]', e);

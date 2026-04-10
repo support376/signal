@@ -6,7 +6,7 @@ import { setChallenge } from '@/lib/fingerprint-store';
 
 export async function POST(req: Request) {
   try {
-    const { userId } = await req.json();
+    const { userId, attempt = 1 } = await req.json();
     if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 });
 
     const user = await getUser(userId);
@@ -37,12 +37,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ fingerprintRequired: false });
     }
 
+    // 시도 횟수에 따라 다른 축 조합 사용 (다양한 질문 생성)
     strongAxes.sort((a, b) => b.value - a.value);
-    const topAxes = strongAxes.slice(0, 5);
+    const offset = ((attempt - 1) * 2) % strongAxes.length;
+    const shuffled = [...strongAxes.slice(offset), ...strongAxes.slice(0, offset)];
+    const topAxes = shuffled.slice(0, 5);
 
     const vectorSummary = topAxes
       .map((a) => `${a.label}: ${a.value}/100`)
       .join('\n');
+
+    // 시도 횟수가 높을수록 더 쉬운 질문 요청
+    const difficultyNote = attempt >= 3
+      ? '\n중요: 이전 시도에서 실패했어. 더 일상적이고 쉬운 질문을 만들어. 극단적 상황보다 평범한 일상 선택을 물어봐.'
+      : attempt >= 2
+      ? '\n참고: 이전 시도에서 실패했어. 조금 더 직관적인 질문으로 만들어.'
+      : '';
 
     const raw = await callClaude({
       system: `너는 인격지문 인증 시스템이야.
@@ -54,6 +64,7 @@ export async function POST(req: Request) {
 - 질문 자체에서 벡터 정보가 드러나면 안 돼 (축 이름, 점수 언급 금지)
 - 한국어로, 2-3문장 이내 상황 설명 + 질문
 - 너무 쉽거나 누구나 같은 답을 할 질문은 피해
+- 이전 질문과 다른 상황을 사용해${difficultyNote}
 
 JSON으로 답해:
 {
@@ -64,11 +75,11 @@ JSON으로 답해:
       messages: [
         {
           role: 'user',
-          content: `이 사용자의 심리 벡터:\n${vectorSummary}\n\n인격지문 인증 질문 1개를 생성해줘.`,
+          content: `이 사용자의 심리 벡터:\n${vectorSummary}\n\n인격지문 인증 질문 1개를 생성해줘. (${attempt}번째 시도)`,
         },
       ],
       maxTokens: 512,
-      temperature: 0.8,
+      temperature: 0.9,
     });
 
     const parsed = parseJsonResponse<{
@@ -78,19 +89,21 @@ JSON으로 답해:
     }>(raw);
 
     const challengeId = `fp_${userId}_${Date.now()}`;
-    setChallenge(challengeId, {
+    await setChallenge(challengeId, {
       userId,
       question: parsed.question,
       keyAxes: parsed.key_axes,
       expectedDirection: parsed.expected_direction,
       vectorSummary,
-      createdAt: Date.now(),
+      attempt,
     });
 
     return NextResponse.json({
       fingerprintRequired: true,
       challengeId,
       question: parsed.question,
+      attempt,
+      maxAttempts: 5,
     });
   } catch (e: any) {
     console.error('[fingerprint/challenge]', e);

@@ -14,10 +14,11 @@ function LandingInner() {
   const [showLogin, setShowLogin] = useState(false);
 
   // 인격지문 상태
-  const [fpStep, setFpStep] = useState<'none' | 'challenged' | 'verifying'>('none');
+  const [fpStep, setFpStep] = useState<'none' | 'loading-question' | 'challenged' | 'verifying'>('none');
   const [fpQuestion, setFpQuestion] = useState('');
   const [fpChallengeId, setFpChallengeId] = useState('');
   const [fpAnswer, setFpAnswer] = useState('');
+  const [fpAttempt, setFpAttempt] = useState(1);
   const [fpResult, setFpResult] = useState<{ pass: boolean; reason: string } | null>(null);
 
   const router = useRouter();
@@ -41,30 +42,44 @@ function LandingInner() {
     setLoading(true); setError('');
 
     try {
-      // Step 1: 인격지문 필요 여부 체크
-      const fpRes = await fetch('/api/fingerprint/challenge', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: id.trim().toLowerCase() }),
-      });
-
-      if (fpRes.ok) {
-        const fpData = await fpRes.json();
-        if (fpData.fingerprintRequired) {
-          // 인격지문 질문 표시
-          setFpQuestion(fpData.question);
-          setFpChallengeId(fpData.challengeId);
-          setFpStep('challenged');
-          setLoading(false);
-          return;
-        }
-      }
-
-      // 인격지문 불필요 → 바로 로그인
-      await doLogin();
+      await requestChallenge(1);
     } catch (e: any) {
       setError(e.message);
       setLoading(false);
+    }
+  }
+
+  async function requestChallenge(attempt: number) {
+    setFpStep('loading-question');
+    setFpAnswer('');
+    setFpResult(null);
+    setError('');
+    setLoading(true);
+
+    try {
+      const fpRes = await fetch('/api/fingerprint/challenge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: id.trim().toLowerCase(), attempt }),
+      });
+      const fpData = await fpRes.json();
+
+      if (!fpRes.ok) throw new Error(fpData.error || 'challenge failed');
+
+      if (!fpData.fingerprintRequired) {
+        await doLogin();
+        return;
+      }
+
+      setFpQuestion(fpData.question);
+      setFpChallengeId(fpData.challengeId);
+      setFpAttempt(attempt);
+      setFpStep('challenged');
+      setLoading(false);
+    } catch (e: any) {
+      setError(e.message);
+      setLoading(false);
+      setFpStep('none');
     }
   }
 
@@ -82,16 +97,25 @@ function LandingInner() {
       });
       const data = await r.json();
 
-      if (!r.ok) throw new Error(data.error);
+      // 세션 만료 → 같은 시도 횟수로 새 질문 자동 요청
+      if (!r.ok && data.error === 'expired') {
+        await requestChallenge(fpAttempt);
+        return;
+      }
+      if (!r.ok) throw new Error(data.message || data.error);
 
       setFpResult({ pass: data.pass, reason: data.reason });
 
       if (data.pass) {
-        // 통과 → 로그인 진행
         setTimeout(() => doLogin(), 1500);
       } else {
         setLoading(false);
-        setFpStep('challenged');
+        // 다음 시도 가능하면 바로 새 질문 준비
+        if (fpAttempt < 5) {
+          setFpStep('challenged');
+        } else {
+          setFpStep('challenged');
+        }
       }
     } catch (e: any) {
       setError(e.message);
@@ -122,8 +146,14 @@ function LandingInner() {
     setFpQuestion('');
     setFpChallengeId('');
     setFpAnswer('');
+    setFpAttempt(1);
     setFpResult(null);
     setError('');
+  }
+
+  async function retryWithNewQuestion() {
+    if (fpAttempt >= 5) return;
+    await requestChallenge(fpAttempt + 1);
   }
 
   return (
@@ -186,60 +216,73 @@ function LandingInner() {
               </div>
             )}
           </div>
-        ) : fpStep === 'challenged' || fpStep === 'verifying' ? (
+        ) : fpStep === 'loading-question' || fpStep === 'challenged' || fpStep === 'verifying' ? (
           /* ── 인격지문 인증 화면 ── */
           <div className="text-center">
             <p className="text-faint text-xs tracking-wider mb-4">SIGNALOGY</p>
             <p className="text-fg text-sm font-semibold mb-2">인격지문 인증</p>
-            <p className="text-dim text-xs mb-6">이 계정은 인격지문이 활성화되어 있어. 본인 확인이 필요해.</p>
+            <p className="text-dim text-xs mb-1">이 계정은 인격지문이 활성화되어 있어.</p>
+            <p className="text-faint text-[10px] mb-6">시도 {fpAttempt}/5</p>
 
-            <div className="bg-card border border-line rounded-xl p-5 mb-6 text-left">
-              <p className="text-[10px] text-faint mb-2">질문</p>
-              <p className="text-sm text-fg leading-relaxed">{fpQuestion}</p>
-            </div>
+            {fpStep === 'loading-question' ? (
+              <LoadingState phases={[{ message: '질문 생성 중...', startAt: 0 }]} estimatedSec={5} hint="벡터 기반 질문을 만드는 중" size="sm" />
+            ) : (
+              <>
+                <div className="bg-card border border-line rounded-xl p-5 mb-6 text-left">
+                  <p className="text-[10px] text-faint mb-2">질문</p>
+                  <p className="text-sm text-fg leading-relaxed">{fpQuestion}</p>
+                </div>
 
-            {fpResult && !fpResult.pass && (
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/40 rounded-xl p-4 mb-4 text-left">
-                <p className="text-red-600 dark:text-red-400 text-sm font-semibold mb-1">인증 실패</p>
-                <p className="text-red-600 dark:text-red-400 text-xs">{fpResult.reason}</p>
-              </div>
+                {fpResult && !fpResult.pass && (
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/40 rounded-xl p-4 mb-4 text-left">
+                    <p className="text-red-600 dark:text-red-400 text-sm font-semibold mb-1">인증 실패</p>
+                    <p className="text-red-600 dark:text-red-400 text-xs">{fpResult.reason}</p>
+                  </div>
+                )}
+
+                {fpResult && fpResult.pass && (
+                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-900/40 rounded-xl p-4 mb-4 text-left">
+                    <p className="text-green-600 dark:text-green-400 text-sm font-semibold mb-1">인증 통과</p>
+                    <p className="text-green-600 dark:text-green-400 text-xs">{fpResult.reason}</p>
+                  </div>
+                )}
+
+                {fpStep === 'verifying' ? (
+                  <LoadingState phases={[{ message: '답변 분석 중...', startAt: 0 }, { message: '벡터와 비교하는 중...', startAt: 3 }]} estimatedSec={8} hint="인격지문 판정 중" size="sm" />
+                ) : !fpResult?.pass ? (
+                  <div className="space-y-3 max-w-xs mx-auto">
+                    <textarea
+                      value={fpAnswer}
+                      onChange={(e) => setFpAnswer(e.target.value)}
+                      placeholder="너의 답변을 적어줘"
+                      rows={4}
+                      className="w-full px-4 py-3 bg-card border border-line rounded-xl text-fg text-sm focus:border-accent focus:outline-none placeholder:text-faint resize-none"
+                      autoFocus
+                    />
+                    {error && <p className="text-sm text-red-600">{error}</p>}
+                    <button
+                      onClick={handleFingerprintVerify}
+                      disabled={loading || !fpAnswer.trim()}
+                      className="w-full py-3 bg-accent text-bg text-sm rounded-xl font-semibold hover:bg-accent2 disabled:opacity-50"
+                    >
+                      인증하기
+                    </button>
+                    {fpAttempt < 5 && fpResult && !fpResult.pass && (
+                      <button onClick={retryWithNewQuestion} disabled={loading}
+                        className="w-full py-2 border border-line text-dim text-xs rounded-xl hover:bg-card disabled:opacity-50">
+                        다른 질문으로 다시 시도 ({fpAttempt + 1}/5)
+                      </button>
+                    )}
+                    <button onClick={resetFingerprint} className="w-full text-xs text-faint hover:text-dim">
+                      ← 돌아가기
+                    </button>
+                    <button onClick={() => doLogin()} className="w-full text-xs text-faint hover:text-dim">
+                      무조건 로그인하기
+                    </button>
+                  </div>
+                ) : null}
+              </>
             )}
-
-            {fpResult && fpResult.pass && (
-              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-900/40 rounded-xl p-4 mb-4 text-left">
-                <p className="text-green-600 dark:text-green-400 text-sm font-semibold mb-1">인증 통과</p>
-                <p className="text-green-600 dark:text-green-400 text-xs">{fpResult.reason}</p>
-              </div>
-            )}
-
-            {fpStep === 'verifying' && !fpResult ? (
-              <LoadingState phases={[{ message: '답변 분석 중...', startAt: 0 }, { message: '벡터와 비교하는 중...', startAt: 3 }]} estimatedSec={8} hint="인격지문 판정 중" size="sm" />
-            ) : !fpResult?.pass ? (
-              <div className="space-y-3 max-w-xs mx-auto">
-                <textarea
-                  value={fpAnswer}
-                  onChange={(e) => setFpAnswer(e.target.value)}
-                  placeholder="너의 답변을 적어줘"
-                  rows={4}
-                  className="w-full px-4 py-3 bg-card border border-line rounded-xl text-fg text-sm focus:border-accent focus:outline-none placeholder:text-faint resize-none"
-                  autoFocus
-                />
-                {error && <p className="text-sm text-red-600">{error}</p>}
-                <button
-                  onClick={handleFingerprintVerify}
-                  disabled={loading || !fpAnswer.trim()}
-                  className="w-full py-3 bg-accent text-bg text-sm rounded-xl font-semibold hover:bg-accent2 disabled:opacity-50"
-                >
-                  인증하기
-                </button>
-                <button onClick={resetFingerprint} className="w-full text-xs text-faint hover:text-dim">
-                  ← 돌아가기
-                </button>
-                <button onClick={() => doLogin()} className="w-full text-xs text-faint hover:text-dim mt-2">
-                  무조건 로그인하기
-                </button>
-              </div>
-            ) : null}
           </div>
         ) : (
           /* ── 일반 로그인 화면 ── */
