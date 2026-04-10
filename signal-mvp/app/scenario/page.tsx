@@ -21,7 +21,7 @@ export default async function SignalPage() {
 
   return (
     <div className="max-w-lg mx-auto px-5 py-8 pb-20">
-      <h1 className="text-lg font-bold mb-6">Signal</h1>
+      <p className="text-lg font-bold mb-6">Signalogy</p>
 
       {/* 완성도 (맨 위) */}
       <section className="p-5 border border-white/10 rounded-xl mb-6">

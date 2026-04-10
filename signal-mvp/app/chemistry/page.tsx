@@ -66,7 +66,7 @@ export default function ChemistryPage() {
 
   return (
     <div className="max-w-lg mx-auto px-5 py-8 pb-20">
-      <h1 className="text-lg font-bold mb-6">Chemistry</h1>
+      <p className="text-lg font-bold mb-6">Signalogy</p>
 
       {/* 검색 (인스타 스타일 — 탭하면 열림) */}
       {!searchOpen ? (

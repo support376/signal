@@ -53,9 +53,9 @@ export default async function HomePage() {
   // ── STATE: signal 미완료 (0-4/5) ──
   if (done < 5) {
     return (
-      <div className="max-w-md mx-auto px-5 py-12 pb-20">
+      <div className="max-w-md mx-auto px-5 py-8 pb-20">
+        <p className="text-lg font-bold mb-8">Signalogy</p>
         <div className="text-center">
-          {/* 진행 바 */}
           <div className="flex gap-1.5 max-w-xs mx-auto mb-4">
             {SCENARIO_ORDER.map((_, i) => (
               <div key={i} className={`flex-1 h-1.5 rounded-full ${i < done ? 'bg-white/50' : 'bg-white/10'}`} />
@@ -93,9 +93,9 @@ export default async function HomePage() {
   // ── STATE: 5/5 완료 + 케미 없음 → "보내기" ──
   if (chemistries.length === 0) {
     return (
-      <div className="max-w-md mx-auto px-5 py-12 pb-20">
+      <div className="max-w-md mx-auto px-5 py-8 pb-20">
+        <p className="text-lg font-bold mb-8">Signalogy</p>
         <div className="text-center">
-          <p className="text-[10px] text-white/20 font-mono mb-8">signal ✓</p>
           <p className="text-xl font-bold mb-2">이제 상대에게 보내.</p>
           <p className="text-sm text-white/40 mb-8">15분만 하면 둘의 진짜 케미가 열려.</p>
 
@@ -146,7 +146,7 @@ export default async function HomePage() {
   // ── STATE: 케미 결과 있음 → signal 요약 + SNS 사용자 ──
   return (
     <div className="max-w-md mx-auto px-5 py-12 pb-20">
-      <p className="text-[10px] text-white/15 font-mono mb-8">@{user.slug || user.id}</p>
+      <p className="text-lg font-bold mb-8">Signalogy</p>
 
       {/* 내 signal */}
       {headline ? (

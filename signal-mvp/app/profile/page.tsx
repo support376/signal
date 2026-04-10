@@ -22,7 +22,7 @@ export default async function MorePage() {
 
   return (
     <div className="max-w-md mx-auto px-5 py-8 pb-20">
-      <h1 className="text-lg font-bold mb-6">More</h1>
+      <p className="text-lg font-bold mb-6">Signalogy</p>
 
       {/* 프로필 */}
       <section className="flex items-center gap-4 mb-6">
