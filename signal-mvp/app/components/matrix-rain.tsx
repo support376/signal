@@ -3,9 +3,8 @@
 import { useEffect, useRef } from 'react';
 
 /**
- * SIGNALOGY Matrix Rain — 세련된 버전
- * 큰 글자 + 느린 속도 + 넓은 간격 + 긴 트레일
- * "정신없음" → "세련된 데이터 흐름"
+ * 클래식 Matrix Digital Rain — SIGNALOGY 버전
+ * 원본 알고리즘 그대로: 모든 컬럼 + 반투명 검정 잔상 + 초록 글자
  */
 export default function MatrixRain() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -21,53 +20,44 @@ export default function MatrixRain() {
     let animId: number;
 
     const chars = 'SIGNALOGY'.split('');
-    const fontSize = 24;       // 크게
-    const colGap = 3;          // 3칸마다 1컬럼만 활성 → 넓은 간격
+    const fontSize = 15;
     let columns = 0;
     let drops: number[] = [];
-    let speeds: number[] = [];
-    let active: boolean[] = []; // 활성 컬럼만 렌더
 
     function resize() {
       c.width = window.innerWidth;
       c.height = window.innerHeight;
       columns = Math.floor(c.width / fontSize);
-      drops = Array.from({ length: columns }, () => Math.random() * -30);
-      speeds = Array.from({ length: columns }, () => 0.08 + Math.random() * 0.15);
-      // 3칸 중 1칸만 활성 → 듬성듬성
-      active = Array.from({ length: columns }, (_, i) => i % colGap === 0);
+      drops = Array.from({ length: columns }, () =>
+        Math.floor(Math.random() * c.height / fontSize) * -1
+      );
     }
 
     function draw() {
-      // 매우 긴 트레일 (0.025)
-      g.fillStyle = 'rgba(0, 0, 0, 0.025)';
+      // 핵심: 완전히 지우지 않고 반투명 검정으로 덮어서 잔상
+      g.fillStyle = 'rgba(0, 0, 0, 0.06)';
       g.fillRect(0, 0, c.width, c.height);
 
-      g.font = `300 ${fontSize}px "JetBrains Mono", "Fira Code", monospace`;
+      g.font = `${fontSize}px "JetBrains Mono", monospace`;
 
       for (let i = 0; i < drops.length; i++) {
-        if (!active[i]) continue;
-
+        const char = chars[Math.floor(Math.random() * chars.length)];
         const x = i * fontSize;
         const y = drops[i] * fontSize;
 
-        // 선두: 밝은 시안
-        const headChar = chars[Math.floor(Math.random() * chars.length)];
-        g.fillStyle = 'rgba(0, 220, 255, 0.85)';
-        g.fillText(headChar, x, y);
+        // 선두 글자: 밝은 흰색
+        g.fillStyle = '#fff';
+        g.fillText(char, x, y);
 
-        // 1칸 위: 중간 밝기
-        g.fillStyle = 'rgba(0, 180, 220, 0.35)';
+        // 바로 뒤: 밝은 초록
+        g.fillStyle = '#0f0';
         g.fillText(chars[Math.floor(Math.random() * chars.length)], x, y - fontSize);
 
-        // 2칸 위: 어둡게
-        g.fillStyle = 'rgba(0, 150, 200, 0.12)';
-        g.fillText(chars[Math.floor(Math.random() * chars.length)], x, y - fontSize * 2);
+        drops[i] += 0.5;
 
-        drops[i] += speeds[i];
-
-        if (y > c.height && Math.random() > 0.99) {
-          drops[i] = Math.random() * -15;
+        // 화면 밖 → 랜덤 확률로 리셋
+        if (drops[i] * fontSize > c.height && Math.random() > 0.975) {
+          drops[i] = 0;
         }
       }
 
@@ -88,11 +78,9 @@ export default function MatrixRain() {
       ref={canvasRef}
       style={{
         position: 'fixed',
-        top: 0, left: 0,
-        width: '100%', height: '100%',
+        inset: 0,
         zIndex: 0,
         pointerEvents: 'none',
-        opacity: 0.7,
       }}
     />
   );
