@@ -2,28 +2,22 @@ import type { Config } from 'tailwindcss';
 
 export default {
   content: ['./app/**/*.{ts,tsx}', './lib/**/*.{ts,tsx}'],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        bg: '#0a0a0a',
-        'bg-elevated': '#111111',
-        card: '#181818',
-        'card-hover': '#222222',
-        line: '#2a2a2a',
-        fg: '#f5f5f5',
-        dim: '#999999',
-        accent: '#f5f5f5',
-        accent2: '#d0d0d0',
-        accent3: '#b0b0b0',
-        warn: '#d4a040',
-      },
-      borderRadius: { '4xl': '2rem' },
-      fontSize: {
-        'hero': ['4.5rem', { lineHeight: '1.1', letterSpacing: '-0.03em' }],
-        'hero-sm': ['3rem', { lineHeight: '1.15', letterSpacing: '-0.02em' }],
-      },
-      fontFamily: {
-        mono: ['"JetBrains Mono"', '"Fira Code"', 'Menlo', 'monospace'],
+        bg: 'rgb(var(--color-bg) / <alpha-value>)',
+        'bg-elevated': 'rgb(var(--color-bg-elevated) / <alpha-value>)',
+        card: 'rgb(var(--color-card) / <alpha-value>)',
+        'card-hover': 'rgb(var(--color-card-hover) / <alpha-value>)',
+        line: 'rgb(var(--color-line) / <alpha-value>)',
+        fg: 'rgb(var(--color-fg) / <alpha-value>)',
+        dim: 'rgb(var(--color-dim) / <alpha-value>)',
+        faint: 'rgb(var(--color-faint) / <alpha-value>)',
+        accent: 'rgb(var(--color-accent) / <alpha-value>)',
+        accent2: 'rgb(var(--color-accent2) / <alpha-value>)',
+        accent3: 'rgb(var(--color-accent3) / <alpha-value>)',
+        warn: 'rgb(var(--color-warn) / <alpha-value>)',
       },
     },
   },

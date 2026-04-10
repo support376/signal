@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-// 글로벌 API 콜 카운터 (window에 저장)
 declare global {
   interface Window {
     __signalogy_api_calls?: ApiCall[];
@@ -17,7 +16,6 @@ interface ApiCall {
   durationMs: number;
 }
 
-/** API 호출 시 이걸 호출하면 디버그 패널에 기록됨 */
 export function trackApiCall(call: ApiCall) {
   if (typeof window === 'undefined') return;
   if (!window.__signalogy_api_calls) window.__signalogy_api_calls = [];
@@ -25,10 +23,6 @@ export function trackApiCall(call: ApiCall) {
   window.__signalogy_debug_listener?.();
 }
 
-/**
- * fetch wrapper — 자동으로 source 추적
- * 사용: const data = await trackedFetch('/api/report', { body: ... })
- */
 export async function trackedFetch(
   url: string,
   init?: RequestInit
@@ -42,7 +36,6 @@ export async function trackedFetch(
   const data = await response.json();
   const duration = Date.now() - start;
 
-  // source 감지: 응답에 cached, source 등 필드가 있으면 활용
   let source: ApiCall['source'] = 'unknown';
   if (data.cached === true) source = 'cache';
   else if (data.source) source = data.source;
@@ -62,7 +55,6 @@ export async function trackedFetch(
   return { response, data };
 }
 
-/** 디버그 패널 — 화면 하단 고정 배지 */
 export default function ApiDebugPanel() {
   const [calls, setCalls] = useState<ApiCall[]>([]);
   const [expanded, setExpanded] = useState(false);
@@ -81,32 +73,32 @@ export default function ApiDebugPanel() {
   const cacheCount = calls.filter((c) => c.source === 'cache').length;
   const mathCount = calls.filter((c) => c.source === 'math').length;
   const dbCount = calls.filter((c) => c.source === 'db').length;
-  const totalCost = llmCount * 0.05; // 대략 $0.05 per LLM call
+  const totalCost = llmCount * 0.05;
 
   return (
     <div className="fixed bottom-2 right-2 z-50">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="px-3 py-1.5 bg-card/90 border border-line rounded-lg text-[10px] font-mono text-dim backdrop-blur-sm hover:text-accent transition shadow-lg"
+        className="px-3 py-1.5 bg-card border border-line rounded-lg text-[10px] text-dim hover:text-accent shadow-sm"
       >
-        🔧 LLM:{llmCount} Cache:{cacheCount} Math:{mathCount} DB:{dbCount}
+        LLM:{llmCount} Cache:{cacheCount} Math:{mathCount} DB:{dbCount}
       </button>
 
       {expanded && (
-        <div className="absolute bottom-10 right-0 w-80 max-h-64 overflow-y-auto bg-card border border-line rounded-xl shadow-2xl p-3">
+        <div className="absolute bottom-10 right-0 w-80 max-h-64 overflow-y-auto bg-bg border border-line rounded-xl shadow-lg p-3">
           <div className="flex justify-between items-baseline mb-2">
             <p className="text-xs font-semibold text-fg">API Calls ({calls.length})</p>
-            <p className="text-[10px] text-amber-300">≈${totalCost.toFixed(2)} LLM cost</p>
+            <p className="text-[10px] text-warn">≈${totalCost.toFixed(2)} LLM cost</p>
           </div>
           <div className="space-y-1">
             {calls.slice().reverse().map((c, i) => (
-              <div key={i} className="flex items-baseline justify-between text-[10px] font-mono">
+              <div key={i} className="flex items-baseline justify-between text-[10px]">
                 <span className="truncate flex-1">{c.endpoint}</span>
                 <span className={`ml-2 px-1.5 py-0.5 rounded text-[9px] font-bold ${
-                  c.source === 'llm' ? 'bg-red-900/40 text-red-300' :
-                  c.source === 'cache' ? 'bg-green-900/40 text-green-300' :
-                  c.source === 'math' ? 'bg-blue-900/40 text-blue-300' :
-                  'bg-gray-900/40 text-gray-300'
+                  c.source === 'llm' ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300' :
+                  c.source === 'cache' ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' :
+                  c.source === 'math' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' :
+                  'bg-gray-100 text-gray-700 dark:bg-gray-900/40 dark:text-gray-300'
                 }`}>
                   {c.source}
                 </span>

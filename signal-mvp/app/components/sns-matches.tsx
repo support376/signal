@@ -22,12 +22,12 @@ export default function SnsMatches({ userId }: { userId: string }) {
     finally { setLoading(false); }
   }
 
-  if (loading) return <p className="text-xs text-white/10 py-4">불러오는 중...</p>;
+  if (loading) return <p className="text-xs text-faint py-4">불러오는 중...</p>;
   if (matches.length === 0) return null;
 
   return (
     <section className="mb-10">
-      <p className="text-[10px] text-white/15 font-mono mb-4">SNS 연결된 사람들</p>
+      <p className="text-[10px] text-faint mb-4">SNS 연결된 사람들</p>
       <div className="space-y-2">
         {matches.map((m) => {
           const snsLink = m.instagram
@@ -39,19 +39,19 @@ export default function SnsMatches({ userId }: { userId: string }) {
             : null;
 
           return (
-            <div key={m.id} className="flex items-center justify-between py-3 border-b border-white/5">
+            <div key={m.id} className="flex items-center justify-between py-3 border-b border-line">
               <div className="flex items-center gap-3 min-w-0">
-                <Link href={`/u/${m.slug}`} className="text-sm text-white/60 font-mono hover:text-white/80 transition truncate">
+                <Link href={`/u/${m.slug}`} className="text-sm text-dim hover:text-fg truncate">
                   @{m.slug}
                 </Link>
                 {snsLink && (
                   <a href={snsLink.url} target="_blank" rel="noopener noreferrer"
-                    className="text-[10px] text-white/20 border border-white/8 rounded px-1.5 py-0.5 hover:text-white/40 transition flex-shrink-0">
-                    {snsLink.label} ↗
+                    className="text-[10px] text-faint border border-line rounded px-1.5 py-0.5 hover:text-dim flex-shrink-0">
+                    {snsLink.label}
                   </a>
                 )}
               </div>
-              <Link href={`/u/${m.slug}`} className="text-lg font-bold text-white/70 hover:text-white transition ml-3">
+              <Link href={`/u/${m.slug}`} className="text-lg font-bold text-fg ml-3">
                 {m.score}%
               </Link>
             </div>

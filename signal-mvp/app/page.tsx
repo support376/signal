@@ -52,27 +52,25 @@ function LandingInner() {
 
         {!showLogin ? (
           <div className="text-center">
-            {/* ── Stage A: Couple Chemistry ── */}
             <div className="mb-12">
-              <p className="text-white/25 text-xs font-mono tracking-wider mb-8">SIGNALOGY</p>
+              <p className="text-faint text-xs tracking-wider mb-8">SIGNALOGY</p>
 
-              <div className="space-y-1 text-sm text-white/30 mb-8">
+              <div className="space-y-1 text-sm text-dim mb-8">
                 <p>사주가 아닙니다.</p>
                 <p>MBTI도 아닙니다.</p>
               </div>
 
-              <h1 className="text-2xl md:text-3xl font-bold text-white leading-snug mb-4">
+              <h1 className="text-2xl md:text-3xl font-bold text-fg leading-snug mb-4">
                 당신과 그 사람의<br />진짜 케미를 봅니다.
               </h1>
 
-              <p className="text-sm text-white/40 leading-relaxed max-w-xs mx-auto">
+              <p className="text-sm text-dim leading-relaxed max-w-xs mx-auto">
                 MBTI는 16개 박스. 사주는 태어난 날.<br />
-                <span className="text-white/70">Signalogy는 당신이 실제로 한 선택.</span><br />
+                <span className="text-fg">Signalogy는 당신이 실제로 한 선택.</span><br />
                 그게 진짜.
               </p>
             </div>
 
-            {/* ── 흐름 설명 (3 step) ── */}
             <div className="space-y-4 text-left max-w-xs mx-auto mb-12">
               {[
                 { n: '1', t: '나의 signal 읽기', sub: '15분, 카톡처럼 대화' },
@@ -80,10 +78,10 @@ function LandingInner() {
                 { n: '3', t: '둘의 케미 결과 열림', sub: '진짜 맞는지, 어디서 부딪히는지' },
               ].map((s) => (
                 <div key={s.n} className="flex items-start gap-4">
-                  <span className="text-white/15 text-xs font-mono mt-0.5">{s.n}</span>
+                  <span className="text-faint text-xs mt-0.5">{s.n}</span>
                   <div>
-                    <p className="text-sm text-white/80">{s.t}</p>
-                    <p className="text-[11px] text-white/30">{s.sub}</p>
+                    <p className="text-sm text-fg">{s.t}</p>
+                    <p className="text-[11px] text-dim">{s.sub}</p>
                   </div>
                 </div>
               ))}
@@ -91,36 +89,36 @@ function LandingInner() {
 
             <button
               onClick={() => setShowLogin(true)}
-              className="w-full max-w-xs mx-auto block py-4 border border-white/20 text-white rounded-xl transition-all hover:bg-white/5 hover:border-white/40"
+              className="w-full max-w-xs mx-auto block py-4 border border-line text-fg rounded-xl hover:bg-card"
             >
               시작하기
             </button>
 
-            <p className="text-[10px] text-white/10 mt-4 font-mono">무료 · 광고 없음 · 데이터 안 팔림</p>
+            <p className="text-[10px] text-faint mt-4">무료 · 광고 없음 · 데이터 안 팔림</p>
 
             {refParam && (
-              <div className="mt-8 p-4 border border-white/10 rounded-xl">
+              <div className="mt-8 p-4 border border-line rounded-xl">
                 <p className="text-sm">
-                  <span className="text-white/70 font-medium">@{refParam}</span>
-                  <span className="text-white/30"> 가 너와의 케미를 보고 싶어해.</span>
+                  <span className="text-fg font-medium">@{refParam}</span>
+                  <span className="text-dim"> 가 너와의 케미를 보고 싶어해.</span>
                 </p>
-                <p className="text-[10px] text-white/20 mt-2">너도 15분만 하면 둘의 결과가 열려.</p>
+                <p className="text-[10px] text-faint mt-2">너도 15분만 하면 둘의 결과가 열려.</p>
               </div>
             )}
           </div>
         ) : (
           <div className="text-center">
-            <p className="text-white/25 text-xs font-mono tracking-wider mb-6">SIGNALOGY</p>
-            <p className="text-white/40 text-sm mb-8">케미를 보려면 먼저 너의 signal을 읽어야 해.</p>
+            <p className="text-faint text-xs tracking-wider mb-6">SIGNALOGY</p>
+            <p className="text-dim text-sm mb-8">케미를 보려면 먼저 너의 signal을 읽어야 해.</p>
 
             {loading ? (
               <LoadingState phases={LOGIN_PHASES} estimatedSec={5} hint="준비 중" size="sm" />
             ) : (
               <form onSubmit={handleLogin} className="space-y-4 max-w-xs mx-auto">
                 <input type="text" value={id} onChange={(e) => setId(e.target.value)} placeholder="ID (영문/숫자)"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-white/30 focus:outline-none placeholder:text-white/20" autoFocus />
+                  className="w-full px-4 py-3 bg-card border border-line rounded-xl text-fg text-sm focus:border-accent focus:outline-none placeholder:text-faint" autoFocus />
                 <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="이름"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-white/30 focus:outline-none placeholder:text-white/20" />
+                  className="w-full px-4 py-3 bg-card border border-line rounded-xl text-fg text-sm focus:border-accent focus:outline-none placeholder:text-faint" />
                 <div className="flex gap-2">
                   {[
                     { v: 'M', l: '남성' },
@@ -128,18 +126,18 @@ function LandingInner() {
                     { v: 'O', l: '기타' },
                   ].map((g) => (
                     <button key={g.v} type="button" onClick={() => setGender(g.v)}
-                      className={`flex-1 py-2.5 border rounded-xl text-xs transition ${
-                        gender === g.v ? 'border-white/30 text-white bg-white/5' : 'border-white/8 text-white/25'
+                      className={`flex-1 py-2.5 border rounded-xl text-xs ${
+                        gender === g.v ? 'border-accent text-fg bg-card' : 'border-line text-faint'
                       }`}>
                       {g.l}
                     </button>
                   ))}
                 </div>
-                {error && <p className="text-sm text-red-400">{error}</p>}
-                <button type="submit" className="w-full py-3 border border-white/20 text-white text-sm rounded-xl transition-all hover:bg-white/5">
+                {error && <p className="text-sm text-red-600">{error}</p>}
+                <button type="submit" className="w-full py-3 border border-line text-fg text-sm rounded-xl hover:bg-card">
                   시작
                 </button>
-                <button type="button" onClick={() => setShowLogin(false)} className="w-full text-xs text-white/15 hover:text-white/30">
+                <button type="button" onClick={() => setShowLogin(false)} className="w-full text-xs text-faint hover:text-dim">
                   ← 돌아가기
                 </button>
               </form>

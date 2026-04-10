@@ -6,7 +6,6 @@ interface Props {
   dimensions: RadarDimension[];
   size?: number;
   color?: string;
-  /** 비교 모드: 두 번째 사람의 데이터 */
   compare?: RadarDimension[];
   compareColor?: string;
 }
@@ -14,9 +13,9 @@ interface Props {
 export default function RadarChart({
   dimensions,
   size = 280,
-  color = '#7aa2ff',
+  color = '#666666',
   compare,
-  compareColor = '#b07aff',
+  compareColor = '#999999',
 }: Props) {
   const cx = size / 2;
   const cy = size / 2;
@@ -39,13 +38,11 @@ export default function RadarChart({
     }).join(' ');
   }
 
-  // 배경 그리드 (3단계)
   const gridLevels = [33, 66, 100];
 
   return (
     <div className="flex flex-col items-center">
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        {/* 배경 그리드 */}
         {gridLevels.map((lv) => (
           <polygon
             key={lv}
@@ -54,13 +51,11 @@ export default function RadarChart({
               return `${p.x},${p.y}`;
             }).join(' ')}
             fill="none"
-            stroke="#2a3142"
+            className="stroke-line"
             strokeWidth={1}
-            opacity={0.6}
           />
         ))}
 
-        {/* 축 선 */}
         {dimensions.map((_, i) => {
           const p = getPoint(i, 100);
           return (
@@ -70,14 +65,13 @@ export default function RadarChart({
               y1={cy}
               x2={p.x}
               y2={p.y}
-              stroke="#2a3142"
+              className="stroke-line"
               strokeWidth={1}
               opacity={0.4}
             />
           );
         })}
 
-        {/* 비교 데이터 (뒤에 깔림) */}
         {compare && (
           <polygon
             points={polygon(compare)}
@@ -89,7 +83,6 @@ export default function RadarChart({
           />
         )}
 
-        {/* 메인 데이터 */}
         <polygon
           points={polygon(dimensions)}
           fill={color}
@@ -98,7 +91,6 @@ export default function RadarChart({
           strokeWidth={2}
         />
 
-        {/* 데이터 포인트 */}
         {dimensions.map((d, i) => {
           const p = getPoint(i, d.value);
           return (
@@ -106,7 +98,6 @@ export default function RadarChart({
           );
         })}
 
-        {/* 비교 포인트 */}
         {compare?.map((d, i) => {
           const p = getPoint(i, d.value);
           return (
@@ -114,7 +105,6 @@ export default function RadarChart({
           );
         })}
 
-        {/* 라벨 */}
         {dimensions.map((d, i) => {
           const p = getPoint(i, 120);
           return (
@@ -132,7 +122,6 @@ export default function RadarChart({
         })}
       </svg>
 
-      {/* 범례 (비교 모드) */}
       {compare && (
         <div className="flex items-center gap-4 mt-2 text-xs">
           <span className="flex items-center gap-1">

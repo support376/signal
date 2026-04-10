@@ -27,7 +27,6 @@ export default async function HistoryPage() {
   const me = await getUser(userId);
   if (!me) redirect('/');
 
-  // 4개 read 병렬화
   const [completed, selfReport, chemistries, integrated] = await Promise.all([
     getCompletedScenarios(userId),
     getSelfReport(userId),
@@ -42,24 +41,23 @@ export default async function HistoryPage() {
       <Link href="/dashboard" className="text-xs text-dim hover:text-accent">← 대시보드</Link>
 
       <header className="mt-4 mb-8">
-        <h1 className="text-3xl font-bold">{me.name}의 과거 내역</h1>
+        <h1 className="text-3xl font-bold text-fg">{me.name}의 과거 내역</h1>
         <p className="text-sm text-dim mt-2">
           {completed.length}/5 시나리오 · {chemistries.length}건 케미 · 자기 분석{' '}
           {selfReport ? '있음' : '없음'}
         </p>
       </header>
 
-      {/* 완성도 카드 */}
       <section className="mb-12 bg-card border border-line rounded-2xl p-5">
         <div className="flex items-baseline justify-between mb-3">
           <p className="text-xs text-dim uppercase tracking-wider">추정 완성도</p>
-          <p className="text-2xl font-bold bg-gradient-to-r from-accent to-accent2 bg-clip-text text-transparent">
+          <p className="text-2xl font-bold text-fg">
             {completeness.percent}%
           </p>
         </div>
         <div className="w-full h-1.5 bg-bg rounded-full overflow-hidden mb-3">
           <div
-            className="h-full bg-gradient-to-r from-accent to-accent2"
+            className="h-full bg-accent"
             style={{ width: `${completeness.percent}%` }}
           />
         </div>
@@ -70,11 +68,10 @@ export default async function HistoryPage() {
           <p>평균 확실도: {completeness.average_confidence}</p>
         </div>
         {completeness.warning && (
-          <p className="text-xs text-amber-300 mt-3 leading-relaxed">{completeness.warning}</p>
+          <p className="text-xs text-warn mt-3 leading-relaxed">{completeness.warning}</p>
         )}
       </section>
 
-      {/* ─────── 시나리오별 ─────── */}
       <section className="mb-12">
         <h2 className="text-sm font-semibold text-accent uppercase tracking-wider mb-4">
           시나리오 + 추출 벡터
@@ -87,11 +84,11 @@ export default async function HistoryPage() {
               <div
                 key={sid}
                 className={`p-4 bg-card border rounded-xl ${
-                  isDone ? 'border-line' : 'border-line/40 opacity-50'
+                  isDone ? 'border-line' : 'border-line opacity-50'
                 }`}
               >
                 <div className="flex items-baseline justify-between mb-1">
-                  <p className="font-medium">{SCENARIO_LABELS[sid]}</p>
+                  <p className="font-medium text-fg">{SCENARIO_LABELS[sid]}</p>
                   {isDone ? (
                     <span className="text-xs text-accent3">✓ 완료</span>
                   ) : (
@@ -120,7 +117,6 @@ export default async function HistoryPage() {
         </div>
       </section>
 
-      {/* ─────── 통합 벡터 요약 ─────── */}
       {integrated && (
         <section className="mb-12">
           <h2 className="text-sm font-semibold text-accent uppercase tracking-wider mb-4">
@@ -140,7 +136,7 @@ export default async function HistoryPage() {
               평균 신뢰도: <span className="text-accent3">{integrated.summary.average_confidence}</span>
             </p>
             {integrated.summary.flagged_conflicts.length > 0 && (
-              <p className="text-amber-300">
+              <p className="text-warn">
                 충돌 flag: {integrated.summary.flagged_conflicts.join(', ')}
               </p>
             )}
@@ -148,7 +144,6 @@ export default async function HistoryPage() {
         </section>
       )}
 
-      {/* ─────── 자기 분석 ─────── */}
       <section className="mb-12">
         <h2 className="text-sm font-semibold text-accent uppercase tracking-wider mb-4">
           자기 분석 리포트
@@ -156,9 +151,9 @@ export default async function HistoryPage() {
         {selfReport ? (
           <Link
             href="/report"
-            className="block p-5 bg-card border border-line rounded-xl hover:border-accent3 transition"
+            className="block p-5 bg-card border border-line rounded-xl hover:border-accent"
           >
-            <p className="font-medium">생성됨</p>
+            <p className="font-medium text-fg">생성됨</p>
             <p className="text-xs text-dim mt-1">클릭해서 다시 보기 →</p>
           </Link>
         ) : (
@@ -166,7 +161,6 @@ export default async function HistoryPage() {
         )}
       </section>
 
-      {/* ─────── 케미 내역 ─────── */}
       <section className="mb-12">
         <h2 className="text-sm font-semibold text-accent uppercase tracking-wider mb-4">
           케미 분석 내역 ({chemistries.length}건)
@@ -183,7 +177,7 @@ export default async function HistoryPage() {
               <Link
                 key={`${c.user_a_id}-${c.user_b_id}-${c.lens}`}
                 href={`/chemistry/${otherId}/${c.lens}`}
-                className="block p-4 bg-card border border-line rounded-xl hover:border-accent2 transition"
+                className="block p-4 bg-card border border-line rounded-xl hover:border-accent"
               >
                 <div className="flex items-baseline justify-between">
                   <div>
@@ -196,7 +190,7 @@ export default async function HistoryPage() {
                       {LENS_KO[c.lens] || c.lens} · {new Date(c.created_at).toLocaleDateString('ko-KR')}
                     </p>
                   </div>
-                  <p className="text-2xl font-bold bg-gradient-to-r from-accent to-accent2 bg-clip-text text-transparent">
+                  <p className="text-2xl font-bold text-fg">
                     {c.score}%
                   </p>
                 </div>

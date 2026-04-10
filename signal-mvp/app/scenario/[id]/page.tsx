@@ -58,14 +58,12 @@ function ScenarioPageInner() {
     }
     setUserId(uid);
 
-    // 다시 하기 — 기존 데이터 삭제 후 새로 시작
     if (isRedo) {
       fetch('/api/scenario/reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: uid, scenarioId }),
       }).then(() => {
-        // URL에서 ?redo=1 제거
         window.history.replaceState(null, '', `/scenario/${scenarioId}`);
         loadState(uid);
       });
@@ -79,7 +77,6 @@ function ScenarioPageInner() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [turns]);
 
-  // 기존 상태 조회 — 진행 중이면 intro 자동 스킵
   async function loadState(uid: string) {
     setLoading(true);
     setError('');
@@ -103,7 +100,6 @@ function ScenarioPageInner() {
     }
   }
 
-  // 사용자가 "시작" 클릭 — 첫 turn 생성
   async function startScenario() {
     if (!userId) return;
     setLoading(true);
@@ -119,7 +115,6 @@ function ScenarioPageInner() {
       if (!r.ok) throw new Error(data.error);
       setTurns([{ turn_idx: 1, agent_msg: data.agent_msg, user_msg: null }]);
       setFinished(data.finished);
-      // tracker 시작
       trackerRef.current = createTracker(Date.now());
     } catch (e: any) {
       setError(e.message);
@@ -132,8 +127,6 @@ function ScenarioPageInner() {
   async function sendResponse() {
     if (!draft.trim() || !userId || loading) return;
     const userMsg = draft.trim();
-
-    // 메타데이터 캡처 (전송 직전)
     const inputMeta = trackerRef.current?.getMetadata(userMsg) ?? null;
 
     setDraft('');
@@ -161,7 +154,6 @@ function ScenarioPageInner() {
           ...ts,
           { turn_idx: data.turn_idx, agent_msg: data.agent_msg, user_msg: null },
         ]);
-        // 새 agent 메시지 도착 → tracker 리셋 (이 turn의 메타 추적 시작)
         if (trackerRef.current) {
           trackerRef.current.reset(Date.now());
         } else {
@@ -188,8 +180,6 @@ function ScenarioPageInner() {
       const data = await r.json();
       if (!r.ok) throw new Error(data.error);
 
-      // Transition 화면으로 (dashboard 대신)
-      // completeness 가져오기
       const compR = await fetch('/api/completeness', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -210,9 +200,6 @@ function ScenarioPageInner() {
     }
   }
 
-  // ───────────────────────────────────────
-  // TRANSITION 화면 — 시나리오 완료 후 다음으로
-  // ───────────────────────────────────────
   if (showTransition && transitionData) {
     return (
       <ScenarioTransition
@@ -223,9 +210,6 @@ function ScenarioPageInner() {
     );
   }
 
-  // ───────────────────────────────────────
-  // INTRO 화면 — 시작 전 맥락 카드
-  // ───────────────────────────────────────
   if (showIntro && turns.length === 0) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-12 min-h-screen flex flex-col">
@@ -240,7 +224,7 @@ function ScenarioPageInner() {
           <div className="w-full bg-card border border-line rounded-2xl p-8 space-y-6">
             <div>
               <p className="text-xs text-dim uppercase tracking-wider">상황</p>
-              <h1 className="text-2xl font-bold mt-1">{SCENARIO_LABELS[scenarioId]}</h1>
+              <h1 className="text-2xl font-bold mt-1 text-fg">{SCENARIO_LABELS[scenarioId]}</h1>
               <div className="flex items-baseline gap-3 mt-2">
                 <p className="text-xs text-accent3">{ctx.domainHint}</p>
                 <p className="text-xs text-dim">· {ctx.estimatedMinutes}</p>
@@ -252,12 +236,10 @@ function ScenarioPageInner() {
                 <p className="text-xs text-dim uppercase tracking-wider mb-1">당신은</p>
                 <p className="text-fg">자기 자신 그대로</p>
               </div>
-
               <div>
                 <p className="text-xs text-dim uppercase tracking-wider mb-1">상대는</p>
                 <p className="text-fg">{ctx.agentLabel}</p>
               </div>
-
               <div>
                 <p className="text-xs text-dim uppercase tracking-wider mb-1">방금 일어난 일</p>
                 <p className="text-fg leading-relaxed">{ctx.trigger}</p>
@@ -268,12 +250,12 @@ function ScenarioPageInner() {
               카톡처럼 대화하면 돼. 정답은 없어. 떠오르는 대로. 케미를 보려면 이 과정이 필요해.
             </div>
 
-            {error && <p className="text-sm text-red-400">{error}</p>}
+            {error && <p className="text-sm text-red-600">{error}</p>}
 
             <button
               onClick={startScenario}
               disabled={loading}
-              className="w-full py-3 bg-accent text-bg font-semibold rounded-lg hover:bg-accent2 transition disabled:opacity-50"
+              className="w-full py-3 bg-accent text-bg font-semibold rounded-lg hover:bg-accent2 disabled:opacity-50"
             >
               {loading ? '...' : '대화 시작'}
             </button>
@@ -283,9 +265,6 @@ function ScenarioPageInner() {
     );
   }
 
-  // ───────────────────────────────────────
-  // CHAT 화면
-  // ───────────────────────────────────────
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 flex flex-col min-h-screen">
       <header className="mb-4">
@@ -295,7 +274,7 @@ function ScenarioPageInner() {
         >
           ← 대시보드
         </button>
-        <h1 className="text-lg font-bold mt-2">{SCENARIO_LABELS[scenarioId]}</h1>
+        <h1 className="text-lg font-bold mt-2 text-fg">{SCENARIO_LABELS[scenarioId]}</h1>
         <p className="text-xs text-dim mt-1">
           {ctx.agentName} · 진행 {turns.length}/5
         </p>
@@ -304,29 +283,26 @@ function ScenarioPageInner() {
       <div className="flex-1 space-y-3 mb-4">
         {turns.map((t) => (
           <div key={t.turn_idx} className="space-y-2">
-            {/* Agent 말풍선 (왼쪽) */}
             <div className="flex items-end gap-2 max-w-[85%]">
-              <div className="w-8 h-8 rounded-full bg-card border border-line flex items-center justify-center text-xs flex-shrink-0">
+              <div className="w-8 h-8 rounded-full bg-card border border-line flex items-center justify-center text-xs flex-shrink-0 text-fg">
                 {ctx.agentName[0]}
               </div>
               <div>
                 <p className="text-[10px] text-dim ml-1 mb-0.5">{ctx.agentName}</p>
                 <div className="bg-card border border-line rounded-2xl rounded-bl-sm px-4 py-3">
-                  <p className="whitespace-pre-wrap leading-relaxed text-sm">{t.agent_msg}</p>
+                  <p className="whitespace-pre-wrap leading-relaxed text-sm text-fg">{t.agent_msg}</p>
                 </div>
               </div>
             </div>
-            {/* 내 말풍선 (오른쪽) */}
             {t.user_msg && (
               <div className="flex justify-end max-w-[85%] ml-auto">
-                <div className="bg-accent/15 border border-accent/25 rounded-2xl rounded-br-sm px-4 py-3">
-                  <p className="whitespace-pre-wrap leading-relaxed text-sm">{t.user_msg}</p>
+                <div className="bg-accent/10 border border-accent/20 rounded-2xl rounded-br-sm px-4 py-3">
+                  <p className="whitespace-pre-wrap leading-relaxed text-sm text-fg">{t.user_msg}</p>
                 </div>
               </div>
             )}
           </div>
         ))}
-        {/* 타이핑 인디케이터 */}
         {loading && (
           <div className="flex items-end gap-2 max-w-[85%]">
             <div className="w-8 h-8 rounded-full bg-card border border-line flex items-center justify-center text-xs flex-shrink-0">
@@ -345,13 +321,13 @@ function ScenarioPageInner() {
       </div>
 
       {error && (
-        <div className="text-sm text-red-400 mb-3 p-3 bg-red-900/20 border border-red-900/40 rounded-lg">
+        <div className="text-sm text-red-600 mb-3 p-3 bg-red-50 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-900/40">
           {error}
         </div>
       )}
 
       {!finished && turns.length > 0 && (
-        <div className="sticky bottom-0 bg-bg/80 backdrop-blur-md border-t border-line px-3 py-3">
+        <div className="sticky bottom-0 bg-bg border-t border-line px-3 py-3">
           <div className="flex items-end gap-2 max-w-2xl mx-auto">
             <textarea
               value={draft}
@@ -373,7 +349,7 @@ function ScenarioPageInner() {
             <button
               onClick={sendResponse}
               disabled={loading || !draft.trim() || turns[turns.length - 1]?.user_msg !== null}
-              className="w-10 h-10 rounded-full bg-accent text-bg flex items-center justify-center hover:bg-accent2 transition disabled:opacity-30 flex-shrink-0"
+              className="w-10 h-10 rounded-full bg-accent text-bg flex items-center justify-center hover:bg-accent2 disabled:opacity-30 flex-shrink-0"
               aria-label="전송"
             >
               ↑
@@ -383,12 +359,12 @@ function ScenarioPageInner() {
       )}
 
       {finished && !finalizing && (
-        <div className="bg-card border border-accent3 rounded-2xl p-6 text-center">
+        <div className="bg-card border border-line rounded-2xl p-6 text-center">
           <p className="text-accent3 font-semibold mb-2">✓ 시나리오 완료</p>
           <p className="text-sm text-dim mb-4">분석을 시작하면 결과가 저장됩니다.</p>
           <button
             onClick={finalize}
-            className="px-6 py-3 bg-accent3 text-bg rounded-lg font-semibold hover:opacity-80"
+            className="px-6 py-3 bg-accent text-bg rounded-lg font-semibold hover:opacity-80"
           >
             분석하기
           </button>

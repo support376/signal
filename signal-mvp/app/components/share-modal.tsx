@@ -20,7 +20,7 @@ export default function ShareModal({ open, onClose, slug, name }: Props) {
     const url =
       typeof window !== 'undefined' ? `${window.location.origin}/u/${slug}` : `/u/${slug}`;
     setShareUrl(url);
-    QRCode.toDataURL(url, { width: 280, margin: 2, color: { dark: '#e8ecf3', light: '#0b0d12' } })
+    QRCode.toDataURL(url, { width: 280, margin: 2, color: { dark: '#111111', light: '#ffffff' } })
       .then(setQrDataUrl)
       .catch((e) => console.error(e));
   }, [open, slug]);
@@ -46,7 +46,7 @@ export default function ShareModal({ open, onClose, slug, name }: Props) {
           url: shareUrl,
         });
       } catch (e) {
-        // User cancelled — silent
+        // User cancelled
       }
     } else {
       copyLink();
@@ -55,22 +55,22 @@ export default function ShareModal({ open, onClose, slug, name }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-fg/30"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-sm bg-card border border-line rounded-2xl p-6"
+        className="w-full max-w-sm bg-bg border border-line rounded-2xl p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold">상대에게 보내기</h2>
+          <h2 className="text-lg font-bold text-fg">상대에게 보내기</h2>
           <button onClick={onClose} className="text-dim hover:text-fg text-xl leading-none">
             ×
           </button>
         </div>
 
         {qrDataUrl ? (
-          <div className="bg-bg p-4 rounded-xl mb-4">
+          <div className="bg-card p-4 rounded-xl mb-4">
             <img
               src={qrDataUrl}
               alt="QR Code"
@@ -78,31 +78,31 @@ export default function ShareModal({ open, onClose, slug, name }: Props) {
             />
           </div>
         ) : (
-          <div className="bg-bg h-72 rounded-xl mb-4 flex items-center justify-center text-dim text-sm">
+          <div className="bg-card h-72 rounded-xl mb-4 flex items-center justify-center text-dim text-sm">
             QR 생성 중...
           </div>
         )}
 
-        <div className="bg-bg border border-line rounded-lg p-3 mb-3 break-all text-xs font-mono text-dim">
+        <div className="bg-card border border-line rounded-lg p-3 mb-3 break-all text-xs text-dim">
           {shareUrl}
         </div>
 
         <div className="grid grid-cols-2 gap-2">
           <button
             onClick={copyLink}
-            className="py-3 bg-bg border border-line rounded-lg text-sm hover:border-accent transition"
+            className="py-3 bg-card border border-line rounded-lg text-sm hover:border-accent"
           >
-            {copied ? '✓ 복사됨' : '🔗 링크 복사'}
+            {copied ? '✓ 복사됨' : '링크 복사'}
           </button>
           <button
             onClick={nativeShare}
-            className="py-3 bg-accent text-bg rounded-lg text-sm font-semibold hover:bg-accent2 transition"
+            className="py-3 bg-accent text-bg rounded-lg text-sm font-semibold hover:bg-accent2"
           >
-            📤 공유하기
+            공유하기
           </button>
         </div>
 
-        <p className="text-xs text-white/30 text-center mt-4 leading-relaxed">
+        <p className="text-xs text-faint text-center mt-4 leading-relaxed">
           상대가 이 링크로 15분만 하면<br />둘의 진짜 케미가 열려.
         </p>
       </div>

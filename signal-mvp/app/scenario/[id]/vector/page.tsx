@@ -37,11 +37,10 @@ export default async function ScenarioVectorPage({
 
       <header className="mt-4 mb-8">
         <p className="text-xs text-dim uppercase tracking-wider">{ctx.domainHint}</p>
-        <h1 className="text-2xl font-bold mt-1">{SCENARIO_LABELS[scenarioId]}</h1>
+        <h1 className="text-2xl font-bold mt-1 text-fg">{SCENARIO_LABELS[scenarioId]}</h1>
         <p className="text-sm text-dim mt-2">상대: {ctx.agentLabel}</p>
       </header>
 
-      {/* ─────── 대화 ─────── */}
       <section className="mb-12">
         <h2 className="text-sm font-semibold text-accent uppercase tracking-wider mb-4">
           대화 ({turns.length}/5턴)
@@ -54,12 +53,12 @@ export default async function ScenarioVectorPage({
             <div key={t.turn_idx} className="space-y-2">
               <div className="bg-card border border-line rounded-2xl rounded-tl-sm p-4 max-w-[85%]">
                 <p className="text-xs text-dim mb-1">T{t.turn_idx} · {ctx.agentName}</p>
-                <p className="whitespace-pre-wrap leading-relaxed text-sm">{t.agent_msg}</p>
+                <p className="whitespace-pre-wrap leading-relaxed text-sm text-fg">{t.agent_msg}</p>
               </div>
               {t.user_msg && (
-                <div className="bg-accent/10 border border-accent/30 rounded-2xl rounded-tr-sm p-4 max-w-[85%] ml-auto">
+                <div className="bg-accent/10 border border-accent/20 rounded-2xl rounded-tr-sm p-4 max-w-[85%] ml-auto">
                   <p className="text-xs text-accent mb-1">T{t.turn_idx} · 나</p>
-                  <p className="whitespace-pre-wrap leading-relaxed text-sm">{t.user_msg}</p>
+                  <p className="whitespace-pre-wrap leading-relaxed text-sm text-fg">{t.user_msg}</p>
                 </div>
               )}
             </div>
@@ -67,7 +66,6 @@ export default async function ScenarioVectorPage({
         </div>
       </section>
 
-      {/* ─────── 추출된 벡터 ─────── */}
       <section className="mb-12">
         <h2 className="text-sm font-semibold text-accent uppercase tracking-wider mb-4">
           추출된 벡터 (Layer 1)
@@ -98,7 +96,7 @@ export default async function ScenarioVectorPage({
                   <div className="flex items-baseline justify-between mb-2 gap-3">
                     <div className="min-w-0">
                       <p className="font-semibold text-sm text-fg">{koLabel}</p>
-                      <p className="font-mono text-xs text-dim mt-0.5">{axis}</p>
+                      <p className="text-xs text-dim mt-0.5">{axis}</p>
                     </div>
                     <div className="flex items-baseline gap-3 text-xs whitespace-nowrap">
                       <span className="text-accent3 font-semibold">{m.value}</span>
@@ -110,10 +108,9 @@ export default async function ScenarioVectorPage({
                       )}
                     </div>
                   </div>
-                  {/* Value bar */}
                   <div className="w-full h-1.5 bg-bg rounded-full overflow-hidden mb-2">
                     <div
-                      className="h-full bg-gradient-to-r from-accent to-accent2"
+                      className="h-full bg-accent"
                       style={{ width: `${m.value}%` }}
                     />
                   </div>
@@ -139,7 +136,7 @@ export default async function ScenarioVectorPage({
             {payload.notes && (
               <div className="mt-6 p-4 bg-bg border border-line rounded-xl">
                 <p className="text-xs text-dim uppercase tracking-wider mb-2">분석 노트</p>
-                <p className="text-sm leading-relaxed">{payload.notes}</p>
+                <p className="text-sm leading-relaxed text-fg">{payload.notes}</p>
               </div>
             )}
           </div>

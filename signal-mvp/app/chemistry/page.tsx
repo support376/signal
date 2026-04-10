@@ -47,7 +47,6 @@ export default function ChemistryPage() {
     } catch {}
   }
 
-  // 검색 시에만 점수 계산 (미리 안 함)
   async function doSearch(q: string) {
     if (!q.trim() || !me) return;
     setSearching(true);
@@ -66,13 +65,12 @@ export default function ChemistryPage() {
 
   return (
     <div className="max-w-lg mx-auto px-5 py-8 pb-20">
-      <p className="text-lg font-bold mb-6">Signalogy</p>
+      <p className="text-lg font-bold mb-6 text-fg">Signalogy</p>
 
-      {/* 검색 (인스타 스타일 — 탭하면 열림) */}
       {!searchOpen ? (
         <button onClick={() => setSearchOpen(true)}
-          className="w-full p-3 border border-white/8 rounded-xl text-xs text-white/25 text-left mb-6 hover:border-white/15 transition">
-          🔍 이름 또는 ID 검색
+          className="w-full p-3 border border-line rounded-xl text-xs text-faint text-left mb-6 hover:border-accent">
+          이름 또는 ID 검색
         </button>
       ) : (
         <div className="mb-6">
@@ -81,42 +79,40 @@ export default function ChemistryPage() {
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && doSearch(query)}
               placeholder="이름 또는 ID"
-              className="flex-1 px-4 py-3 bg-white/5 border border-white/15 rounded-xl text-sm text-white focus:border-white/30 focus:outline-none placeholder:text-white/20"
+              className="flex-1 px-4 py-3 bg-card border border-line rounded-xl text-sm text-fg focus:border-accent focus:outline-none placeholder:text-faint"
               autoFocus />
             <button onClick={() => doSearch(query)}
-              className="px-4 py-3 border border-white/15 rounded-xl text-xs text-white/60 hover:bg-white/5 transition">
+              className="px-4 py-3 border border-line rounded-xl text-xs text-dim hover:bg-card">
               검색
             </button>
           </div>
           <button onClick={() => { setSearchOpen(false); setQuery(''); setResults([]); }}
-            className="text-[10px] text-white/20 hover:text-white/40">닫기</button>
+            className="text-[10px] text-faint hover:text-dim">닫기</button>
 
-          {/* 검색 결과 */}
-          {searching && <p className="text-xs text-white/20 py-4 text-center">검색 중...</p>}
+          {searching && <p className="text-xs text-faint py-4 text-center">검색 중...</p>}
           {results.length > 0 && (
             <div className="mt-3 space-y-1">
               {results.map((u) => (
                 <button key={u.id} onClick={() => router.push(`/chemistry/${u.id}`)}
-                  className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/[0.03] transition text-left">
+                  className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-card text-left">
                   <div>
-                    <p className="text-sm text-white/80">{u.name}</p>
-                    <p className="text-[10px] text-white/20 font-mono">@{u.slug}</p>
+                    <p className="text-sm text-fg">{u.name}</p>
+                    <p className="text-[10px] text-faint">@{u.slug}</p>
                   </div>
-                  {u.score !== null && <p className="text-lg font-bold">{u.score}%</p>}
+                  {u.score !== null && <p className="text-lg font-bold text-fg">{u.score}%</p>}
                 </button>
               ))}
             </div>
           )}
           {!searching && query && results.length === 0 && (
-            <p className="text-xs text-white/15 text-center py-4">결과 없음</p>
+            <p className="text-xs text-faint text-center py-4">결과 없음</p>
           )}
         </div>
       )}
 
-      {/* 케미 이력 */}
       {history.length > 0 && (
         <section>
-          <p className="text-[10px] text-white/20 font-mono mb-3">분석 이력</p>
+          <p className="text-[10px] text-faint mb-3">분석 이력</p>
           <div className="space-y-1">
             {history.map((c) => {
               const otherId = c.user_a_id !== me?.id ? c.user_a_id : c.user_b_id;
@@ -124,12 +120,12 @@ export default function ChemistryPage() {
               return (
                 <Link key={`${c.user_a_id}-${c.user_b_id}-${c.lens}`}
                   href={`/chemistry/${otherId}/${c.lens}`}
-                  className="flex items-center justify-between py-3 px-3 rounded-xl hover:bg-white/[0.03] transition">
+                  className="flex items-center justify-between py-3 px-3 rounded-xl hover:bg-card">
                   <div>
-                    <p className="text-sm text-white/60">{otherName}</p>
-                    <p className="text-[10px] text-white/15 font-mono">@{otherId} · {c.lens}</p>
+                    <p className="text-sm text-dim">{otherName}</p>
+                    <p className="text-[10px] text-faint">@{otherId} · {c.lens}</p>
                   </div>
-                  <p className="text-xl font-bold">{c.score}%</p>
+                  <p className="text-xl font-bold text-fg">{c.score}%</p>
                 </Link>
               );
             })}
@@ -138,16 +134,15 @@ export default function ChemistryPage() {
       )}
 
       {history.length === 0 && !searchOpen && (
-        <div className="text-center py-12 text-white/15 text-sm">
+        <div className="text-center py-12 text-faint text-sm">
           아직 분석 이력이 없어.<br />검색해서 케미를 확인해봐.
         </div>
       )}
 
-      {/* 초대 (하단) */}
-      <div className="mt-10 p-4 border border-white/5 rounded-xl text-center">
-        <p className="text-xs text-white/30 mb-1">그 사람이 여기 없어?</p>
+      <div className="mt-10 p-4 border border-line rounded-xl text-center">
+        <p className="text-xs text-dim mb-1">그 사람이 여기 없어?</p>
         <button onClick={() => setShareOpen(true)}
-          className="text-xs text-white/40 hover:text-white/60 transition">
+          className="text-xs text-dim hover:text-fg">
           초대 링크 보내기
         </button>
       </div>

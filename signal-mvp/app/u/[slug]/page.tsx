@@ -43,7 +43,6 @@ export default async function ProfilePage({ params }: Props) {
     headline = parsed.body.match(/^##?\s*(.+)$/m)?.[1]?.replace(/\*/g, '') || '';
   }
 
-  // SNS 링크 모으기
   const sns = user.sns_links || {};
   const snsLinks: { platform: string; handle: string; url: string; verified: boolean; icon: string }[] = [];
   if (user.instagram) snsLinks.push({ platform: 'Instagram', handle: user.instagram, url: `https://instagram.com/${user.instagram}`, verified: !!(sns as any).instagram?.verified, icon: 'IG' });
@@ -59,94 +58,85 @@ export default async function ProfilePage({ params }: Props) {
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12">
       <div className="max-w-sm w-full">
 
-        {/* 뒤로가기 (로그인 시) */}
         {isLoggedIn && !isOwnProfile && (
-          <Link href="/dashboard" className="text-xs text-white/20 mb-6 block hover:text-white/40">← Home</Link>
+          <Link href="/dashboard" className="text-xs text-faint mb-6 block hover:text-dim">← Home</Link>
         )}
 
-        {/* 프로필 */}
         <div className="text-center mb-8">
-          <div className="w-20 h-20 mx-auto rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-2xl font-mono text-white/50 mb-4">
+          <div className="w-20 h-20 mx-auto rounded-full bg-card border border-line flex items-center justify-center text-2xl text-dim mb-4">
             {user.name[0]?.toUpperCase()}
           </div>
 
-          <h1 className="text-xl font-bold">{user.name}</h1>
-          <p className="text-xs text-white/25 font-mono mt-1">@{user.slug}</p>
+          <h1 className="text-xl font-bold text-fg">{user.name}</h1>
+          <p className="text-xs text-faint mt-1">@{user.slug}</p>
 
           {user.bio && (
-            <p className="text-sm text-white/45 mt-3 leading-relaxed">{user.bio}</p>
+            <p className="text-sm text-dim mt-3 leading-relaxed">{user.bio}</p>
           )}
 
-          {/* SNS 링크 */}
           {snsLinks.length > 0 && (
             <div className="flex flex-wrap justify-center gap-2 mt-4">
               {snsLinks.map((l) => (
                 <a key={l.platform} href={l.url} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 px-3 py-1.5 border border-white/8 rounded-lg text-[11px] text-white/35 hover:text-white/60 hover:border-white/15 transition font-mono">
-                  {l.icon} @{l.handle} {l.verified && '✓'} ↗
+                  className="inline-flex items-center gap-1 px-3 py-1.5 border border-line rounded-lg text-[11px] text-dim hover:text-fg hover:border-accent">
+                  {l.icon} @{l.handle} {l.verified && '✓'}
                 </a>
               ))}
             </div>
           )}
 
-          {/* Headline + Tags */}
           {headline && (
-            <p className="text-sm text-white/35 mt-5 leading-relaxed italic">"{headline}"</p>
+            <p className="text-sm text-dim mt-5 leading-relaxed italic">"{headline}"</p>
           )}
           {tags.length > 0 && (
             <div className="flex flex-wrap justify-center gap-1.5 mt-3">
               {tags.map((t) => (
-                <span key={t} className="text-[10px] text-white/20 border border-white/8 rounded-full px-2 py-0.5 font-mono">{t}</span>
+                <span key={t} className="text-[10px] text-faint border border-line rounded-full px-2 py-0.5">{t}</span>
               ))}
             </div>
           )}
         </div>
 
-        {/* 통계 */}
         <div className="grid grid-cols-2 gap-3 mb-8">
-          <div className="p-3 border border-white/5 rounded-xl text-center">
-            <p className="text-lg font-bold">{completeness.percent}%</p>
-            <p className="text-[10px] text-white/15">signal</p>
+          <div className="p-3 border border-line rounded-xl text-center">
+            <p className="text-lg font-bold text-fg">{completeness.percent}%</p>
+            <p className="text-[10px] text-faint">signal</p>
           </div>
-          <div className="p-3 border border-white/5 rounded-xl text-center">
-            <p className="text-lg font-bold">{completeness.scenarios_completed}/5</p>
-            <p className="text-[10px] text-white/15">시나리오</p>
+          <div className="p-3 border border-line rounded-xl text-center">
+            <p className="text-lg font-bold text-fg">{completeness.scenarios_completed}/5</p>
+            <p className="text-[10px] text-faint">시나리오</p>
           </div>
         </div>
 
-        {/* CTA — 로그인 상태에 따라 다름 */}
         {isOwnProfile ? (
-          /* 내 프로필 */
           <div className="text-center">
-            <Link href="/profile" className="text-xs text-white/25 hover:text-white/40 transition">
+            <Link href="/profile" className="text-xs text-faint hover:text-dim">
               프로필 설정 →
             </Link>
           </div>
         ) : isLoggedIn ? (
-          /* 로그인된 다른 사용자 → 바로 케미 */
-          <div className="p-5 border border-white/10 rounded-xl text-center">
-            <p className="text-sm mb-4">이 사람과 케미 확인하기</p>
+          <div className="p-5 border border-line rounded-xl text-center">
+            <p className="text-sm mb-4 text-fg">이 사람과 케미 확인하기</p>
             <Link href={`/chemistry/${user.id}`}
-              className="block w-full py-3 border border-white/20 text-white rounded-xl hover:bg-white/5 transition text-sm">
+              className="block w-full py-3 border border-line text-fg rounded-xl hover:bg-card text-sm">
               {isCreator ? `$${price} — 케미 보기` : '케미 보기 →'}
             </Link>
             {isCreator && (
-              <p className="text-[10px] text-white/10 mt-2 font-mono">결제 — 준비 중</p>
+              <p className="text-[10px] text-faint mt-2">결제 — 준비 중</p>
             )}
           </div>
         ) : (
-          /* 비로그인 → 가입 유도 */
-          <div className="p-5 border border-white/10 rounded-xl text-center">
-            <p className="text-sm mb-1">{user.name}와의 진짜 케미 보기</p>
-            <p className="text-xs text-white/30 mb-4">15분만 하면 결과가 열려.</p>
+          <div className="p-5 border border-line rounded-xl text-center">
+            <p className="text-sm mb-1 text-fg">{user.name}와의 진짜 케미 보기</p>
+            <p className="text-xs text-dim mb-4">15분만 하면 결과가 열려.</p>
             <Link href={`/?ref=${user.slug}`}
-              className="block w-full py-3 border border-white/20 text-white rounded-xl hover:bg-white/5 transition text-sm">
+              className="block w-full py-3 border border-line text-fg rounded-xl hover:bg-card text-sm">
               시작하기 →
             </Link>
           </div>
         )}
 
-        <p className="text-center text-[10px] text-white/8 mt-8 font-mono">SIGNALOGY</p>
+        <p className="text-center text-[10px] text-faint mt-8">SIGNALOGY</p>
       </div>
     </div>
   );

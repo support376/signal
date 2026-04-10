@@ -9,9 +9,7 @@ import {
 
 interface Props {
   phases: LoadingPhase[];
-  /** 예상 총 소요 시간 (초). progress bar 표시용. 없으면 무한 spinner */
   estimatedSec?: number;
-  /** 추가 설명 (예: "보통 15-25초 걸려요") */
   hint?: string;
   size?: 'sm' | 'md' | 'lg';
 }
@@ -41,21 +39,16 @@ export default function LoadingState({ phases, estimatedSec, hint, size = 'md' }
 
   return (
     <div className={`text-center ${sizes[size]}`}>
-      {/* Spinner */}
       <div className="inline-block w-8 h-8 border-2 border-line border-t-accent rounded-full animate-spin mb-4" />
 
-      {/* 메시지 */}
       <p className="text-fg font-medium">{message}</p>
+      <p className="text-xs text-dim mt-2">{timeStr}</p>
 
-      {/* 시간 */}
-      <p className="text-xs text-dim mt-2 font-mono">{timeStr}</p>
-
-      {/* Progress bar (estimated 시간 있을 때만) */}
       {progressPct !== null && (
         <div className="max-w-xs mx-auto mt-4">
           <div className="w-full h-1 bg-card rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-accent to-accent2 transition-all"
+              className="h-full bg-accent"
               style={{ width: `${progressPct}%` }}
             />
           </div>
@@ -67,7 +60,6 @@ export default function LoadingState({ phases, estimatedSec, hint, size = 'md' }
         </div>
       )}
 
-      {/* hint */}
       {hint && <p className="text-xs text-dim mt-3">{hint}</p>}
     </div>
   );

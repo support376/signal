@@ -53,7 +53,7 @@ export default function MyLinkCard({ userId, initialSlug, name, referredCount }:
 
           {!editing ? (
             <div className="flex items-center justify-between gap-3">
-              <p className="font-mono text-lg text-fg break-all">
+              <p className="text-lg text-fg break-all">
                 <span className="text-dim">signal/u/</span>
                 <span className="text-accent">{slug}</span>
               </p>
@@ -65,23 +65,23 @@ export default function MyLinkCard({ userId, initialSlug, name, referredCount }:
                 }}
                 className="text-xs text-dim hover:text-accent whitespace-nowrap"
               >
-                ✏️ 변경
+                변경
               </button>
             </div>
           ) : (
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <span className="text-dim font-mono text-sm">signal/u/</span>
+                <span className="text-dim text-sm">signal/u/</span>
                 <input
                   type="text"
                   value={draft}
                   onChange={(e) => setDraft(e.target.value.toLowerCase())}
                   placeholder="3-20자, 영문/숫자/_/-"
-                  className="flex-1 px-3 py-2 bg-bg border border-line rounded-lg text-fg focus:border-accent focus:outline-none font-mono text-sm"
+                  className="flex-1 px-3 py-2 bg-bg border border-line rounded-lg text-fg focus:border-accent focus:outline-none text-sm"
                   autoFocus
                 />
               </div>
-              {error && <p className="text-xs text-red-400">{error}</p>}
+              {error && <p className="text-xs text-red-600">{error}</p>}
               <div className="flex gap-2">
                 <button
                   onClick={saveSlug}
@@ -95,7 +95,7 @@ export default function MyLinkCard({ userId, initialSlug, name, referredCount }:
                     setEditing(false);
                     setError('');
                   }}
-                  className="px-3 py-1.5 bg-bg border border-line rounded-lg text-xs text-dim"
+                  className="px-3 py-1.5 bg-card border border-line rounded-lg text-xs text-dim"
                 >
                   취소
                 </button>
@@ -106,17 +106,17 @@ export default function MyLinkCard({ userId, initialSlug, name, referredCount }:
           <div className="grid grid-cols-2 gap-2 mt-4">
             <button
               onClick={() => setShareOpen(true)}
-              className="py-2 bg-bg border border-line rounded-lg text-sm hover:border-accent2 transition"
+              className="py-2 bg-bg border border-line rounded-lg text-sm hover:border-accent"
             >
-              📤 공유 / QR
+              공유 / QR
             </button>
             <a
               href={`/u/${slug}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="py-2 bg-bg border border-line rounded-lg text-sm hover:border-accent2 transition text-center"
+              className="py-2 bg-bg border border-line rounded-lg text-sm hover:border-accent text-center"
             >
-              👁 미리보기
+              미리보기
             </a>
           </div>
         </div>
