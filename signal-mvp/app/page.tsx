@@ -155,7 +155,7 @@ function LandingInner() {
                   ['학술', '없음', '약함', '5개 황금표준'],
                   ['비용', '유료', '무료', '무료'],
                 ].map(([label, ...cols], i) => (
-                  <tr key={i} className="border-b border-white/3">
+                  <tr key={i} className="border-b border-white/5">
                     <td className="text-left py-4 px-6 text-dim font-mono text-xs">{label}</td>
                     {cols.map((c, j) => (
                       <td key={j} className={`py-4 px-4 ${j === 2 ? 'text-accent3 font-medium' : 'text-fg/60'}`}>{c}</td>
