@@ -53,6 +53,36 @@ export default async function MorePage() {
         <MyLinkCard userId={userId} initialSlug={userSlug} name={user.name} referredCount={referredCount} />
       </section>
 
+      {/* SNS 연결 */}
+      <section className="p-4 border border-white/8 rounded-xl mb-3">
+        <p className="text-sm mb-3">SNS 연결</p>
+        <p className="text-[10px] text-white/20 mb-3">
+          연결하면 공개 프로필에 표시돼. 인증하면 ✓ 표시.
+        </p>
+        <div className="space-y-2 text-xs">
+          {[
+            { key: 'instagram', label: 'Instagram', prefix: 'instagram.com/', value: user.instagram },
+            { key: 'threads', label: 'Threads', prefix: 'threads.net/@', value: (user.sns_links as any)?.threads?.handle },
+            { key: 'twitter', label: 'X (Twitter)', prefix: 'x.com/', value: (user.sns_links as any)?.twitter?.handle },
+            { key: 'youtube', label: 'YouTube', prefix: 'youtube.com/@', value: (user.sns_links as any)?.youtube?.handle },
+            { key: 'tiktok', label: 'TikTok', prefix: 'tiktok.com/@', value: (user.sns_links as any)?.tiktok?.handle },
+          ].map((s) => (
+            <div key={s.key} className="flex items-center justify-between py-1.5">
+              <span className="text-white/40">{s.label}</span>
+              {s.value ? (
+                <span className="text-white/60 font-mono">@{s.value} {(user.sns_links as any)?.[s.key]?.verified ? '✓' : ''}</span>
+              ) : (
+                <span className="text-white/15">—</span>
+              )}
+            </div>
+          ))}
+        </div>
+        <p className="text-[10px] text-white/10 mt-3 leading-relaxed">
+          SNS 등록/수정: <span className="text-white/25 font-mono">@signalogy.official</span> 에 DM으로 요청.
+          Signalogy ID와 SNS 핸들을 보내면 연결해줄게.
+        </p>
+      </section>
+
       {/* 크리에이터 */}
       <section className="p-4 border border-white/8 rounded-xl mb-3">
         {isCreator ? (

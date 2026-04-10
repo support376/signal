@@ -62,14 +62,29 @@ export default async function PublicProfilePage({ params }: Props) {
             <p className="text-sm text-white/50 mt-3 leading-relaxed">{user.bio}</p>
           )}
 
-          {/* Instagram 링크 */}
-          {user.instagram && (
-            <a href={`https://instagram.com/${user.instagram}`}
-              target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 border border-white/8 rounded-lg text-xs text-white/40 hover:text-white/60 hover:border-white/15 transition font-mono">
-              IG @{user.instagram} ↗
-            </a>
-          )}
+          {/* SNS 링크들 */}
+          {(() => {
+            const sns = user.sns_links || {};
+            const links: { platform: string; handle: string; url: string; verified: boolean; icon: string }[] = [];
+
+            if (user.instagram) links.push({ platform: 'Instagram', handle: user.instagram, url: `https://instagram.com/${user.instagram}`, verified: !!(sns.instagram?.verified), icon: 'IG' });
+            if (sns.threads?.handle) links.push({ platform: 'Threads', handle: sns.threads.handle, url: `https://threads.net/@${sns.threads.handle}`, verified: sns.threads.verified, icon: 'TH' });
+            if (sns.twitter?.handle) links.push({ platform: 'X', handle: sns.twitter.handle, url: `https://x.com/${sns.twitter.handle}`, verified: sns.twitter.verified, icon: 'X' });
+            if (sns.youtube?.handle) links.push({ platform: 'YouTube', handle: sns.youtube.handle, url: `https://youtube.com/@${sns.youtube.handle}`, verified: sns.youtube.verified, icon: 'YT' });
+            if (sns.tiktok?.handle) links.push({ platform: 'TikTok', handle: sns.tiktok.handle, url: `https://tiktok.com/@${sns.tiktok.handle}`, verified: sns.tiktok.verified, icon: 'TT' });
+
+            if (links.length === 0) return null;
+            return (
+              <div className="flex flex-wrap justify-center gap-2 mt-4">
+                {links.map((l) => (
+                  <a key={l.platform} href={l.url} target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 border border-white/8 rounded-lg text-[11px] text-white/40 hover:text-white/60 hover:border-white/15 transition font-mono">
+                    {l.icon} @{l.handle} {l.verified && '✓'} ↗
+                  </a>
+                ))}
+              </div>
+            );
+          })()}
 
           {/* Headline + Tags (있으면) */}
           {headline && (

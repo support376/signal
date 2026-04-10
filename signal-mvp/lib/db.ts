@@ -104,9 +104,12 @@ async function runSchemaBootstrap() {
     sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS gender TEXT;`
   );
 
-  // 인스타그램 + 링크 유형
+  // SNS + 링크 유형
   await safeRun('users.instagram column', () =>
     sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS instagram TEXT;`
+  );
+  await safeRun('users.sns_links column', () =>
+    sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS sns_links JSONB DEFAULT '{}';`
   );
   await safeRun('users.link_type column', () =>
     sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS link_type TEXT DEFAULT 'personal';`
@@ -233,10 +236,10 @@ export async function recentUsers(excludeId: string, limit: number = 5) {
 export async function getUserBySlug(slug: string) {
   await ensureSchema();
   const r = await sql`
-    SELECT id, name, slug, bio, referred_by, created_at, instagram, link_type, link_price, gender FROM users WHERE slug = ${slug};
+    SELECT id, name, slug, bio, referred_by, created_at, instagram, sns_links, link_type, link_price, gender FROM users WHERE slug = ${slug};
   `;
   return r.rows[0] as
-    | { id: string; name: string; slug: string; bio: string | null; referred_by: string | null; created_at: string; instagram: string | null; link_type: string | null; link_price: number | null; gender: string | null }
+    | { id: string; name: string; slug: string; bio: string | null; referred_by: string | null; created_at: string; instagram: string | null; sns_links: Record<string, { handle: string; verified: boolean }> | null; link_type: string | null; link_price: number | null; gender: string | null }
     | undefined;
 }
 
@@ -305,9 +308,9 @@ export async function listUsersWithProgress(excludeId?: string) {
 
 export async function getUser(id: string) {
   await ensureSchema();
-  const r = await sql`SELECT id, name, slug, bio, referred_by, free_credits, gender, instagram, link_type, link_price FROM users WHERE id = ${id};`;
+  const r = await sql`SELECT id, name, slug, bio, referred_by, free_credits, gender, instagram, sns_links, link_type, link_price FROM users WHERE id = ${id};`;
   return r.rows[0] as
-    | { id: string; name: string; slug: string | null; bio: string | null; referred_by: string | null; free_credits: number | null; gender: string | null; instagram: string | null; link_type: string | null; link_price: number | null }
+    | { id: string; name: string; slug: string | null; bio: string | null; referred_by: string | null; free_credits: number | null; gender: string | null; instagram: string | null; sns_links: Record<string, { handle: string; verified: boolean }> | null; link_type: string | null; link_price: number | null }
     | undefined;
 }
 
