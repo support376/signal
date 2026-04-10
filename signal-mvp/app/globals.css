@@ -226,3 +226,13 @@ main, [data-nextjs-scroll-focus-boundary] > * {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.85; }
 }
+
+/* ── Midjourney-style scrolling grid ── */
+@keyframes mj-scroll-up {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-50%); }
+}
+@keyframes mj-scroll-down {
+  from { transform: translateY(-50%); }
+  to   { transform: translateY(0); }
+}
