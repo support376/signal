@@ -1,31 +1,26 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { LENSES, type Lens } from '@/lib/types';
+import RadarChart from '@/app/components/radar-chart';
+import AttachmentQuadrant from '@/app/components/attachment-quadrant';
+import SectionCard from '@/app/components/section-card';
 import LoadingState from '@/app/components/loading-state';
+import ShareModal from '@/app/components/share-modal';
 import { CHEMISTRY_PHASES } from '@/lib/loading-messages';
+import { parseTags } from '@/lib/parse-tags';
+import { computeRadarDimensions, getAttachmentPoint } from '@/lib/radar-dimensions';
+import type { IntegratedVector } from '@/lib/types';
 
-interface CompletenessReport {
-  percent: number;
-  scenarios_completed: number;
-  scenarios_total: number;
-  level: string;
-}
+const LENS_LABELS: Record<string, string> = { friend: '친구', romantic: '연인', family: '가족', work: '동료' };
 
 function readCookie(name: string): string | null {
   if (typeof document === 'undefined') return null;
   const m = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
   return m ? decodeURIComponent(m[2]) : null;
 }
-
-const LENS_LABELS: Record<string, string> = {
-  friend: '친구',
-  romantic: '연인',
-  family: '가족',
-  work: '동료',
-};
 
 function renderMarkdown(md: string): string {
   let html = md.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -42,6 +37,13 @@ function renderMarkdown(md: string): string {
   return paragraphs.join('\n');
 }
 
+function scoreColor(s: number): string {
+  if (s >= 75) return 'from-accent3 to-accent3';
+  if (s >= 50) return 'from-accent to-accent2';
+  if (s >= 30) return 'from-amber-400 to-amber-500';
+  return 'from-red-400 to-red-500';
+}
+
 export default function ChemistryResultPage() {
   const router = useRouter();
   const params = useParams<{ otherId: string; lens: string }>();
@@ -50,29 +52,31 @@ export default function ChemistryResultPage() {
 
   const [score, setScore] = useState<number | null>(null);
   const [narrative, setNarrative] = useState<string | null>(null);
+  const [tags, setTags] = useState<string[]>([]);
+  const [body, setBody] = useState<string>('');
   const [reliability, setReliability] = useState<string | null>(null);
-  const [compA, setCompA] = useState<CompletenessReport | null>(null);
-  const [compB, setCompB] = useState<CompletenessReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [regenerating, setRegenerating] = useState(false);
+  const [revealed, setRevealed] = useState(false);
+  const [scoreAnim, setScoreAnim] = useState(0);
+  const [shareOpen, setShareOpen] = useState(false);
   const [error, setError] = useState('');
+  const userSlug = useRef('');
+  const userName = useRef('');
 
   useEffect(() => {
-    if (!LENSES.includes(lens)) {
-      setError('잘못된 렌즈');
-      setLoading(false);
-      return;
-    }
+    if (!LENSES.includes(lens)) { setError('잘못된 렌즈'); setLoading(false); return; }
     const uid = readCookie('signal_user_id');
-    if (!uid) {
-      router.push('/');
-      return;
-    }
-    void load(uid, false);
+    if (!uid) { router.push('/'); return; }
+    // Load me for share
+    fetch('/api/me', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: uid }) })
+      .then((r) => r.json())
+      .then((d) => { userSlug.current = d.slug || uid; userName.current = d.name || uid; });
+    void loadResult(uid, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [otherId, lens]);
 
-  async function load(uid: string, force: boolean) {
+  async function loadResult(uid: string, force: boolean) {
     if (force) setRegenerating(true);
     else setLoading(true);
     setError('');
@@ -84,11 +88,33 @@ export default function ChemistryResultPage() {
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error);
+
       setScore(data.score);
-      setNarrative(data.narrative);
       setReliability(data.reliability || data.raw_data?.reliability_label || null);
-      setCompA(data.completeness_a || data.raw_data?.completeness_a || null);
-      setCompB(data.completeness_b || data.raw_data?.completeness_b || null);
+
+      const { tags: t, body: b } = parseTags(data.narrative);
+      setNarrative(data.narrative);
+      setTags(t);
+      setBody(b);
+
+      // Reveal 애니메이션
+      if (!data.cached) {
+        setRevealed(false);
+        setScoreAnim(0);
+        setTimeout(() => setRevealed(true), 200);
+        // 점수 카운트업 애니메이션
+        const target = data.score;
+        let current = 0;
+        const step = Math.max(1, Math.ceil(target / 30));
+        const timer = setInterval(() => {
+          current = Math.min(current + step, target);
+          setScoreAnim(current);
+          if (current >= target) clearInterval(timer);
+        }, 30);
+      } else {
+        setRevealed(true);
+        setScoreAnim(data.score);
+      }
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -100,73 +126,125 @@ export default function ChemistryResultPage() {
   async function regenerate() {
     const uid = readCookie('signal_user_id');
     if (!uid) return;
-    if (!confirm('새로운 케미 분석을 생성할까? (LLM 비용 발생)')) return;
-    void load(uid, true);
+    if (!confirm('새 케미 분석을 생성할까?')) return;
+    void loadResult(uid, true);
   }
+
+  // Narrative를 섹션으로 분리
+  const headline = body.match(/^(?:##? )?(.+?)$/m)?.[1]?.replace(/[*#]/g, '').trim() || '';
+  const sections = body.split(/^### /m).slice(1).map((s) => {
+    const nl = s.indexOf('\n');
+    return { title: s.slice(0, nl).trim(), content: s.slice(nl).trim() };
+  });
+  // 핵심 역학 (첫 ### 전 텍스트)
+  const coreText = body.split(/^### /m)[0]?.replace(/^(?:##? )?.+$/m, '').trim() || '';
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-12">
-      <Link href="/chemistry" className="text-xs text-dim hover:text-accent">← 케미 목록</Link>
+      <Link href="/chemistry" className="text-xs text-dim hover:text-accent">← 친구찾기</Link>
 
-      <header className="mt-6 mb-8">
-        <p className="text-xs text-dim uppercase tracking-wider">{LENS_LABELS[lens] || lens} 렌즈</p>
-        {score !== null && (
-          <div className="mt-3 text-6xl font-bold bg-gradient-to-r from-accent to-accent2 bg-clip-text text-transparent">
-            {score}%
-          </div>
-        )}
-        {reliability && reliability !== '높음' && (
-          <p className="text-xs text-amber-300 mt-2">신뢰도: {reliability} (아직 일부만 본 결과)</p>
-        )}
-      </header>
-
+      {/* ─── 로딩 ─── */}
       {(loading || regenerating) && (
-        <div className="bg-card border border-line rounded-2xl p-6">
+        <div className="mt-8 bg-card border border-line rounded-2xl p-6">
           <LoadingState
             phases={CHEMISTRY_PHASES}
             estimatedSec={30}
-            hint={regenerating ? '새 케미 분석 재생성 중' : '두 사람의 벡터 비교 + 관계 narrative. 보통 20~35초'}
+            hint={regenerating ? '새 케미 분석 재생성 중' : '두 사람의 벡터 비교 + 관계 narrative'}
           />
         </div>
       )}
 
       {error && (
-        <div className="p-4 bg-red-900/20 border border-red-900/40 rounded-lg text-red-400 text-sm">
-          {error}
-        </div>
+        <div className="mt-8 p-4 bg-red-900/20 border border-red-900/40 rounded-lg text-red-400 text-sm">{error}</div>
       )}
 
-      {/* 부분 데이터 경고 — 한쪽이라도 80% 미만이면 표시 */}
-      {narrative && ((compA?.percent ?? 100) < 80 || (compB?.percent ?? 100) < 80) && (
-        <div className="mb-6 p-4 bg-amber-900/20 border border-amber-700/40 rounded-xl">
-          <p className="text-amber-300 text-sm font-semibold mb-1">⚠️ 부분 데이터 기반</p>
-          <p className="text-xs text-dim leading-relaxed">
-            {compA && <span>나 추정 완성도 {compA.percent}% ({compA.scenarios_completed}/5 시나리오)</span>}
-            {compA && compB && <span> · </span>}
-            {compB && <span>상대 추정 완성도 {compB.percent}% ({compB.scenarios_completed}/5 시나리오)</span>}
-          </p>
-          <p className="text-xs text-dim mt-2 leading-relaxed">
-            5/5 모두 완료한 후 *다시 분석* 버튼으로 더 정확한 narrative를 받을 수 있어.
-          </p>
-        </div>
-      )}
+      {/* ─── 결과 ─── */}
+      {narrative && !loading && (
+        <div className={`mt-8 transition-all duration-700 ${revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
 
-      {narrative && (
-        <>
-          <article
-            className="prose prose-invert max-w-none"
-            dangerouslySetInnerHTML={{ __html: renderMarkdown(narrative) }}
-          />
-          <div className="mt-12 pt-6 border-t border-line text-center">
+          {/* ─── 점수 카드 ─── */}
+          <div className="bg-card border border-line rounded-2xl p-8 text-center mb-6">
+            <p className="text-xs text-dim uppercase tracking-wider mb-1">{LENS_LABELS[lens] || lens} 렌즈</p>
+
+            {/* 큰 점수 (카운트업 애니메이션) */}
+            <div className={`text-7xl font-bold bg-gradient-to-r ${scoreColor(score || 0)} bg-clip-text text-transparent my-4`}>
+              {scoreAnim}<span className="text-3xl">%</span>
+            </div>
+
+            {reliability && reliability !== '높음' && (
+              <p className="text-xs text-amber-300 mb-3">신뢰도: {reliability} (일부만 본 결과)</p>
+            )}
+
+            {/* Headline */}
+            {headline && (
+              <p className="text-lg font-medium text-fg leading-relaxed mb-4">{headline}</p>
+            )}
+
+            {/* Tags */}
+            {tags.length > 0 && (
+              <div className="flex flex-wrap justify-center gap-2">
+                {tags.map((t) => (
+                  <span key={t} className="px-3 py-1 bg-accent2/10 border border-accent2/30 rounded-full text-xs text-accent2">
+                    {t}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* ─── 핵심 역학 ─── */}
+          {coreText && (
+            <SectionCard emoji="⚡" title="핵심 역학" summary={coreText.slice(0, 60) + '...'} defaultOpen>
+              <article className="prose prose-invert max-w-none mt-4" dangerouslySetInnerHTML={{ __html: renderMarkdown(coreText) }} />
+            </SectionCard>
+          )}
+
+          {/* ─── 나머지 섹션 (접이식) ─── */}
+          <div className="space-y-3 mt-3 mb-6">
+            {sections.map((sec, i) => {
+              let emoji = '📖';
+              if (sec.title.includes('만나는')) emoji = '✅';
+              else if (sec.title.includes('부딪히는')) emoji = '❌';
+              else if (sec.title.includes('그림자')) emoji = '🌑';
+              else if (sec.title.includes('예언')) emoji = '🔮';
+              return (
+                <SectionCard
+                  key={i}
+                  emoji={emoji}
+                  title={sec.title}
+                  summary={sec.content.split('\n')[0]?.replace(/\*\*/g, '').slice(0, 60) + '...'}
+                  defaultOpen={i < 2}
+                >
+                  <article className="prose prose-invert max-w-none mt-4" dangerouslySetInnerHTML={{ __html: renderMarkdown(sec.content) }} />
+                </SectionCard>
+              );
+            })}
+          </div>
+
+          {/* ─── 하단 액션 ─── */}
+          <div className="flex flex-col sm:flex-row gap-3 justify-center pt-6 border-t border-line">
+            <button
+              onClick={() => setShareOpen(true)}
+              className="px-6 py-3 bg-accent text-bg rounded-xl text-sm font-semibold hover:bg-accent2 transition"
+            >
+              📤 이 결과 공유 — 너도 해봐!
+            </button>
             <button
               onClick={regenerate}
               disabled={regenerating}
-              className="px-4 py-2 text-sm bg-card border border-line rounded-lg text-dim hover:text-accent hover:border-accent transition disabled:opacity-50"
+              className="px-6 py-3 bg-card border border-line rounded-xl text-sm text-dim hover:text-accent hover:border-accent transition disabled:opacity-50"
             >
-              {regenerating ? '재생성 중...' : '🔄 다시 분석 (새 narrative 생성)'}
+              🔄 다시 분석
             </button>
           </div>
-        </>
+
+          <ShareModal
+            open={shareOpen}
+            onClose={() => setShareOpen(false)}
+            slug={userSlug.current}
+            name={userName.current}
+          />
+        </div>
       )}
     </div>
   );
