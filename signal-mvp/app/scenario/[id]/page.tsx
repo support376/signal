@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { Suspense, useEffect, useState, useRef } from 'react';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { SCENARIO_LABELS, SCENARIO_CONTEXTS } from '@/lib/scenario-meta';
 import { SCENARIOS, type ScenarioId } from '@/lib/types';
 import LoadingState from '@/app/components/loading-state';
@@ -21,10 +21,12 @@ function readCookie(name: string): string | null {
   return m ? decodeURIComponent(m[2]) : null;
 }
 
-export default function ScenarioPage() {
+function ScenarioPageInner() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
+  const sp = useSearchParams();
   const scenarioId = params.id as ScenarioId;
+  const isRedo = sp.get('redo') === '1';
 
   const [userId, setUserId] = useState<string | null>(null);
   const [turns, setTurns] = useState<Turn[]>([]);
@@ -55,7 +57,21 @@ export default function ScenarioPage() {
       return;
     }
     setUserId(uid);
-    void loadState(uid);
+
+    // 다시 하기 — 기존 데이터 삭제 후 새로 시작
+    if (isRedo) {
+      fetch('/api/scenario/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: uid, scenarioId }),
+      }).then(() => {
+        // URL에서 ?redo=1 제거
+        window.history.replaceState(null, '', `/scenario/${scenarioId}`);
+        loadState(uid);
+      });
+    } else {
+      void loadState(uid);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scenarioId]);
 
@@ -389,5 +405,13 @@ export default function ScenarioPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ScenarioPage() {
+  return (
+    <Suspense fallback={null}>
+      <ScenarioPageInner />
+    </Suspense>
   );
 }

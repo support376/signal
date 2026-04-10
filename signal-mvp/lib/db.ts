@@ -337,6 +337,13 @@ export async function appendTurn(
   `;
 }
 
+/** 시나리오 다시 하기 — 기존 대화 + payload 삭제 */
+export async function resetScenario(userId: string, scenarioId: ScenarioId) {
+  await ensureSchema();
+  await sql`DELETE FROM scenario_runs WHERE user_id = ${userId} AND scenario_id = ${scenarioId};`;
+  await sql`DELETE FROM scenario_payloads WHERE user_id = ${userId} AND scenario_id = ${scenarioId};`;
+}
+
 export async function setUserResponse(
   userId: string,
   scenarioId: ScenarioId,
