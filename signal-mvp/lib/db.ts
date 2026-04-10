@@ -23,13 +23,15 @@ async function schemaFastCheck(): Promise<boolean> {
 }
 
 export async function ensureSchema(): Promise<void> {
+  // Production에서 schema 이미 만들어졌으면 완전 스킵
+  if (process.env.SKIP_SCHEMA_CHECK === '1') return;
+
   if (schemaPromise) return schemaPromise;
   schemaPromise = (async () => {
-    // Fast-path: schema 이미 최신이면 풀 bootstrap 스킵
     if (await schemaFastCheck()) return;
     await runSchemaBootstrap();
   })().catch((e) => {
-    schemaPromise = null; // 실패 시 다음 호출에서 재시도
+    schemaPromise = null;
     throw e;
   });
   return schemaPromise;
