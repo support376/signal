@@ -84,11 +84,12 @@ export default async function PublicProfilePage({ params }: Props) {
             href={`/?ref=${user.slug}`}
             className="mt-8 block w-full py-4 bg-accent text-bg font-semibold rounded-xl hover:bg-accent2 transition"
           >
-            {user.name}의 signal 읽고 케미 분석 →
+            {user.name}와의 진짜 케미 보기 →
           </Link>
 
-          <p className="text-xs text-dim mt-4 leading-relaxed">
-            가입 후 5개 시나리오 (각 5~10분) 대화 → 자동으로 {user.name}와 케미 분석.
+          <p className="text-xs text-white/30 mt-4 leading-relaxed">
+            15분만 하면 {user.name}와의 진짜 케미가 열려.<br />
+            MBTI가 아닌, 네가 실제로 한 선택으로.
           </p>
         </div>
 

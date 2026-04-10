@@ -152,14 +152,18 @@ export default async function DashboardPage() {
     <div className="max-w-md mx-auto px-5 py-8">
       <p className="text-xs text-white/30 font-mono mb-8">signal 읽기 완료 ✓</p>
 
-      {/* 메인 CTA: 궁금한 사람 */}
-      <section className="mb-10">
-        <h2 className="text-lg font-bold mb-1">이제 누구와든</h2>
-        <h2 className="text-lg font-bold text-white/60 mb-6">진짜 호환성을 볼 수 있어.</h2>
+      {/* 메인 CTA: 상대에게 보내기 (커플 케미 흐름) */}
+      <section className="mb-10 p-6 border border-white/10 rounded-xl">
+        <p className="text-lg font-bold mb-2">이제 상대에게 보내.</p>
+        <p className="text-sm text-white/40 mb-6">상대도 15분만 하면 둘의 진짜 케미가 열려.</p>
 
         <Link href="/chemistry"
           className="block w-full py-4 border border-white/20 text-white text-center rounded-xl hover:bg-white/5 transition mb-3">
-          궁금한 사람 찾기 →
+          상대에게 링크 보내기 →
+        </Link>
+        <Link href="/chemistry"
+          className="block text-center text-xs text-white/20 hover:text-white/40 transition">
+          이미 한 사람이 있어? 케미 보기 →
         </Link>
       </section>
 

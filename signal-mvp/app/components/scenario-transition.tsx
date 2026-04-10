@@ -30,12 +30,13 @@ export default function ScenarioTransition({ completedScenarioId, completedCount
 
         {allDone ? (
           <>
-            <p className="text-2xl font-bold mb-3">signal 읽기 완료.</p>
-            <p className="text-white/40 text-sm mb-10">이제 누구와든 진짜 호환성을 볼 수 있어.</p>
+            <p className="text-2xl font-bold mb-3">너의 signal 읽기 완료.</p>
+            <p className="text-white/40 text-sm mb-3">이제 상대에게 보내.</p>
+            <p className="text-white/30 text-xs mb-10">상대도 15분만 하면 둘의 진짜 케미가 열려.</p>
 
             <button onClick={() => router.push('/chemistry')}
               className="w-full py-4 border border-white/20 text-white rounded-xl hover:bg-white/5 transition mb-3">
-              궁금한 사람 찾기 →
+              상대에게 링크 보내기 →
             </button>
 
             <button onClick={() => router.push('/dashboard')}

@@ -223,9 +223,9 @@ export default function ChemistryResultPage() {
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-6 border-t border-line">
             <button
               onClick={() => setShareOpen(true)}
-              className="px-6 py-3 bg-accent text-bg rounded-xl text-sm font-semibold hover:bg-accent2 transition"
+              className="px-6 py-3 border border-white/20 text-white rounded-xl text-sm hover:bg-white/5 transition"
             >
-              📤 이 결과 공유 — 너도 해봐!
+              이 결과 스크린샷 → 친구한테 보내봐
             </button>
             <button
               onClick={regenerate}

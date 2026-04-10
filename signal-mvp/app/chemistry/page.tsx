@@ -126,8 +126,8 @@ export default function ChemistryListPage() {
       <div className="mb-6 p-4 bg-card border border-line rounded-xl">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-sm font-semibold">궁금한 사람이 여기 없어?</p>
-            <p className="text-xs text-white/40 mt-1">링크 보내서 초대하면 케미 결과가 나와.</p>
+            <p className="text-sm font-semibold">그 사람이 여기 없어?</p>
+            <p className="text-xs text-white/40 mt-1">링크 보내. 상대도 15분만 하면 둘의 케미가 열려.</p>
           </div>
           <button
             onClick={() => setShareOpen(true)}
