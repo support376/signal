@@ -44,10 +44,18 @@ export default function ScenarioTransition({
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-card border border-line rounded-2xl p-8 text-center">
+    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
+      {/* 5/5 완료 시 축하 glow */}
+      {allDone && (
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-accent3/20 rounded-full blur-[100px] animate-pulse" />
+          <div className="absolute top-1/3 left-1/3 w-32 h-32 bg-accent/20 rounded-full blur-[60px] animate-pulse" style={{ animationDelay: '0.5s' }} />
+          <div className="absolute top-1/3 right-1/3 w-32 h-32 bg-accent2/20 rounded-full blur-[60px] animate-pulse" style={{ animationDelay: '1s' }} />
+        </div>
+      )}
+      <div className="w-full max-w-md bg-card border border-line rounded-2xl p-8 text-center relative z-10">
         {/* 완료 표시 */}
-        <div className="text-4xl mb-4">✓</div>
+        <div className="text-4xl mb-4">{allDone ? '🎉' : '✓'}</div>
         <p className="text-accent3 text-sm font-semibold mb-6">
           {SCENARIO_LABELS[completedScenarioId]} 완료
         </p>

@@ -285,22 +285,46 @@ export default function ScenarioPage() {
         </p>
       </header>
 
-      <div className="flex-1 space-y-4 mb-4">
+      <div className="flex-1 space-y-3 mb-4">
         {turns.map((t) => (
-          <div key={t.turn_idx} className="space-y-3">
-            <div className="bg-card border border-line rounded-2xl rounded-tl-sm p-4 max-w-[85%]">
-              <p className="text-xs text-dim mb-1">{ctx.agentName}</p>
-              <p className="whitespace-pre-wrap leading-relaxed">{t.agent_msg}</p>
+          <div key={t.turn_idx} className="space-y-2">
+            {/* Agent 말풍선 (왼쪽) */}
+            <div className="flex items-end gap-2 max-w-[85%]">
+              <div className="w-8 h-8 rounded-full bg-card border border-line flex items-center justify-center text-xs flex-shrink-0">
+                {ctx.agentName[0]}
+              </div>
+              <div>
+                <p className="text-[10px] text-dim ml-1 mb-0.5">{ctx.agentName}</p>
+                <div className="bg-card border border-line rounded-2xl rounded-bl-sm px-4 py-3">
+                  <p className="whitespace-pre-wrap leading-relaxed text-sm">{t.agent_msg}</p>
+                </div>
+              </div>
             </div>
+            {/* 내 말풍선 (오른쪽) */}
             {t.user_msg && (
-              <div className="bg-accent/10 border border-accent/30 rounded-2xl rounded-tr-sm p-4 max-w-[85%] ml-auto">
-                <p className="text-xs text-accent mb-1">나</p>
-                <p className="whitespace-pre-wrap leading-relaxed">{t.user_msg}</p>
+              <div className="flex justify-end max-w-[85%] ml-auto">
+                <div className="bg-accent/15 border border-accent/25 rounded-2xl rounded-br-sm px-4 py-3">
+                  <p className="whitespace-pre-wrap leading-relaxed text-sm">{t.user_msg}</p>
+                </div>
               </div>
             )}
           </div>
         ))}
-        {loading && <div className="text-sm text-dim italic">...</div>}
+        {/* 타이핑 인디케이터 */}
+        {loading && (
+          <div className="flex items-end gap-2 max-w-[85%]">
+            <div className="w-8 h-8 rounded-full bg-card border border-line flex items-center justify-center text-xs flex-shrink-0">
+              {ctx.agentName[0]}
+            </div>
+            <div className="bg-card border border-line rounded-2xl rounded-bl-sm px-4 py-3">
+              <div className="flex gap-1">
+                <span className="w-2 h-2 bg-dim rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-2 h-2 bg-dim rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-2 h-2 bg-dim rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+            </div>
+          </div>
+        )}
         <div ref={bottomRef} />
       </div>
 
@@ -311,31 +335,32 @@ export default function ScenarioPage() {
       )}
 
       {!finished && turns.length > 0 && (
-        <div className="sticky bottom-4 bg-bg border border-line rounded-2xl p-3">
-          <textarea
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              // keystroke tracker
-              trackerRef.current?.onKeyDown(e);
-              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-                e.preventDefault();
-                void sendResponse();
-              }
-            }}
-            onInput={(e) => trackerRef.current?.onInput(e)}
-            onPaste={() => trackerRef.current?.onPaste()}
-            placeholder="답장 (Cmd/Ctrl+Enter 전송)"
-            disabled={loading || turns[turns.length - 1]?.user_msg !== null}
-            className="w-full bg-transparent text-fg resize-none focus:outline-none min-h-[60px]"
-          />
-          <div className="flex justify-end mt-2">
+        <div className="sticky bottom-0 bg-bg/80 backdrop-blur-md border-t border-line px-3 py-3">
+          <div className="flex items-end gap-2 max-w-2xl mx-auto">
+            <textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                trackerRef.current?.onKeyDown(e);
+                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                  e.preventDefault();
+                  void sendResponse();
+                }
+              }}
+              onInput={(e) => trackerRef.current?.onInput(e)}
+              onPaste={() => trackerRef.current?.onPaste()}
+              placeholder="메시지 입력"
+              disabled={loading || turns[turns.length - 1]?.user_msg !== null}
+              rows={1}
+              className="flex-1 px-4 py-3 bg-card border border-line rounded-3xl text-fg text-sm resize-none focus:outline-none focus:border-accent min-h-[44px] max-h-[120px]"
+            />
             <button
               onClick={sendResponse}
               disabled={loading || !draft.trim() || turns[turns.length - 1]?.user_msg !== null}
-              className="px-4 py-2 bg-accent text-bg rounded-lg text-sm font-semibold hover:bg-accent2 transition disabled:opacity-40"
+              className="w-10 h-10 rounded-full bg-accent text-bg flex items-center justify-center hover:bg-accent2 transition disabled:opacity-30 flex-shrink-0"
+              aria-label="전송"
             >
-              전송
+              ↑
             </button>
           </div>
         </div>
