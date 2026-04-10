@@ -4,7 +4,7 @@ import { normalizeToSlug } from '@/lib/slug';
 
 export async function POST(req: Request) {
   try {
-    const { id, name, referrerSlug } = await req.json();
+    const { id, name, gender, referrerSlug } = await req.json();
     if (!id || typeof id !== 'string') {
       return NextResponse.json({ error: 'id required' }, { status: 400 });
     }
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     }
 
     // 신규 가입
-    await upsertUser(cleanId, cleanName, { referredBy });
+    await upsertUser(cleanId, cleanName, { referredBy, gender: gender || undefined });
     return NextResponse.json({
       ok: true,
       id: cleanId,

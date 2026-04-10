@@ -8,6 +8,7 @@ import { LOGIN_PHASES } from '@/lib/loading-messages';
 function LandingInner() {
   const [id, setId] = useState('');
   const [name, setName] = useState('');
+  const [gender, setGender] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showLogin, setShowLogin] = useState(false);
@@ -33,7 +34,7 @@ function LandingInner() {
     try {
       const r = await fetch('/api/login', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: id.trim(), name: name.trim() || id.trim(), referrerSlug: refParam || readRefCookie() || undefined }),
+        body: JSON.stringify({ id: id.trim(), name: name.trim() || id.trim(), gender: gender || undefined, referrerSlug: refParam || readRefCookie() || undefined }),
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || 'failed');
@@ -120,6 +121,20 @@ function LandingInner() {
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-white/30 focus:outline-none placeholder:text-white/20" autoFocus />
                 <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="이름"
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:border-white/30 focus:outline-none placeholder:text-white/20" />
+                <div className="flex gap-2">
+                  {[
+                    { v: 'M', l: '남성' },
+                    { v: 'F', l: '여성' },
+                    { v: 'O', l: '기타' },
+                  ].map((g) => (
+                    <button key={g.v} type="button" onClick={() => setGender(g.v)}
+                      className={`flex-1 py-2.5 border rounded-xl text-xs transition ${
+                        gender === g.v ? 'border-white/30 text-white bg-white/5' : 'border-white/8 text-white/25'
+                      }`}>
+                      {g.l}
+                    </button>
+                  ))}
+                </div>
                 {error && <p className="text-sm text-red-400">{error}</p>}
                 <button type="submit" className="w-full py-3 border border-white/20 text-white text-sm rounded-xl transition-all hover:bg-white/5">
                   시작

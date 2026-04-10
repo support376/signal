@@ -13,7 +13,7 @@ async function schemaFastCheck(): Promise<boolean> {
     // 가장 최근에 추가된 컬럼을 체크 — 이게 있으면 모든 ALTER 완료된 상태
     const r = await sql`
       SELECT 1 FROM information_schema.columns
-      WHERE table_name = 'users' AND column_name = 'free_credits'
+      WHERE table_name = 'users' AND column_name = 'gender'
       LIMIT 1;
     `;
     return r.rows.length > 0;
@@ -98,6 +98,11 @@ async function runSchemaBootstrap() {
   await safeRun('users.free_credits column', () =>
     sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS free_credits INT DEFAULT 3;`
   );
+
+  // 성별
+  await safeRun('users.gender column', () =>
+    sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS gender TEXT;`
+  );
   await sql`
     CREATE TABLE IF NOT EXISTS scenario_runs (
       user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -152,7 +157,7 @@ async function runSchemaBootstrap() {
 export async function upsertUser(
   id: string,
   name: string,
-  opts?: { slug?: string; referredBy?: string }
+  opts?: { slug?: string; referredBy?: string; gender?: string }
 ) {
   await ensureSchema();
   // Slug 생성 — 안 주면 user.id 그대로 (소문자 normalize)
@@ -169,12 +174,13 @@ export async function upsertUser(
   }
 
   await sql`
-    INSERT INTO users (id, name, slug, referred_by)
-    VALUES (${id}, ${name}, ${finalSlug}, ${opts?.referredBy ?? null})
+    INSERT INTO users (id, name, slug, referred_by, gender)
+    VALUES (${id}, ${name}, ${finalSlug}, ${opts?.referredBy ?? null}, ${opts?.gender ?? null})
     ON CONFLICT (id) DO UPDATE SET
       name = EXCLUDED.name,
       slug = COALESCE(users.slug, EXCLUDED.slug),
-      referred_by = COALESCE(users.referred_by, EXCLUDED.referred_by);
+      referred_by = COALESCE(users.referred_by, EXCLUDED.referred_by),
+      gender = COALESCE(users.gender, EXCLUDED.gender);
   `;
 
   // 신규 가입 + referrer 있으면 referral_event 기록
@@ -200,6 +206,17 @@ export async function upsertUser(
       }
     }
   }
+}
+
+/** 최근 가입 사용자 (Home용) */
+export async function recentUsers(excludeId: string, limit: number = 5) {
+  await ensureSchema();
+  const r = await sql`
+    SELECT id, name, slug, gender, created_at FROM users
+    WHERE id != ${excludeId}
+    ORDER BY created_at DESC LIMIT ${limit};
+  `;
+  return r.rows as { id: string; name: string; slug: string | null; gender: string | null; created_at: string }[];
 }
 
 export async function getUserBySlug(slug: string) {
@@ -277,9 +294,9 @@ export async function listUsersWithProgress(excludeId?: string) {
 
 export async function getUser(id: string) {
   await ensureSchema();
-  const r = await sql`SELECT id, name, slug, bio, referred_by, free_credits FROM users WHERE id = ${id};`;
+  const r = await sql`SELECT id, name, slug, bio, referred_by, free_credits, gender FROM users WHERE id = ${id};`;
   return r.rows[0] as
-    | { id: string; name: string; slug: string | null; bio: string | null; referred_by: string | null; free_credits: number | null }
+    | { id: string; name: string; slug: string | null; bio: string | null; referred_by: string | null; free_credits: number | null; gender: string | null }
     | undefined;
 }
 
