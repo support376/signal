@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { getUser, getCredits, countMyReferrals, getIntegratedVector } from '@/lib/db';
 import MyLinkCard from '@/app/components/my-link-card';
 import FingerprintToggle from '@/app/components/fingerprint-toggle';
+import ApiUsage from '@/app/components/api-usage';
 
 export const dynamic = 'force-dynamic';
 
@@ -141,6 +142,11 @@ export default async function MorePage() {
           initialEnabled={!!user.fingerprint_enabled}
           hasVector={!!vector}
         />
+      </section>
+
+      {/* API 사용량 */}
+      <section className="p-4 border border-line rounded-xl mb-3">
+        <ApiUsage />
       </section>
 
       <div className="space-y-2 mt-6">

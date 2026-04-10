@@ -1,6 +1,6 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import ApiDebugPanel from './components/api-debug';
+
 import BottomNav from './components/bottom-nav';
 
 export const metadata: Metadata = {
@@ -28,7 +28,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <div className="min-h-screen pb-14">{children}</div>
         <BottomNav />
-        <ApiDebugPanel />
       </body>
     </html>
   );
