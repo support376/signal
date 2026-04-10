@@ -28,7 +28,7 @@ export default function BottomNav() {
           return (
             <Link key={tab.href} href={tab.href}
               className={`flex-1 flex items-center justify-center py-4 transition-colors ${isActive ? 'text-white' : 'text-white/25'}`}>
-              <span className="text-[13px] font-semibold tracking-wide">{tab.label}</span>
+              <span className="text-[14px] font-bold">{tab.label}</span>
             </Link>
           );
         })}
