@@ -3,19 +3,19 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Signal — 잠재의식 + 케미 분석',
-    template: '%s · Signal',
+    default: 'Signalogy — 잠재의식 + 케미 분석',
+    template: '%s · Signalogy',
   },
-  description: '잠재의식 측정 + 케미 분석. 진짜 너와 진짜 호환성을 알아봐.',
+  description: '잠재의식 측정 + 케미 분석. 진짜 너의 signal을 읽고, 진짜 호환성을 알아봐.',
   openGraph: {
-    title: 'Signal — 잠재의식 + 케미 분석',
-    description: '진짜 너와 진짜 호환성을 알아봐.',
-    siteName: 'Signal',
+    title: 'Signalogy — 잠재의식 + 케미 분석',
+    description: '진짜 너의 signal을 읽고, 진짜 호환성을 알아봐.',
+    siteName: 'Signalogy',
     type: 'website',
   },
   twitter: {
     card: 'summary',
-    title: 'Signal',
+    title: 'Signalogy',
     description: '잠재의식 + 케미 분석',
   },
 };

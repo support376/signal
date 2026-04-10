@@ -47,7 +47,7 @@ export default function MyLinkCard({ userId, initialSlug, name, referredCount }:
       <section className="mb-12">
         <div className="bg-card border border-line rounded-2xl p-6">
           <div className="flex items-baseline justify-between mb-4">
-            <p className="text-xs text-dim uppercase tracking-wider">내 Signal 링크</p>
+            <p className="text-xs text-dim uppercase tracking-wider">내 Signalogy 링크</p>
             <p className="text-xs text-accent3">초대한 사람: {referredCount}명</p>
           </div>
 

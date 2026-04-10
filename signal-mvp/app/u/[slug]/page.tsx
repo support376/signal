@@ -19,10 +19,10 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const user = await getUserBySlug(params.slug.toLowerCase());
   if (!user) {
-    return { title: 'Signal — 사용자 없음' };
+    return { title: 'Signalogy — 사용자 없음' };
   }
-  const title = `${user.name} — Signal`;
-  const description = `${user.name}와 진짜 호환성을 알아보세요. 잠재의식 + 케미 분석.`;
+  const title = `${user.name} — Signalogy`;
+  const description = `${user.name}의 signal을 읽고, 진짜 호환성을 알아보세요.`;
   const url = `/u/${user.slug}`;
   return {
     title,
@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       url,
-      siteName: 'Signal',
+      siteName: 'Signalogy',
       type: 'profile',
     },
     twitter: {
@@ -57,7 +57,7 @@ export default async function PublicProfilePage({ params }: Props) {
       <div className="w-full max-w-md">
         {/* 프로필 카드 */}
         <div className="bg-card border border-line rounded-2xl p-8 text-center">
-          <p className="text-xs text-dim uppercase tracking-wider mb-2">Signal</p>
+          <p className="text-xs text-dim uppercase tracking-wider mb-2">Signalogy</p>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-accent to-accent2 bg-clip-text text-transparent">
             {user.name}
           </h1>
@@ -84,7 +84,7 @@ export default async function PublicProfilePage({ params }: Props) {
             href={`/?ref=${user.slug}`}
             className="mt-8 block w-full py-4 bg-accent text-bg font-semibold rounded-xl hover:bg-accent2 transition"
           >
-            {user.name}와 케미 분석 시작 →
+            {user.name}의 signal 읽고 케미 분석 →
           </Link>
 
           <p className="text-xs text-dim mt-4 leading-relaxed">
@@ -94,7 +94,7 @@ export default async function PublicProfilePage({ params }: Props) {
 
         {/* 푸터 */}
         <p className="text-center text-xs text-dim mt-6">
-          Signal — 잠재의식 + 케미 분석 ·{' '}
+          Signalogy — 너의 signal을 읽는다 ·{' '}
           <Link href="/" className="hover:text-accent">서비스 소개</Link>
         </p>
       </div>

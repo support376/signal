@@ -72,10 +72,10 @@ function LandingInner() {
       <section className="min-h-screen flex flex-col items-center justify-center px-4 text-center relative">
         <div className="max-w-2xl">
           <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-accent to-accent2 bg-clip-text text-transparent mb-4">
-            Signal
+            Signalogy
           </h1>
           <p className="text-xl md:text-2xl text-fg mb-3">
-            사주는 운명을 본다. <span className="text-accent3">Signal은 너의 선택을 본다.</span>
+            사주는 운명을 본다. <span className="text-accent3">Signalogy는 너의 signal을 본다.</span>
           </p>
           <p className="text-dim text-sm md:text-base max-w-lg mx-auto leading-relaxed mb-8">
             AI 대화로 너의 잠재의식을 측정하고,<br />
@@ -116,7 +116,7 @@ function LandingInner() {
               <div className="text-4xl mb-4">📤</div>
               <h3 className="font-semibold text-lg mb-2">공유한다</h3>
               <p className="text-sm text-dim leading-relaxed">
-                내 Signal 프로필을 친구에게 보내. 카톡 한 번이면 케미 분석 시작. QR로도 가능.
+                내 Signalogy 프로필을 친구에게 보내. 카톡 한 번이면 케미 분석 시작. QR로도 가능.
               </p>
             </div>
           </div>
@@ -158,7 +158,7 @@ function LandingInner() {
                   <th className="text-left py-3 text-dim font-normal" />
                   <th className="text-center py-3 text-dim font-normal">사주</th>
                   <th className="text-center py-3 text-dim font-normal">MBTI</th>
-                  <th className="text-center py-3 text-accent font-semibold">Signal</th>
+                  <th className="text-center py-3 text-accent font-semibold">Signalogy</th>
                 </tr>
               </thead>
               <tbody className="text-center">
@@ -191,7 +191,7 @@ function LandingInner() {
           <h3 className="font-semibold mb-3">🔒 프라이버시</h3>
           <p className="text-sm text-dim leading-relaxed">
             너의 데이터는 광고에 팔리지 않아. 대화 내용은 분석 후 벡터만 저장되고, 원문은 너만 볼 수 있어.
-            Signal은 사랑을 위한 인프라야. 너의 데이터를 무기로 쓰지 않아.
+            Signalogy는 너의 signal을 위한 인프라야. 너의 데이터를 무기로 쓰지 않아.
           </p>
         </div>
       </section>
@@ -257,7 +257,7 @@ function LandingInner() {
 
       {/* ────────── 푸터 ────────── */}
       <footer className="py-8 px-4 border-t border-line text-center text-xs text-dim">
-        Signal — 잠재의식 + 케미 분석 · 진짜 사람을 위한, 진짜 연결을 위한
+        Signalogy — 너의 signal을 읽는다 · 진짜 사람을 위한, 진짜 연결을 위한
       </footer>
     </div>
   );

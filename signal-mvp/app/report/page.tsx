@@ -191,7 +191,7 @@ export default function ReportPage() {
 
           {/* ─── 프로필 카드 (3초 파악) ─── */}
           <div className="bg-card border border-line rounded-2xl p-8 text-center mb-6">
-            <p className="text-xs text-dim uppercase tracking-wider mb-3">너의 Signal Profile</p>
+            <p className="text-xs text-dim uppercase tracking-wider mb-3">너의 Signalogy Profile</p>
 
             {/* Headline */}
             {headline && (

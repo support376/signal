@@ -41,8 +41,8 @@ export default function ShareModal({ open, onClose, slug, name }: Props) {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `${name} — Signal`,
-          text: `Signal에서 ${name}와 케미 분석 해봐`,
+          title: `${name} — Signalogy`,
+          text: `Signalogy에서 ${name}와 케미 분석 해봐`,
           url: shareUrl,
         });
       } catch (e) {
@@ -63,7 +63,7 @@ export default function ShareModal({ open, onClose, slug, name }: Props) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold">내 Signal 공유</h2>
+          <h2 className="text-lg font-bold">내 Signalogy 공유</h2>
           <button onClick={onClose} className="text-dim hover:text-fg text-xl leading-none">
             ×
           </button>
@@ -103,7 +103,7 @@ export default function ShareModal({ open, onClose, slug, name }: Props) {
         </div>
 
         <p className="text-xs text-dim text-center mt-4 leading-relaxed">
-          QR 보여주면 즉시 너와 케미 분석. 카톡·인스타·SMS 어디든 공유 가능.
+          QR 보여주면 즉시 너와 케미 분석. 카톡·인스타·SMS 어디든 공유.
         </p>
       </div>
     </div>

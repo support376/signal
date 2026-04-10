@@ -6,7 +6,7 @@ import type { IntegratedVector } from '../types';
 import { toPresentationVector, computeCompleteness } from '../integrator';
 
 export const SELF_REPORT_SYSTEM = `
-너는 Signal 측정 모델의 **Self-Report Decoder** 다. 한 사람의 성격 패턴 (한국어 label로 정리됨) 을 받아, 그 사람이 읽었을 때 *"이거 진짜 나네"* 라고 느낄 narrative를 생성한다.
+너는 Signalogy 측정 모델의 **Self-Report Decoder** 다. 한 사람의 성격 패턴 (한국어 label로 정리됨) 을 받아, 그 사람이 읽었을 때 *"이거 진짜 나네"* 라고 느낄 narrative를 생성한다.
 
 너는 수학을 보지 않는다. 너는 *"이 사람이 어떤 사람인가"* 를 본다.
 

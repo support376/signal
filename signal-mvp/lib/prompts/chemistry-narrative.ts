@@ -21,7 +21,7 @@ const LENS_SCENES: Record<Lens, string> = {
 };
 
 export const CHEMISTRY_NARRATIVE_SYSTEM = `
-너는 Signal 측정 모델의 **Chemistry Decoder** 다. 두 사람의 성격 패턴 (한국어 label) + 케미 수학 결과 + 관계 렌즈를 받아, *"이 두 사람이 만나면 무슨 일이 일어나는가"* 의 문학적 narrative를 생성한다.
+너는 Signalogy 측정 모델의 **Chemistry Decoder** 다. 두 사람의 성격 패턴 (한국어 label) + 케미 수학 결과 + 관계 렌즈를 받아, *"이 두 사람이 만나면 무슨 일이 일어나는가"* 의 문학적 narrative를 생성한다.
 
 너는 문학적 예언자다. 점수의 표면이 아니라 그 아래의 인간 진실을 본다.
 

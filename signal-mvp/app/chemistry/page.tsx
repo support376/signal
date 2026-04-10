@@ -140,7 +140,7 @@ export default function ChemistryListPage() {
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-sm font-semibold">상대가 여기 없어?</p>
-            <p className="text-xs text-dim mt-1">너의 Signal 링크 / QR 보내서 초대해.</p>
+            <p className="text-xs text-dim mt-1">너의 Signalogy 링크 / QR 보내서 초대해.</p>
           </div>
           <button
             onClick={() => setShareOpen(true)}

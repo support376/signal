@@ -78,7 +78,7 @@ export default async function DashboardPage() {
         <div className="flex-1 flex flex-col items-center justify-center text-center">
           <h1 className="text-3xl font-bold mb-2">👋 환영해, {user.name}</h1>
           <p className="text-dim text-sm mb-10 leading-relaxed max-w-sm">
-            AI와 대화하면 너의 진짜 모습이 보여.<br />
+            Signalogy가 너의 signal을 읽어줄게.<br />
             정답은 없어. 느끼는 대로 답하면 돼.
           </p>
 
@@ -226,10 +226,10 @@ export default async function DashboardPage() {
         <p className="text-xs text-accent3 mt-2">✓ 5/5 완료 · 추정 완성도 {completeness.percent}%</p>
       </header>
 
-      {/* 너의 Signal (headline + tags + CTA) */}
+      {/* 너의 Signalogy (headline + tags + CTA) */}
       <section className="mb-8">
         <div className="bg-card border border-line rounded-2xl p-8 text-center">
-          <p className="text-xs text-dim uppercase tracking-wider mb-3">너의 Signal</p>
+          <p className="text-xs text-dim uppercase tracking-wider mb-3">너의 Signalogy</p>
           {headline && (
             <h2 className="text-xl font-bold leading-snug bg-gradient-to-r from-accent to-accent2 bg-clip-text text-transparent mb-4">
               {headline}
