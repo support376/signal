@@ -221,7 +221,7 @@ export default async function DashboardPage() {
       </section>
 
       <footer className="mt-16 pt-6 border-t border-line text-xs text-dim text-center">
-        <Link href="/" className="hover:text-accent">로그아웃 / 다른 ID로 시작</Link>
+        <Link href="/logout" className="hover:text-accent">로그아웃 / 다른 ID로 시작</Link>
       </footer>
     </div>
   );
