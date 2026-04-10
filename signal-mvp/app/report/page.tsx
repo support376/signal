@@ -92,10 +92,9 @@ export default function ReportPage() {
     setError('');
     try {
       // 병렬: me + completeness + report
-      const [meResult, compResult, , repResult] = await Promise.all([
+      const [meResult, compResult, repResult] = await Promise.all([
         trackedFetch('/api/me', { body: JSON.stringify({ userId: uid }) }),
         trackedFetch('/api/completeness', { body: JSON.stringify({ userId: uid }) }),
-        Promise.resolve({ response: new Response(), data: null }),
         trackedFetch('/api/report', { body: JSON.stringify({ userId: uid, force }) }),
       ]);
 
