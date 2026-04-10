@@ -201,7 +201,7 @@ export default async function HomePage() {
               return (
                 <div key={m.id} className="flex items-center justify-between py-3 border-b border-white/5">
                   <div className="flex items-center gap-3 min-w-0">
-                    <Link href={`/chemistry/${m.id}`} className="text-sm text-white/60 font-mono hover:text-white/80 transition truncate">
+                    <Link href={`/u/${m.slug}`} className="text-sm text-white/60 font-mono hover:text-white/80 transition truncate">
                       @{m.slug}
                     </Link>
                     {snsLink && (
@@ -211,7 +211,7 @@ export default async function HomePage() {
                       </a>
                     )}
                   </div>
-                  <Link href={`/chemistry/${m.id}`} className="text-lg font-bold text-white/70 hover:text-white transition ml-3">
+                  <Link href={`/u/${m.slug}`} className="text-lg font-bold text-white/70 hover:text-white transition ml-3">
                     {m.score}%
                   </Link>
                 </div>
