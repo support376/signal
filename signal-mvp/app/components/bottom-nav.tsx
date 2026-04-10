@@ -4,10 +4,10 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 
 const TABS = [
-  { href: '/dashboard', label: 'Home' },
-  { href: '/chemistry', label: 'Chemistry' },
-  { href: '/scenario', label: 'Signal' },
-  { href: '/profile', label: 'More' },
+  { href: '/dashboard', label: 'Home', icon: '⌂' },
+  { href: '/chemistry', label: 'Chemistry', icon: '◎' },
+  { href: '/scenario', label: 'Signal', icon: '◈' },
+  { href: '/profile', label: 'More', icon: '≡' },
 ];
 
 export default function BottomNav() {
@@ -27,8 +27,9 @@ export default function BottomNav() {
             : pathname === tab.href;
           return (
             <Link key={tab.href} href={tab.href}
-              className={`flex-1 flex items-center justify-center py-4 transition-colors ${isActive ? 'text-white' : 'text-white/25'}`}>
-              <span className="text-[14px] font-bold">{tab.label}</span>
+              className={`flex-1 flex flex-col items-center py-2.5 transition-colors ${isActive ? 'text-white' : 'text-white/25'}`}>
+              <span className="text-xl mb-0.5">{tab.icon}</span>
+              <span className="text-[11px] font-semibold">{tab.label}</span>
             </Link>
           );
         })}
