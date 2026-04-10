@@ -235,6 +235,9 @@ function LandingInner() {
                 <button onClick={resetFingerprint} className="w-full text-xs text-faint hover:text-dim">
                   ← 돌아가기
                 </button>
+                <button onClick={() => doLogin()} className="w-full text-xs text-faint hover:text-dim mt-2">
+                  무조건 로그인하기
+                </button>
               </div>
             ) : null}
           </div>
