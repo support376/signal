@@ -18,7 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </head>
       <body>
-        <div className="min-h-screen">{children}</div>
+        <div className="min-h-screen pb-14">{children}</div>
         <BottomNav />
         <ApiDebugPanel />
       </body>
