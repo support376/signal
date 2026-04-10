@@ -19,7 +19,7 @@ function LandingInner() {
   const [fpChallengeId, setFpChallengeId] = useState('');
   const [fpAnswer, setFpAnswer] = useState('');
   const [fpAttempt, setFpAttempt] = useState(1);
-  const [fpResult, setFpResult] = useState<{ pass: boolean; reason: string } | null>(null);
+  const [fpResult, setFpResult] = useState<{ pass: boolean; reason: string; debug?: any } | null>(null);
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -104,7 +104,7 @@ function LandingInner() {
       }
       if (!r.ok) throw new Error(data.message || data.error);
 
-      setFpResult({ pass: data.pass, reason: data.reason });
+      setFpResult({ pass: data.pass, reason: data.reason, debug: data.debug });
 
       if (data.pass) {
         setTimeout(() => doLogin(), 1500);
@@ -237,6 +237,13 @@ function LandingInner() {
                   <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/40 rounded-xl p-4 mb-4 text-left">
                     <p className="text-red-600 dark:text-red-400 text-sm font-semibold mb-1">인증 실패</p>
                     <p className="text-red-600 dark:text-red-400 text-xs">{fpResult.reason}</p>
+                    {fpResult.debug && (
+                      <div className="mt-2 text-[10px] text-dim space-y-0.5">
+                        <p>cosine: {fpResult.debug.cosine} | 감지축: {fpResult.debug.detectedCosine} | 거리: {fpResult.debug.weightedDistance}</p>
+                        <p>감지된 축: {fpResult.debug.detectedAxes?.join(', ')}</p>
+                        <p>{fpResult.debug.reasoning}</p>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -244,6 +251,12 @@ function LandingInner() {
                   <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-900/40 rounded-xl p-4 mb-4 text-left">
                     <p className="text-green-600 dark:text-green-400 text-sm font-semibold mb-1">인증 통과</p>
                     <p className="text-green-600 dark:text-green-400 text-xs">{fpResult.reason}</p>
+                    {fpResult.debug && (
+                      <div className="mt-2 text-[10px] text-dim space-y-0.5">
+                        <p>cosine: {fpResult.debug.cosine} | 감지축: {fpResult.debug.detectedCosine} | 거리: {fpResult.debug.weightedDistance}</p>
+                        <p>감지된 축: {fpResult.debug.detectedAxes?.join(', ')}</p>
+                      </div>
+                    )}
                   </div>
                 )}
 
