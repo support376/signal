@@ -4,7 +4,6 @@ import { Suspense, useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import LoadingState from './components/loading-state';
 import MatrixRain from './components/matrix-rain';
-import ScrollingGridBg from './components/scrolling-grid-bg';
 import { LOGIN_PHASES } from '@/lib/loading-messages';
 
 function LandingInner() {
@@ -49,11 +48,8 @@ function LandingInner() {
 
   return (
     <div className="min-h-screen relative">
-      {/* ── Midjourney-style 스크롤링 그리드 배경 ── */}
-      <ScrollingGridBg />
-
-      {/* ── Matrix Rain 오버레이 (그리드 위에 코드가 흐름) ── */}
-      <MatrixRain opacity={0.03} />
+      {/* ── SIGNALOGY Matrix Rain 배경 ── */}
+      <MatrixRain />
 
       {/* ══════ HERO ══════ */}
       <section className="min-h-screen flex flex-col items-center justify-center px-6 text-center relative z-10">
