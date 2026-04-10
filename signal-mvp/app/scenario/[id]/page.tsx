@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { SCENARIO_LABELS, SCENARIO_CONTEXTS } from '@/lib/scenario-meta';
 import { SCENARIOS, type ScenarioId } from '@/lib/types';
 import LoadingState from '@/app/components/loading-state';
+import ScenarioTransition from '@/app/components/scenario-transition';
 import { FINALIZE_PHASES } from '@/lib/loading-messages';
 import { createTracker, type KeystrokeTracker } from '@/app/components/keystroke-tracker';
 
@@ -32,6 +33,11 @@ export default function ScenarioPage() {
   const [finished, setFinished] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
+  const [showTransition, setShowTransition] = useState(false);
+  const [transitionData, setTransitionData] = useState<{
+    completedCount: number;
+    completenessPercent: number;
+  } | null>(null);
   const [error, setError] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
   const trackerRef = useRef<KeystrokeTracker | null>(null);
@@ -165,11 +171,40 @@ export default function ScenarioPage() {
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error);
-      router.push('/dashboard');
+
+      // Transition 화면으로 (dashboard 대신)
+      // completeness 가져오기
+      const compR = await fetch('/api/completeness', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      });
+      const compData = await compR.json();
+      const percent = compData?.completeness?.percent || 0;
+
+      setTransitionData({
+        completedCount: data.completed_count || 1,
+        completenessPercent: percent,
+      });
+      setShowTransition(true);
+      setFinalizing(false);
     } catch (e: any) {
       setError(e.message);
       setFinalizing(false);
     }
+  }
+
+  // ───────────────────────────────────────
+  // TRANSITION 화면 — 시나리오 완료 후 다음으로
+  // ───────────────────────────────────────
+  if (showTransition && transitionData) {
+    return (
+      <ScenarioTransition
+        completedScenarioId={scenarioId}
+        completedCount={transitionData.completedCount}
+        completenessPercent={transitionData.completenessPercent}
+      />
+    );
   }
 
   // ───────────────────────────────────────
