@@ -25,6 +25,7 @@ export default function MatrixRain({ opacity = 0.04 }: { opacity?: number }) {
     const chars = 'アイウエオカキクケコサシスセソ01∞Σλθψφ'.split('');
 
     function resize() {
+      if (!canvas) return;
       w = window.innerWidth;
       h = window.innerHeight;
       canvas.width = w;
