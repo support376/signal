@@ -1,19 +1,19 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 
 export default function LogoutPage() {
-  const router = useRouter();
-
   useEffect(() => {
-    // 모든 signal 쿠키 삭제
-    document.cookie = 'signal_user_id=; path=/; max-age=0';
-    document.cookie = 'signal_user_name=; path=/; max-age=0';
-    document.cookie = 'signal_ref=; path=/; max-age=0';
-    // 랜딩으로
-    router.replace('/');
-  }, [router]);
+    // 모든 signal 쿠키 삭제 (두 가지 방법 모두 적용)
+    const cookiesToClear = ['signal_user_id', 'signal_user_name', 'signal_ref'];
+    cookiesToClear.forEach((name) => {
+      document.cookie = `${name}=; path=/; max-age=0`;
+      document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+    });
+
+    // Next.js router 대신 window.location으로 풀 리로드 (캐시 우회)
+    window.location.href = '/';
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center text-dim text-sm">
