@@ -3,7 +3,9 @@
 import { useEffect, useRef } from 'react';
 
 /**
- * SIGNALOGY Matrix Rain — 느린 속도 + 긴 잔상 + 다국어
+ * Matrix Digital Rain — 원본 데모 그대로 + SIGNALOGY 다국어
+ * 출처: matrix_digital_rain_demo.html 의 알고리즘 100% 유지
+ * 변경: chars만 SIGNALOGY + 한국어/일본어/기호로 교체
  */
 export default function MatrixRain() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -14,91 +16,66 @@ export default function MatrixRain() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const c = canvas;
-    const g = ctx;
-    let animId: number;
-
-    // 다국어 글자 세트: SIGNALOGY + 한국어 + 일본어 + 숫자 + 기호
-    const chars = [
-      ...'SIGNALOGY'.split(''),
-      ...'signalogy'.split(''),
-      ...'신호'.split(''),
-      ...'시그널'.split(''),
-      ...'연결'.split(''),
-      ...'잠재의식'.split(''),
-      ...'케미'.split(''),
-      ...'シグナル'.split(''),  // 시그나루 (일본어)
-      ...'信号'.split(''),      // 신호 (중국어)
-      ...'SIGNAL'.split(''),
-      ...'01'.split(''),
-      ...'∞Σλψφ'.split(''),
-    ];
-
-    const fontSize = 18;
-    let columns = 0;
-    let drops: number[] = [];
-    let speeds: number[] = [];
+    // devicePixelRatio 대응 (선명하게)
+    const dpr = window.devicePixelRatio || 1;
 
     function resize() {
-      c.width = window.innerWidth;
-      c.height = window.innerHeight;
-      columns = Math.floor(c.width / fontSize);
-      drops = Array.from({ length: columns }, () =>
-        Math.floor(Math.random() * -50)
-      );
-      speeds = Array.from({ length: columns }, () =>
-        0.1 + Math.random() * 0.2
-      );
+      if (!canvas || !ctx) return;
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      ctx.scale(dpr, dpr);
     }
+    resize();
+
+    const fontSize = 14;
+    const chars = 'SIGNALOGYsignalogy신호시그널연결잠재의식케미シグナル信号アイウエオカキク01∞Σλψφ'.split('');
+    const columns = Math.floor(window.innerWidth / fontSize);
+    const drops = new Array(columns).fill(0).map(() => Math.random() * -50);
 
     function draw() {
-      // 긴 잔상: 알파 낮을수록 오래 남음
-      g.fillStyle = 'rgba(0, 0, 0, 0.03)';
-      g.fillRect(0, 0, c.width, c.height);
+      const w = window.innerWidth;
+      const h = window.innerHeight;
 
-      g.font = `${fontSize}px "JetBrains Mono", monospace`;
+      // 잔상 트레일
+      ctx!.fillStyle = 'rgba(0, 0, 0, 0.06)';
+      ctx!.fillRect(0, 0, w, h);
+
+      // 초록 글자
+      ctx!.font = fontSize + 'px ui-monospace, "JetBrains Mono", Menlo, monospace';
+      ctx!.fillStyle = '#00ff88';
 
       for (let i = 0; i < drops.length; i++) {
+        const ch = chars[Math.floor(Math.random() * chars.length)];
         const x = i * fontSize;
         const y = drops[i] * fontSize;
+        ctx!.fillText(ch, x, y);
 
-        // 선두 글자: 밝은 흰색
-        const headChar = chars[Math.floor(Math.random() * chars.length)];
-        g.fillStyle = 'rgba(255, 255, 255, 0.9)';
-        g.fillText(headChar, x, y);
-
-        // 바로 뒤: 밝은 초록
-        g.fillStyle = 'rgba(0, 255, 100, 0.5)';
-        g.fillText(chars[Math.floor(Math.random() * chars.length)], x, y - fontSize);
-
-        // 2칸 뒤: 어두운 초록
-        g.fillStyle = 'rgba(0, 200, 80, 0.2)';
-        g.fillText(chars[Math.floor(Math.random() * chars.length)], x, y - fontSize * 2);
-
-        // 컬럼별 다른 느린 속도
-        drops[i] += speeds[i];
-
-        if (drops[i] * fontSize > c.height && Math.random() > 0.98) {
-          drops[i] = Math.random() * -30;
+        if (y > h && Math.random() > 0.975) {
+          drops[i] = 0;
         }
+        drops[i]++;
       }
-
-      animId = requestAnimationFrame(draw);
+      requestAnimationFrame(draw);
     }
-
-    resize();
     draw();
+
     window.addEventListener('resize', resize);
-    return () => {
-      cancelAnimationFrame(animId);
-      window.removeEventListener('resize', resize);
-    };
+    return () => window.removeEventListener('resize', resize);
   }, []);
 
   return (
     <canvas
       ref={canvasRef}
-      style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        zIndex: 0,
+        pointerEvents: 'none',
+        display: 'block',
+      }}
     />
   );
 }
