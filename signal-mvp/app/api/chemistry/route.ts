@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { callClaude } from '@/lib/anthropic';
 import { CHEMISTRY_NARRATIVE_SYSTEM, buildChemistryUserMessage } from '@/lib/prompts/chemistry-narrative';
 import { computeChemistry } from '@/lib/chemistry-math';
-import { getIntegratedVector, getChemistry, saveChemistry, getUser } from '@/lib/db';
+import { getIntegratedVector, getChemistry, saveChemistry, getUser, getCredits, useCredit } from '@/lib/db';
 import { LENSES, type Lens } from '@/lib/types';
 import { sanitizeNarrative, logSanitizerReport } from '@/lib/sanitizer';
 import { computeCompleteness } from '@/lib/integrator';
@@ -41,6 +41,16 @@ export async function POST(req: Request) {
         { error: '두 사용자 모두 최소 1개 이상의 시나리오를 완료해야 함.' },
         { status: 400 }
       );
+    }
+
+    // 크레딧 확인 (LLM 호출 전)
+    const credits = await getCredits(userAId);
+    if (credits <= 0) {
+      return NextResponse.json({
+        error: 'credit_exhausted',
+        message: '무료 분석 크레딧이 없어. 친구를 초대하면 크레딧을 받을 수 있어.',
+        credits: 0,
+      }, { status: 402 });
     }
 
     const userA = await getUser(userAId);
@@ -83,6 +93,9 @@ export async function POST(req: Request) {
       sanitizer_violations: report.total_violations,
     };
 
+    // 크레딧 차감 (LLM 호출 성공 후)
+    const creditResult = await useCredit(userAId);
+
     await saveChemistry(userAId, userBId, lens as Lens, math.display, narrative, enrichedRaw);
 
     return NextResponse.json({
@@ -94,6 +107,7 @@ export async function POST(req: Request) {
       reliability: math.reliability_label,
       completeness_a: compA,
       completeness_b: compB,
+      credits_remaining: creditResult.remaining,
     });
   } catch (e: any) {
     console.error('[chemistry] error', e);

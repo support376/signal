@@ -92,6 +92,11 @@ async function runSchemaBootstrap() {
   await safeRun('scenario_runs.input_meta column', () =>
     sql`ALTER TABLE scenario_runs ADD COLUMN IF NOT EXISTS input_meta JSONB;`
   );
+
+  // 크레딧 시스템
+  await safeRun('users.free_credits column', () =>
+    sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS free_credits INT DEFAULT 3;`
+  );
   await sql`
     CREATE TABLE IF NOT EXISTS scenario_runs (
       user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -189,6 +194,8 @@ export async function upsertUser(
           INSERT INTO referral_events (inviter_id, invitee_id, event_type, metadata)
           VALUES (${opts.referredBy}, ${id}, 'signup', ${JSON.stringify({ via: 'cookie' })});
         `;
+        // 초대자에게 크레딧 +1
+        await sql`UPDATE users SET free_credits = COALESCE(free_credits, 3) + 1 WHERE id = ${opts.referredBy};`;
       }
     }
   }
@@ -269,10 +276,33 @@ export async function listUsersWithProgress(excludeId?: string) {
 
 export async function getUser(id: string) {
   await ensureSchema();
-  const r = await sql`SELECT id, name, slug, bio, referred_by FROM users WHERE id = ${id};`;
+  const r = await sql`SELECT id, name, slug, bio, referred_by, free_credits FROM users WHERE id = ${id};`;
   return r.rows[0] as
-    | { id: string; name: string; slug: string | null; bio: string | null; referred_by: string | null }
+    | { id: string; name: string; slug: string | null; bio: string | null; referred_by: string | null; free_credits: number | null }
     | undefined;
+}
+
+// ──────────────────────────────────────────
+// Credits
+// ──────────────────────────────────────────
+export async function getCredits(userId: string): Promise<number> {
+  await ensureSchema();
+  const r = await sql`SELECT COALESCE(free_credits, 3) AS c FROM users WHERE id = ${userId};`;
+  if (r.rows.length === 0) return 0;
+  return (r.rows[0] as { c: number }).c;
+}
+
+export async function useCredit(userId: string): Promise<{ ok: boolean; remaining: number }> {
+  await ensureSchema();
+  const current = await getCredits(userId);
+  if (current <= 0) return { ok: false, remaining: 0 };
+  await sql`UPDATE users SET free_credits = COALESCE(free_credits, 3) - 1 WHERE id = ${userId} AND COALESCE(free_credits, 3) > 0;`;
+  return { ok: true, remaining: current - 1 };
+}
+
+export async function addCredit(userId: string, amount: number = 1) {
+  await ensureSchema();
+  await sql`UPDATE users SET free_credits = COALESCE(free_credits, 3) + ${amount} WHERE id = ${userId};`;
 }
 
 // ──────────────────────────────────────────

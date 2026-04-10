@@ -24,7 +24,10 @@ h1, h2, h3, h4 {
 
 p { line-height: 1.85; }
 
-/* (배경 레인 제거됨 — 가독성 우선) */
+/* ── Mobile safe area (하단 탭 겹침 방지) ── */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
 
 /* ── Glassmorphism (cyber tint) ── */
 .glass {
