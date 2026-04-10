@@ -10,14 +10,15 @@ let schemaPromise: Promise<void> | null = null;
 
 async function schemaFastCheck(): Promise<boolean> {
   try {
+    // 가장 최근에 추가된 컬럼을 체크 — 이게 있으면 모든 ALTER 완료된 상태
     const r = await sql`
       SELECT 1 FROM information_schema.columns
-      WHERE table_name = 'users' AND column_name = 'slug'
+      WHERE table_name = 'users' AND column_name = 'free_credits'
       LIMIT 1;
     `;
     return r.rows.length > 0;
   } catch {
-    return false; // table 자체가 없음 → 풀 마이그레이션 필요
+    return false;
   }
 }
 
