@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 const TABS = [
   { href: '/dashboard', label: '홈', icon: '⌂' },
-  { href: '/chemistry', label: '궁금한 사람', icon: '◎' },
+  { href: '/chemistry', label: 'Chemistry', icon: '◎' },
   { href: '/scenario', label: 'signal', icon: '◈' },
   { href: '/profile', label: '나', icon: '●' },
 ];
