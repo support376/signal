@@ -2,24 +2,89 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Midjourney-inspired base ── */
 html, body {
-  background: #0b0d12;
-  color: #e8ecf3;
-  font-family: -apple-system, "Pretendard", "Inter", "Segoe UI", "Apple SD Gothic Neo", sans-serif;
+  background: #000000;
+  color: #e0e0e0;
+  font-family: "Inter", -apple-system, "Pretendard", "Segoe UI", "Apple SD Gothic Neo", sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.8;
+  letter-spacing: -0.01em;
 }
 
-/* 페이지 전환 부드럽게 */
+/* ── Typography ── */
+h1, h2, h3, h4 {
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+
+p {
+  line-height: 1.85;
+}
+
+/* ── 글래스모피즘 카드 ── */
+.glass {
+  background: rgba(17, 17, 17, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.glass-light {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* ── Subtle glow effects ── */
+.glow-accent {
+  box-shadow: 0 0 40px rgba(110, 142, 255, 0.08);
+}
+
+.glow-accent3 {
+  box-shadow: 0 0 40px rgba(76, 217, 176, 0.08);
+}
+
+/* ── Page transition ── */
 main, [data-nextjs-scroll-focus-boundary] > * {
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 0.35s ease-out;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* 카톡 타이핑 인디케이터 bounce */
+/* ── Scrollbar (Midjourney style — thin, subtle) ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ── Selection ── */
+::selection {
+  background: rgba(110, 142, 255, 0.3);
+}
+
+/* ── Focus ring ── */
+*:focus-visible {
+  outline: 2px solid rgba(110, 142, 255, 0.5);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Bounce for typing indicator ── */
 @keyframes bounce {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-4px); }
