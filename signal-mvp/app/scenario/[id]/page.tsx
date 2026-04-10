@@ -6,6 +6,7 @@ import { SCENARIO_LABELS, SCENARIO_CONTEXTS } from '@/lib/scenario-meta';
 import { SCENARIOS, type ScenarioId } from '@/lib/types';
 import LoadingState from '@/app/components/loading-state';
 import { FINALIZE_PHASES } from '@/lib/loading-messages';
+import { createTracker, type KeystrokeTracker } from '@/app/components/keystroke-tracker';
 
 interface Turn {
   turn_idx: number;
@@ -33,6 +34,7 @@ export default function ScenarioPage() {
   const [showIntro, setShowIntro] = useState(true);
   const [error, setError] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
+  const trackerRef = useRef<KeystrokeTracker | null>(null);
 
   const ctx = SCENARIO_CONTEXTS[scenarioId];
 
@@ -95,6 +97,8 @@ export default function ScenarioPage() {
       if (!r.ok) throw new Error(data.error);
       setTurns([{ turn_idx: 1, agent_msg: data.agent_msg, user_msg: null }]);
       setFinished(data.finished);
+      // tracker 시작
+      trackerRef.current = createTracker(Date.now());
     } catch (e: any) {
       setError(e.message);
       setShowIntro(true);
@@ -106,6 +110,10 @@ export default function ScenarioPage() {
   async function sendResponse() {
     if (!draft.trim() || !userId || loading) return;
     const userMsg = draft.trim();
+
+    // 메타데이터 캡처 (전송 직전)
+    const inputMeta = trackerRef.current?.getMetadata(userMsg) ?? null;
+
     setDraft('');
     setLoading(true);
     setError('');
@@ -119,7 +127,7 @@ export default function ScenarioPage() {
       const r = await fetch('/api/scenario/turn', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, scenarioId, userMessage: userMsg }),
+        body: JSON.stringify({ userId, scenarioId, userMessage: userMsg, inputMeta }),
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error);
@@ -131,6 +139,12 @@ export default function ScenarioPage() {
           ...ts,
           { turn_idx: data.turn_idx, agent_msg: data.agent_msg, user_msg: null },
         ]);
+        // 새 agent 메시지 도착 → tracker 리셋 (이 turn의 메타 추적 시작)
+        if (trackerRef.current) {
+          trackerRef.current.reset(Date.now());
+        } else {
+          trackerRef.current = createTracker(Date.now());
+        }
       }
     } catch (e: any) {
       setError(e.message);
@@ -267,11 +281,15 @@ export default function ScenarioPage() {
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
+              // keystroke tracker
+              trackerRef.current?.onKeyDown(e);
               if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
                 e.preventDefault();
                 void sendResponse();
               }
             }}
+            onInput={(e) => trackerRef.current?.onInput(e)}
+            onPaste={() => trackerRef.current?.onPaste()}
             placeholder="답장 (Cmd/Ctrl+Enter 전송)"
             disabled={loading || turns[turns.length - 1]?.user_msg !== null}
             className="w-full bg-transparent text-fg resize-none focus:outline-none min-h-[60px]"

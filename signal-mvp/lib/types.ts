@@ -56,6 +56,7 @@ export interface AxisMeasurement {
   value: number;        // 0..100
   confidence: number;   // 0..0.85 (single scenario) or 0..0.95 (integrated)
   strength?: 'weak' | 'medium' | 'strong';
+  source?: 'direct' | 'inferred';  // 직접 관찰 vs 간접 추론
   turns_with_signal?: number[];
   evidence: string;
 }

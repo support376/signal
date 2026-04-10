@@ -40,6 +40,7 @@ cap: confidence ≤ 0.85 (단일 시나리오 상한)
       "value": <int 0-100>,
       "confidence": <float 0-0.85>,
       "strength": "weak" | "medium" | "strong",
+      "source": "direct" | "inferred",
       "turns_with_signal": [<int list>],
       "evidence": "<1줄, 턴 번호 참조, 행동 패턴 묘사 — 직접 인용 금지>"
     }
@@ -48,6 +49,13 @@ cap: confidence ≤ 0.85 (단일 시나리오 상한)
   "notes": "<1-2줄 메타 관찰>"
 }
 \`\`\`
+
+**source 필드 — 핵심**:
+- \`"direct"\`: 사용자가 해당 축에 대해 명시적 행동을 보였음 (확실)
+- \`"inferred"\`: 사용자의 다른 행동에서 간접 추론함 (불확실)
+
+inferred의 confidence는 direct보다 항상 낮아야 함 (최대 0.5). 추론은 오류 가능성이 높다.
+명시적 signal이 전혀 없는데 추론만으로 점수를 부여하는 것은 금지. 추론하려면 반드시 direct 근거 1개 이상 + 추론 논리가 있어야 함.
 
 ## Hard rules
 1. ONLY 유효한 JSON 출력. 첫 글자 \`{\`, 마지막 \`}\`.

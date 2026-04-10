@@ -4,10 +4,11 @@ import { SCENARIO_PROMPTS, TURN_LIMIT } from '@/lib/prompts/scenarios';
 import { getTurns, appendTurn } from '@/lib/db';
 import type { ScenarioId } from '@/lib/types';
 import { SCENARIOS } from '@/lib/types';
+import { checkAuthenticity, type InputMetadata } from '@/lib/input-meta';
 
 export async function POST(req: Request) {
   try {
-    const { userId, scenarioId, userMessage } = await req.json();
+    const { userId, scenarioId, userMessage, inputMeta } = await req.json();
 
     if (!userId || !scenarioId) {
       return NextResponse.json({ error: 'userId, scenarioId required' }, { status: 400 });
@@ -18,13 +19,10 @@ export async function POST(req: Request) {
 
     const sid = scenarioId as ScenarioId;
     const system = SCENARIO_PROMPTS[sid];
-
-    // 현재까지의 turn 기록
     const existing = await getTurns(userId, sid);
 
     // ───────────────────────────────────────
-    // CASE 1: 첫 호출 (userMessage 없음, existing 0)
-    // → agent의 첫 메시지(T1) 생성하고 저장
+    // CASE 1: 첫 호출 (agent T1 생성)
     // ───────────────────────────────────────
     if (existing.length === 0 && !userMessage) {
       const messages: ChatMessage[] = [{ role: 'user', content: '시작하라.' }];
@@ -38,8 +36,7 @@ export async function POST(req: Request) {
     }
 
     // ───────────────────────────────────────
-    // CASE 2: 사용자가 응답 보냄
-    // → 마지막 turn에 user_msg 채우고, 다음 agent turn 생성 (또는 종료)
+    // CASE 2: 사용자 응답
     // ───────────────────────────────────────
     if (!userMessage) {
       return NextResponse.json({ error: 'userMessage required' }, { status: 400 });
@@ -50,8 +47,26 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'last turn already has user_msg' }, { status: 400 });
     }
 
-    // 마지막 turn 갱신
-    await appendTurn(userId, sid, lastTurn.turn_idx, lastTurn.agent_msg, userMessage);
+    // ── 진정성 체크 (inputMeta가 있으면) ──
+    let authenticity = null;
+    let enrichedMeta = null;
+    if (inputMeta) {
+      authenticity = checkAuthenticity(inputMeta as InputMetadata);
+      enrichedMeta = { ...inputMeta, authenticity };
+
+      // suspect verdict → 경고는 하되 차단은 안 함 (데이터 수집 단계)
+      // 나중에 verdict === 'suspect' 일 때 차단 가능
+      if (authenticity.verdict === 'suspect') {
+        console.warn(
+          `[authenticity] SUSPECT: user=${userId} scenario=${sid} turn=${lastTurn.turn_idx}`,
+          `score=${authenticity.score}`,
+          authenticity.flags.map((f) => f.type).join(', ')
+        );
+      }
+    }
+
+    // 마지막 turn 갱신 (user_msg + input_meta)
+    await appendTurn(userId, sid, lastTurn.turn_idx, lastTurn.agent_msg, userMessage, enrichedMeta);
 
     // 5턴 마쳤으면 종료
     if (lastTurn.turn_idx >= TURN_LIMIT) {
@@ -59,15 +74,14 @@ export async function POST(req: Request) {
         turn_idx: lastTurn.turn_idx,
         agent_msg: null,
         finished: true,
+        authenticity: authenticity ? { score: authenticity.score, verdict: authenticity.verdict } : null,
       });
     }
 
-    // 다음 agent turn 생성 (대화 히스토리 구성)
+    // 다음 agent turn 생성
     const history: ChatMessage[] = [{ role: 'user', content: '시작하라.' }];
     for (const t of existing) {
-      // assistant: agent 발화
       history.push({ role: 'assistant', content: t.agent_msg });
-      // user: 사용자 응답 (마지막 turn은 방금 갱신한 userMessage)
       const u = t.turn_idx === lastTurn.turn_idx ? userMessage : t.user_msg;
       if (u) history.push({ role: 'user', content: u });
     }
@@ -80,6 +94,7 @@ export async function POST(req: Request) {
       turn_idx: nextTurnIdx,
       agent_msg: nextAgentMsg,
       finished: false,
+      authenticity: authenticity ? { score: authenticity.score, verdict: authenticity.verdict } : null,
     });
   } catch (e: any) {
     console.error('[scenario/turn] error', e);

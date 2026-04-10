@@ -87,6 +87,11 @@ async function runSchemaBootstrap() {
     CREATE INDEX IF NOT EXISTS idx_referral_events_inviter
     ON referral_events(inviter_id);
   `);
+
+  // input_metadata 컬럼 — 타이핑 행동 + AI 탐지
+  await safeRun('scenario_runs.input_meta column', () =>
+    sql`ALTER TABLE scenario_runs ADD COLUMN IF NOT EXISTS input_meta JSONB;`
+  );
   await sql`
     CREATE TABLE IF NOT EXISTS scenario_runs (
       user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -288,14 +293,16 @@ export async function appendTurn(
   scenarioId: ScenarioId,
   turnIdx: number,
   agentMsg: string,
-  userMsg: string | null
+  userMsg: string | null,
+  inputMeta?: object | null
 ) {
   await ensureSchema();
   await sql`
-    INSERT INTO scenario_runs (user_id, scenario_id, turn_idx, agent_msg, user_msg)
-    VALUES (${userId}, ${scenarioId}, ${turnIdx}, ${agentMsg}, ${userMsg})
+    INSERT INTO scenario_runs (user_id, scenario_id, turn_idx, agent_msg, user_msg, input_meta)
+    VALUES (${userId}, ${scenarioId}, ${turnIdx}, ${agentMsg}, ${userMsg}, ${inputMeta ? JSON.stringify(inputMeta) : null})
     ON CONFLICT (user_id, scenario_id, turn_idx)
-    DO UPDATE SET agent_msg = EXCLUDED.agent_msg, user_msg = EXCLUDED.user_msg;
+    DO UPDATE SET agent_msg = EXCLUDED.agent_msg, user_msg = EXCLUDED.user_msg,
+                  input_meta = COALESCE(EXCLUDED.input_meta, scenario_runs.input_meta);
   `;
 }
 
