@@ -3,7 +3,6 @@
 import { Suspense, useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import LoadingState from './components/loading-state';
-import MatrixRain from './components/matrix-rain';
 import { LOGIN_PHASES } from '@/lib/loading-messages';
 
 function LandingInner() {
@@ -48,7 +47,7 @@ function LandingInner() {
 
   return (
     <div className="min-h-screen relative">
-      <MatrixRain />
+      {/* 배경 제거 — 가독성 우선 */}
 
       {/* ══════ HERO ══════ */}
       <section className="min-h-screen flex flex-col items-center justify-center px-6 text-center relative z-10">
