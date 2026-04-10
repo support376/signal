@@ -5,22 +5,21 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Cyber / Matrix-inspired palette
+        // 톤온톤 — 시안-틸 단일 가족
         bg: '#000000',
-        'bg-elevated': '#050808',
-        card: '#0a0f0f',
-        'card-hover': '#0f1a1a',
-        line: '#0f2020',
-        fg: '#d0e8e8',
-        dim: '#4a6a6a',
-        // Neon accents
-        accent: '#00d4ff',      // cyan
-        accent2: '#a855f7',     // electric purple
-        accent3: '#00ff88',     // neon green (matrix)
-        warn: '#ff8800',
-        // Subtle variations
-        'accent-dim': '#006680',
-        'accent3-dim': '#00803a',
+        'bg-elevated': '#040a0a',
+        card: '#081010',
+        'card-hover': '#0c1818',
+        line: '#0e1e1e',
+        fg: '#d4eded',
+        dim: '#4a7070',
+        // 메인 accent: 시안 (모든 강조)
+        accent: '#00c8d4',
+        // 밝은 변형 (CTA, 하이라이트)
+        accent2: '#00e0d0',
+        // 어두운 변형 (서브, 배경 글로우)
+        accent3: '#008a90',
+        warn: '#d4a040',
       },
       borderRadius: {
         '4xl': '2rem',

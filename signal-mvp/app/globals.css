@@ -110,28 +110,28 @@ p { line-height: 1.85; }
   border: 1px solid rgba(0, 255, 136, 0.06);
 }
 
-/* ── Neon Glow ── */
+/* ── Neon Glow (톤온톤 — 시안-틸 단일 가족) ── */
 .glow-cyan {
-  box-shadow: 0 0 30px rgba(0, 212, 255, 0.12), inset 0 0 30px rgba(0, 212, 255, 0.03);
+  box-shadow: 0 0 30px rgba(0, 200, 212, 0.12), inset 0 0 30px rgba(0, 200, 212, 0.03);
 }
 
 .glow-green {
-  box-shadow: 0 0 30px rgba(0, 255, 136, 0.12), inset 0 0 30px rgba(0, 255, 136, 0.03);
+  box-shadow: 0 0 30px rgba(0, 200, 212, 0.10), inset 0 0 30px rgba(0, 200, 212, 0.02);
 }
 
 .glow-purple {
-  box-shadow: 0 0 30px rgba(168, 85, 247, 0.12), inset 0 0 30px rgba(168, 85, 247, 0.03);
+  box-shadow: 0 0 30px rgba(0, 180, 190, 0.10), inset 0 0 30px rgba(0, 180, 190, 0.02);
 }
 
-/* ── Neon Text ── */
+/* ── Neon Text (톤온톤) ── */
 .text-neon-cyan {
-  color: #00d4ff;
-  text-shadow: 0 0 10px rgba(0, 212, 255, 0.5), 0 0 40px rgba(0, 212, 255, 0.2);
+  color: #00c8d4;
+  text-shadow: 0 0 10px rgba(0, 200, 212, 0.5), 0 0 40px rgba(0, 200, 212, 0.2);
 }
 
 .text-neon-green {
-  color: #00ff88;
-  text-shadow: 0 0 10px rgba(0, 255, 136, 0.5), 0 0 40px rgba(0, 255, 136, 0.2);
+  color: #00e0d0;
+  text-shadow: 0 0 10px rgba(0, 224, 208, 0.4), 0 0 40px rgba(0, 224, 208, 0.15);
 }
 
 /* ── Scan Line (on hover) ── */

@@ -76,7 +76,7 @@ export default function MatrixRain() {
       ctx!.fillRect(0, 0, w, h);
 
       ctx!.font = fontSize + 'px ui-monospace, "JetBrains Mono", Menlo, monospace';
-      ctx!.fillStyle = '#00ff88';
+      ctx!.fillStyle = '#00c8d4';  // 시안-틸 (UI accent와 톤온톤)
 
       for (let i = 0; i < drops.length; i++) {
         const ch = chars[Math.floor(Math.random() * chars.length)];

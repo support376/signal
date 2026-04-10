@@ -63,7 +63,7 @@ function LandingInner() {
             <p className="text-base md:text-lg text-dim tracking-wide">
               사주는 운명을 본다.
             </p>
-            <p className="text-base md:text-lg text-neon-green font-medium tracking-wide">
+            <p className="text-base md:text-lg text-neon-cyan font-medium tracking-wide opacity-80">
               Signalogy는 너의 signal을 본다.
             </p>
           </div>
