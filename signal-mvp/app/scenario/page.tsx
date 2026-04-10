@@ -1,28 +1,46 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { getCompletedScenarios, getTurns } from '@/lib/db';
+import { getCompletedScenarios, getIntegratedVector } from '@/lib/db';
+import { computeCompleteness } from '@/lib/integrator';
 import { SCENARIO_ORDER, SCENARIO_LABELS, SCENARIO_CONTEXTS } from '@/lib/scenario-meta';
-import type { ScenarioId } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
-export default async function ScenarioListPage() {
+export default async function SignalPage() {
   const userId = cookies().get('signal_user_id')?.value;
   if (!userId) redirect('/');
 
-  const completed = await getCompletedScenarios(userId);
+  const [completed, vector] = await Promise.all([
+    getCompletedScenarios(userId),
+    getIntegratedVector(userId),
+  ]);
   const completedSet = new Set(completed);
+  const completeness = computeCompleteness(vector);
   const nextSid = SCENARIO_ORDER.find((sid) => !completedSet.has(sid));
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-8 pb-20">
-      <h1 className="text-2xl font-bold mb-2">시나리오</h1>
-      <p className="text-sm text-white/40 mb-8">
-        {completed.length}/5 완료
-        {completed.length < 5 && nextSid && ' — 아래에서 이어서 하기'}
-      </p>
+    <div className="max-w-lg mx-auto px-5 py-8 pb-20">
+      <h1 className="text-lg font-bold mb-6">Signal</h1>
 
+      {/* 완성도 (맨 위) */}
+      <section className="p-5 border border-white/10 rounded-xl mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs text-white/30 font-mono">signal 읽기</p>
+          <p className="text-xl font-bold">{completeness.percent}%</p>
+        </div>
+        <div className="flex gap-1.5 mb-2">
+          {SCENARIO_ORDER.map((_, i) => (
+            <div key={i} className={`flex-1 h-2 rounded-full ${i < completed.length ? 'bg-white/50' : 'bg-white/8'}`} />
+          ))}
+        </div>
+        <div className="flex justify-between text-[10px] text-white/20 font-mono">
+          <span>{completed.length}/5 시나리오</span>
+          <span>측정 축 {completeness.measured_axes}/15</span>
+        </div>
+      </section>
+
+      {/* 시나리오 목록 */}
       <div className="space-y-3">
         {SCENARIO_ORDER.map((sid, idx) => {
           const isDone = completedSet.has(sid);
@@ -30,58 +48,41 @@ export default async function ScenarioListPage() {
           const ctx = SCENARIO_CONTEXTS[sid];
 
           return (
-            <div
-              key={sid}
+            <div key={sid}
               className={`rounded-xl border transition-all ${
-                isNext ? 'border-white/30 bg-white/5' : isDone ? 'border-white/10 bg-white/[0.02]' : 'border-white/5 opacity-40'
-              }`}
-            >
-              <div className="p-5">
+                isNext ? 'border-white/20 bg-white/[0.03]' : isDone ? 'border-white/8' : 'border-white/5 opacity-30'
+              }`}>
+              <div className="p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
-                    <span className={`text-xs font-mono ${isDone ? 'text-white/60' : isNext ? 'text-white' : 'text-white/30'}`}>
+                    <span className={`text-xs font-mono ${isDone ? 'text-white/50' : isNext ? 'text-white' : 'text-white/20'}`}>
                       {isDone ? '✓' : isNext ? '▸' : '○'} {String(idx + 1).padStart(2, '0')}
                     </span>
-                    <h3 className={`font-semibold ${isDone || isNext ? 'text-white' : 'text-white/40'}`}>
-                      {SCENARIO_LABELS[sid].replace(/시나리오 \d — /, '')}
-                    </h3>
+                    <p className={`font-medium text-sm ${isDone || isNext ? 'text-white/80' : 'text-white/30'}`}>
+                      {ctx.domainHint}
+                    </p>
                   </div>
-                  {isDone && (
-                    <span className="text-[10px] text-white/30 font-mono">완료</span>
-                  )}
+                  <span className="text-[10px] text-white/15 font-mono">{ctx.estimatedMinutes}</span>
                 </div>
 
-                <p className="text-xs text-white/30 mb-3">
-                  {ctx.estimatedMinutes} · {ctx.domainHint}
-                </p>
-
-                <div className="flex gap-2">
+                <div className="flex gap-2 mt-3">
                   {isDone && (
                     <>
-                      <Link
-                        href={`/scenario/${sid}/vector`}
-                        className="flex-1 py-2 text-center text-xs border border-white/10 rounded-lg text-white/50 hover:text-white hover:border-white/20 transition"
-                      >
-                        대화 + 벡터 보기
+                      <Link href={`/scenario/${sid}/vector`}
+                        className="flex-1 py-2 text-center text-[10px] border border-white/8 rounded-lg text-white/40 hover:text-white/60 transition">
+                        대화 + 벡터
                       </Link>
-                      <Link
-                        href={`/scenario/${sid}?redo=1`}
-                        className="flex-1 py-2 text-center text-xs border border-white/10 rounded-lg text-white/50 hover:text-white hover:border-white/20 transition"
-                      >
+                      <Link href={`/scenario/${sid}?redo=1`}
+                        className="flex-1 py-2 text-center text-[10px] border border-white/8 rounded-lg text-white/40 hover:text-white/60 transition">
                         다시 하기
                       </Link>
                     </>
                   )}
                   {isNext && (
-                    <Link
-                      href={`/scenario/${sid}`}
-                      className="flex-1 py-2 text-center text-xs border border-white/20 rounded-lg text-white font-medium hover:bg-white/5 transition"
-                    >
-                      시작하기 →
+                    <Link href={`/scenario/${sid}`}
+                      className="flex-1 py-2 text-center text-xs border border-white/15 rounded-lg text-white/70 hover:bg-white/5 transition">
+                      시작 →
                     </Link>
-                  )}
-                  {!isDone && !isNext && (
-                    <span className="text-[10px] text-white/20 font-mono">이전 시나리오를 먼저 완료해야 해</span>
                   )}
                 </div>
               </div>

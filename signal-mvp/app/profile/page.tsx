@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { getUser, getCredits, countMyReferrals, getCompletedScenarios, getSelfReport, listMyChemistries } from '@/lib/db';
+import { getUser, getCredits, countMyReferrals, getCompletedScenarios, getSelfReport } from '@/lib/db';
 import { computeCompleteness } from '@/lib/integrator';
 import { getIntegratedVector } from '@/lib/db';
 import { SCENARIO_ORDER, SCENARIO_LABELS } from '@/lib/scenario-meta';
@@ -15,12 +15,11 @@ export default async function MorePage() {
   const user = await getUser(userId);
   if (!user) redirect('/');
 
-  const [credits, referredCount, completed, vector, chemistries] = await Promise.all([
+  const [credits, referredCount, completed, vector] = await Promise.all([
     getCredits(userId),
     countMyReferrals(userId),
     getCompletedScenarios(userId),
     getIntegratedVector(userId),
-    listMyChemistries(userId),
   ]);
   const completeness = computeCompleteness(vector);
 
@@ -59,37 +58,15 @@ export default async function MorePage() {
         </div>
       </section>
 
-      {/* Signal 진행 */}
-      <section className="p-4 border border-white/8 rounded-xl mb-4">
-        <p className="text-[10px] text-white/20 font-mono mb-2">Signal</p>
-        <div className="flex gap-1 mb-2">
-          {SCENARIO_ORDER.map((_, i) => (
-            <div key={i} className={`flex-1 h-1 rounded-full ${i < completed.length ? 'bg-white/50' : 'bg-white/8'}`} />
-          ))}
-        </div>
-        <p className="text-xs text-white/30">{completeness.percent}% 완성</p>
-        <Link href="/scenario" className="text-[10px] text-white/20 hover:text-white/40 mt-2 block">
-          시나리오 기록 →
-        </Link>
-      </section>
+      {/* Signal → Signal 탭으로 이동 */}
+      <Link href="/scenario" className="block p-4 border border-white/8 rounded-xl mb-4 text-xs text-white/30 hover:text-white/50 transition">
+        Signal 기록 보기 ({completeness.percent}%) →
+      </Link>
 
-      {/* Chemistry 이력 */}
-      {chemistries.length > 0 && (
-        <section className="p-4 border border-white/8 rounded-xl mb-4">
-          <p className="text-[10px] text-white/20 font-mono mb-2">Chemistry 이력 ({chemistries.length}건)</p>
-          {chemistries.slice(0, 3).map((c) => {
-            const otherId = c.user_a_id !== userId ? c.user_a_id : c.user_b_id;
-            return (
-              <Link key={`${c.user_a_id}-${c.user_b_id}-${c.lens}`}
-                href={`/chemistry/${otherId}/${c.lens}`}
-                className="flex items-center justify-between py-1.5 text-xs hover:text-white/60 transition">
-                <span className="text-white/30 font-mono">@{otherId} · {c.lens}</span>
-                <span className="font-bold">{c.score}%</span>
-              </Link>
-            );
-          })}
-        </section>
-      )}
+      {/* Chemistry → Chemistry 탭으로 이동 */}
+      <Link href="/chemistry" className="block p-4 border border-white/8 rounded-xl mb-4 text-xs text-white/30 hover:text-white/50 transition">
+        Chemistry 이력 보기 →
+      </Link>
 
       {/* 크리에이터 대시보드 (목업) */}
       {(user.link_type === 'creator') && (

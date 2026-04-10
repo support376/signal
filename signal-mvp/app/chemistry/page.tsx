@@ -7,6 +7,11 @@ import ShareModal from '@/app/components/share-modal';
 import { trackedFetch } from '@/app/components/api-debug';
 import { LENSES, type Lens } from '@/lib/types';
 
+interface ChemHistory {
+  user_a_id: string; user_b_id: string; user_a_name: string; user_b_name: string;
+  lens: string; score: number; created_at: string;
+}
+
 interface ScoredUser {
   id: string;
   name: string;
@@ -33,9 +38,8 @@ export default function ChemistryPage() {
   const [loading, setLoading] = useState(true);
   const [myProgress, setMyProgress] = useState(0);
   const [shareOpen, setShareOpen] = useState(false);
+  const [history, setHistory] = useState<ChemHistory[]>([]);
 
-  // 렌즈는 사람 선택 후 → 별도 페이지에서 선택
-  // 여기선 기본 romantic으로 점수 계산
   const scoreLens: Lens = 'romantic';
 
   useEffect(() => {
@@ -43,6 +47,7 @@ export default function ChemistryPage() {
     if (!id) { router.push('/'); return; }
     void loadMe(id);
     void loadScores(id);
+    void loadHistory(id);
   }, []);
 
   async function loadMe(id: string) {
@@ -52,6 +57,13 @@ export default function ChemistryPage() {
     } catch {
       setMe({ id, name: id, slug: id });
     }
+  }
+
+  async function loadHistory(myId: string) {
+    try {
+      const { data } = await trackedFetch('/api/history', { body: JSON.stringify({ userId: myId }) });
+      setHistory(data.chemistries || []);
+    } catch {}
   }
 
   async function loadScores(myId: string) {
@@ -87,7 +99,28 @@ export default function ChemistryPage() {
         </div>
       )}
 
-      {/* 검색 (맨 위) */}
+      {/* 케미 이력 */}
+      {history.length > 0 && (
+        <div className="mb-6">
+          <p className="text-[10px] text-white/25 font-mono mb-2">최근 분석</p>
+          <div className="space-y-1">
+            {history.slice(0, 5).map((c) => {
+              const otherId = c.user_a_id !== me?.id ? c.user_a_id : c.user_b_id;
+              const otherName = c.user_a_id !== me?.id ? c.user_a_name : c.user_b_name;
+              return (
+                <Link key={`${c.user_a_id}-${c.user_b_id}-${c.lens}`}
+                  href={`/chemistry/${otherId}/${c.lens}`}
+                  className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-white/[0.03] transition">
+                  <span className="text-xs text-white/50 font-mono">@{otherId} · {c.lens}</span>
+                  <span className="text-sm font-bold">{c.score}%</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 검색 */}
       <div className="mb-6">
         <input
           type="text"
