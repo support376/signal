@@ -50,7 +50,7 @@ function LandingInner() {
   return (
     <div className="min-h-screen relative">
       {/* ── Midjourney-style 스크롤링 그리드 배경 ── */}
-      <ScrollingGridBg opacity={0.15} />
+      <ScrollingGridBg />
 
       {/* ── Matrix Rain 오버레이 (그리드 위에 코드가 흐름) ── */}
       <MatrixRain opacity={0.03} />
