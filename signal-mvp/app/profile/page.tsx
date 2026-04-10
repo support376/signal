@@ -1,8 +1,9 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { getUser, getCredits, countMyReferrals } from '@/lib/db';
+import { getUser, getCredits, countMyReferrals, getIntegratedVector } from '@/lib/db';
 import MyLinkCard from '@/app/components/my-link-card';
+import FingerprintToggle from '@/app/components/fingerprint-toggle';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,9 +13,10 @@ export default async function MorePage() {
   const user = await getUser(userId);
   if (!user) redirect('/');
 
-  const [credits, referredCount] = await Promise.all([
+  const [credits, referredCount, vector] = await Promise.all([
     getCredits(userId),
     countMyReferrals(userId),
+    getIntegratedVector(userId),
   ]);
 
   const userSlug = user.slug || user.id;
@@ -130,6 +132,15 @@ export default async function MorePage() {
             </a>
           </>
         )}
+      </section>
+
+      {/* 인격지문 */}
+      <section className="p-4 border border-line rounded-xl mb-3">
+        <FingerprintToggle
+          userId={userId}
+          initialEnabled={!!user.fingerprint_enabled}
+          hasVector={!!vector}
+        />
       </section>
 
       <div className="space-y-2 mt-6">

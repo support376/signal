@@ -13,7 +13,7 @@ async function schemaFastCheck(): Promise<boolean> {
     // 가장 최근에 추가된 컬럼을 체크 — 이게 있으면 모든 ALTER 완료된 상태
     const r = await sql`
       SELECT 1 FROM information_schema.columns
-      WHERE table_name = 'users' AND column_name = 'sns_links'
+      WHERE table_name = 'users' AND column_name = 'fingerprint_enabled'
       LIMIT 1;
     `;
     return r.rows.length > 0;
@@ -118,6 +118,9 @@ async function runSchemaBootstrap() {
   );
   await safeRun('users.link_price column', () =>
     sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS link_price DECIMAL(10,2) DEFAULT 1.00;`
+  );
+  await safeRun('users.fingerprint_enabled column', () =>
+    sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS fingerprint_enabled BOOLEAN DEFAULT FALSE;`
   );
   await sql`
     CREATE TABLE IF NOT EXISTS scenario_runs (
@@ -330,10 +333,15 @@ export async function listUsersWithProgress(excludeId?: string) {
 
 export async function getUser(id: string) {
   await ensureSchema();
-  const r = await sql`SELECT id, name, slug, bio, referred_by, free_credits, gender, instagram, sns_links, link_type, link_price FROM users WHERE id = ${id};`;
+  const r = await sql`SELECT id, name, slug, bio, referred_by, free_credits, gender, instagram, sns_links, link_type, link_price, fingerprint_enabled FROM users WHERE id = ${id};`;
   return r.rows[0] as
-    | { id: string; name: string; slug: string | null; bio: string | null; referred_by: string | null; free_credits: number | null; gender: string | null; instagram: string | null; sns_links: Record<string, { handle: string; verified: boolean }> | null; link_type: string | null; link_price: number | null }
+    | { id: string; name: string; slug: string | null; bio: string | null; referred_by: string | null; free_credits: number | null; gender: string | null; instagram: string | null; sns_links: Record<string, { handle: string; verified: boolean }> | null; link_type: string | null; link_price: number | null; fingerprint_enabled: boolean | null }
     | undefined;
+}
+
+export async function setFingerprintEnabled(userId: string, enabled: boolean) {
+  await ensureSchema();
+  await sql`UPDATE users SET fingerprint_enabled = ${enabled} WHERE id = ${userId};`;
 }
 
 // ──────────────────────────────────────────

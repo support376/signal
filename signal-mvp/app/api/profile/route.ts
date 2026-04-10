@@ -5,7 +5,7 @@ import { ensureSchema } from '@/lib/db';
 export async function POST(req: Request) {
   try {
     await ensureSchema();
-    const { userId, bio, instagram, sns_links, link_type, link_price } = await req.json();
+    const { userId, bio, instagram, sns_links, link_type, link_price, fingerprint_enabled } = await req.json();
     if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 });
 
     if (bio !== undefined) {
@@ -24,6 +24,9 @@ export async function POST(req: Request) {
     }
     if (link_price !== undefined) {
       await sql`UPDATE users SET link_price = ${Math.max(1, Number(link_price) || 1)} WHERE id = ${userId};`;
+    }
+    if (fingerprint_enabled !== undefined) {
+      await sql`UPDATE users SET fingerprint_enabled = ${!!fingerprint_enabled} WHERE id = ${userId};`;
     }
 
     return NextResponse.json({ ok: true });
