@@ -233,6 +233,26 @@ export async function recentUsers(excludeId: string, limit: number = 5) {
   return r.rows as { id: string; name: string; slug: string | null; gender: string | null; created_at: string }[];
 }
 
+/** SNS 연결된 사용자 + 벡터 (Home에서 케미 계산용) */
+export async function snsConnectedUsersWithVectors(excludeId: string, limit: number = 10) {
+  await ensureSchema();
+  const r = await sql`
+    SELECT u.id, u.name, u.slug, u.instagram, u.sns_links, u.gender, iv.vector
+    FROM users u
+    LEFT JOIN integrated_vectors iv ON iv.user_id = u.id
+    WHERE u.id != ${excludeId}
+      AND (u.instagram IS NOT NULL OR u.sns_links != '{}')
+      AND iv.vector IS NOT NULL
+    ORDER BY u.created_at DESC
+    LIMIT ${limit};
+  `;
+  return r.rows as {
+    id: string; name: string; slug: string | null;
+    instagram: string | null; sns_links: any; gender: string | null;
+    vector: IntegratedVector | null;
+  }[];
+}
+
 export async function getUserBySlug(slug: string) {
   await ensureSchema();
   const r = await sql`

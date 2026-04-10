@@ -3,8 +3,9 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import {
   getCompletedScenarios, getUser, getIntegratedVector,
-  getSelfReport, listMyChemistries,
+  getSelfReport, listMyChemistries, snsConnectedUsersWithVectors,
 } from '@/lib/db';
+import { computeChemistry } from '@/lib/chemistry-math';
 import { computeCompleteness } from '@/lib/integrator';
 import { SCENARIO_ORDER, SCENARIO_CONTEXTS } from '@/lib/scenario-meta';
 import { parseTags } from '@/lib/parse-tags';
@@ -123,7 +124,26 @@ export default async function HomePage() {
     );
   }
 
-  // ── STATE: 케미 결과 있음 → signal 요약 + 공유 유도 ──
+  // SNS 연결된 사용자 + 케미 점수
+  let snsMatches: { id: string; slug: string; score: number; instagram: string | null; snsLinks: any }[] = [];
+  if (vector) {
+    try {
+      const snsUsers = await snsConnectedUsersWithVectors(userId, 10);
+      snsMatches = snsUsers
+        .filter((u) => u.vector)
+        .map((u) => ({
+          id: u.id,
+          slug: u.slug || u.id,
+          score: computeChemistry(vector, u.vector!, 'romantic').display,
+          instagram: u.instagram,
+          snsLinks: u.sns_links || {},
+        }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 8);
+    } catch {}
+  }
+
+  // ── STATE: 케미 결과 있음 → signal 요약 + SNS 사용자 ──
   return (
     <div className="max-w-md mx-auto px-5 py-12 pb-20">
       <p className="text-[10px] text-white/15 font-mono mb-8">@{user.slug || user.id}</p>
@@ -163,21 +183,50 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* 다른 사람과도 */}
-      <section className="text-center">
-        <p className="text-xs text-white/25 mb-3">다른 사람과도 비교하고 싶어?</p>
-        <Link href="/chemistry"
-          className="inline-block px-6 py-2 border border-white/10 text-white/50 text-xs rounded-lg hover:bg-white/5 transition">
-          Chemistry →
-        </Link>
-      </section>
+      {/* SNS 연결된 사람들 — 케미 % + SNS 바로가기 */}
+      {snsMatches.length > 0 && (
+        <section className="mb-10">
+          <p className="text-[10px] text-white/15 font-mono mb-4">SNS 연결된 사람들</p>
+          <div className="space-y-2">
+            {snsMatches.map((m) => {
+              // 첫 번째 SNS 링크 찾기
+              const snsLink = m.instagram
+                ? { url: `https://instagram.com/${m.instagram}`, label: `IG` }
+                : m.snsLinks?.threads?.handle
+                ? { url: `https://threads.net/@${m.snsLinks.threads.handle}`, label: 'TH' }
+                : m.snsLinks?.twitter?.handle
+                ? { url: `https://x.com/${m.snsLinks.twitter.handle}`, label: 'X' }
+                : null;
 
-      {/* 공유 */}
-      <section className="mt-12 text-center">
-        <p className="text-[10px] text-white/15 mb-2">이 결과 공유하면 친구들도 궁금해할걸.</p>
+              return (
+                <div key={m.id} className="flex items-center justify-between py-3 border-b border-white/5">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Link href={`/chemistry/${m.id}`} className="text-sm text-white/60 font-mono hover:text-white/80 transition truncate">
+                      @{m.slug}
+                    </Link>
+                    {snsLink && (
+                      <a href={snsLink.url} target="_blank" rel="noopener noreferrer"
+                        className="text-[10px] text-white/20 border border-white/8 rounded px-1.5 py-0.5 hover:text-white/40 hover:border-white/15 transition flex-shrink-0">
+                        {snsLink.label} ↗
+                      </a>
+                    )}
+                  </div>
+                  <Link href={`/chemistry/${m.id}`} className="text-lg font-bold text-white/70 hover:text-white transition ml-3">
+                    {m.score}%
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-[10px] text-white/10 mt-3">% 탭 → 케미 상세. SNS ↗ → 실제 계정 확인.</p>
+        </section>
+      )}
+
+      {/* 더 보기 */}
+      <section className="text-center">
         <Link href="/chemistry"
-          className="text-[10px] text-white/20 hover:text-white/40 transition">
-          공유하기
+          className="inline-block px-6 py-2 border border-white/10 text-white/40 text-xs rounded-lg hover:bg-white/5 transition">
+          더 많은 사람 보기 →
         </Link>
       </section>
     </div>
