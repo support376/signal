@@ -13,7 +13,7 @@ async function schemaFastCheck(): Promise<boolean> {
     // 가장 최근에 추가된 컬럼을 체크 — 이게 있으면 모든 ALTER 완료된 상태
     const r = await sql`
       SELECT 1 FROM information_schema.columns
-      WHERE table_name = 'users' AND column_name = 'instagram'
+      WHERE table_name = 'users' AND column_name = 'sns_links'
       LIMIT 1;
     `;
     return r.rows.length > 0;
