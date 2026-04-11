@@ -265,7 +265,7 @@ function DailyScenarioInner() {
 
       {finished && (
         <div className="bg-card border border-accent3 rounded-2xl p-6 text-center">
-          <p className="text-accent3 font-semibold mb-2">✓ 오늘의 시나리오 완료</p>
+          <p className="text-accent3 font-semibold mb-2">✓ Signaling이 완료되었습니다</p>
           <p className="text-sm text-dim mb-4">내일 새로운 시나리오가 생성됩니다.</p>
           <button onClick={() => router.push('/dashboard')}
             className="px-6 py-3 border border-line rounded-lg text-sm text-dim hover:text-fg">

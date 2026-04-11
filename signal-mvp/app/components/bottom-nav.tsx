@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
 const TABS = [
-  { href: '/dashboard', label: 'Home', icon: '⌂' },
+  { href: '/dashboard', label: 'Signal', icon: '⌂' },
   { href: '/chemistry', label: 'Chemistry', icon: '◎' },
   { href: '/me', label: 'Me', icon: '◉' },
   { href: '/profile', label: 'More', icon: '≡' },

@@ -9,6 +9,7 @@ import { computeCompleteness } from '@/lib/integrator';
 import { SCENARIO_ORDER, SCENARIO_CONTEXTS } from '@/lib/scenario-meta';
 import { AXES, AXIS_LABELS_KO, type Axis, type ScenarioPayload } from '@/lib/types';
 import DailyScenarioCard from '@/app/components/daily-scenario-card';
+import TrustDetail from '@/app/components/trust-detail';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,7 +32,6 @@ export default async function HomePage() {
   const done = completed.length;
   const totalDays = done + dailyHistory.length;
 
-  // payload를 시나리오별로 매핑
   const payloadMap = new Map<string, ScenarioPayload>();
   for (const p of payloads) payloadMap.set(p.scenario_id, p);
 
@@ -50,29 +50,31 @@ export default async function HomePage() {
   const avgConfidence = vector?.summary?.average_confidence ?? 0;
   const trustPct = Math.round(avgConfidence * 100);
 
+  // 시나리오별 기여도 계산 (trust detail용)
+  const scenarioContributions = SCENARIO_ORDER.map((sid, idx) => {
+    const payload = payloadMap.get(sid);
+    if (!payload) return { day: idx + 1, sid, label: SCENARIO_CONTEXTS[sid].domainHint, done: false, axisCount: 0, avgConf: 0 };
+    const axes = Object.values(payload.axes_measured).filter((m: any) => m && m.confidence > 0);
+    const avg = axes.length > 0 ? axes.reduce((s: number, m: any) => s + m.confidence, 0) / axes.length : 0;
+    return { day: idx + 1, sid, label: SCENARIO_CONTEXTS[sid].domainHint, done: true, axisCount: axes.length, avgConf: Math.round(avg * 100) };
+  });
+
   return (
     <div className="max-w-md mx-auto px-5 py-8 pb-20">
       <p className="text-lg font-bold mb-6 text-fg">Signalogy</p>
 
       {/* ━━━ 신뢰도 상태 ━━━ */}
-      <section className="p-5 border border-line rounded-xl mb-4">
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-xs text-dim">나의 signal 신뢰도</p>
-          <p className="text-sm font-mono text-fg">{trustPct}%</p>
-        </div>
-        <div className="h-1 bg-line rounded-full mb-2">
-          <div className="h-full bg-fg rounded-full transition-all" style={{ width: `${trustPct}%` }} />
-        </div>
-        <div className="flex justify-between text-[10px] text-faint">
-          <span>{completeness.measured_axes}/15 축 측정</span>
-          <span>{totalDays}일째</span>
-        </div>
-      </section>
+      <TrustDetail
+        trustPct={trustPct}
+        measuredAxes={completeness.measured_axes}
+        totalDays={totalDays}
+        scenarioContributions={scenarioContributions}
+      />
 
-      {/* ━━━ 오늘의 신호 ━━━ */}
+      {/* ━━━ 데일리 시나리오 ━━━ */}
       {done >= 5 && <DailyScenarioCard userId={userId} />}
 
-      {/* ━━━ 시나리오 타임라인 (Day 1~5 + 데일리) ━━━ */}
+      {/* ━━━ 시나리오 타임라인 ━━━ */}
       <section className="mb-6">
         <p className="text-xs text-dim mb-3">측정 기록</p>
         <div className="space-y-2">
@@ -82,7 +84,6 @@ export default async function HomePage() {
             const ctx = SCENARIO_CONTEXTS[sid];
             const payload = payloadMap.get(sid);
 
-            // 이 시나리오에서 측정된 축들
             const measuredAxes = payload
               ? Object.entries(payload.axes_measured)
                   .filter(([, m]) => m && m.confidence > 0)
@@ -97,7 +98,6 @@ export default async function HomePage() {
             return (
               <div key={sid} className={`border rounded-xl ${isNext ? 'border-fg' : 'border-line'}`}>
                 <div className="p-3">
-                  {/* 헤더 */}
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-mono text-faint">Day {idx + 1}</span>
@@ -108,7 +108,6 @@ export default async function HomePage() {
                     {isDone && <span className="text-[10px] text-faint">done</span>}
                   </div>
 
-                  {/* 완료된 시나리오: 측정된 축 요약 */}
                   {isDone && measuredAxes.length > 0 && (
                     <div className="mt-2 space-y-1">
                       {measuredAxes.map((a) => (
@@ -120,17 +119,13 @@ export default async function HomePage() {
                     </div>
                   )}
 
-                  {/* 완료된 시나리오: 버튼 */}
                   {isDone && (
                     <div className="flex gap-2 mt-2">
-                      <Link href={`/scenario/${sid}/vector`}
-                        className="text-[10px] text-faint hover:text-dim">상세</Link>
-                      <Link href={`/scenario/${sid}?redo=1`}
-                        className="text-[10px] text-faint hover:text-dim">재측정</Link>
+                      <Link href={`/scenario/${sid}/vector`} className="text-[10px] text-faint hover:text-dim">상세</Link>
+                      <Link href={`/scenario/${sid}?redo=1`} className="text-[10px] text-faint hover:text-dim">재측정</Link>
                     </div>
                   )}
 
-                  {/* 다음 시나리오: CTA */}
                   {isNext && (
                     <Link href={`/scenario/${sid}`}
                       className="block text-center py-2 mt-2 border border-fg rounded-lg text-xs text-fg hover:bg-card transition">
@@ -144,7 +139,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ━━━ 현재 signal 상태 (15축) ━━━ */}
+      {/* ━━━ 현재 signal 상태 ━━━ */}
       {allAxes.length > 0 && (
         <section className="p-5 border border-line rounded-xl mb-4">
           <div className="flex items-center justify-between mb-3">
@@ -174,27 +169,21 @@ export default async function HomePage() {
           <p className="text-xs text-dim">시간 속의 나</p>
           <Link href="/me" className="text-[10px] text-faint hover:text-dim">자세히 →</Link>
         </div>
-
         {totalDays > 0 ? (
           <>
             <div className="flex items-end gap-1 h-12 mb-2">
-              {/* 고정 시나리오를 Day 1~5로 표시 */}
-              {SCENARIO_ORDER.map((sid, i) => (
+              {SCENARIO_ORDER.map((sid) => (
                 <div key={sid} className="flex-1 flex flex-col justify-end">
-                  <div
-                    className={`rounded-sm min-h-[2px] ${completedSet.has(sid) ? 'bg-fg' : 'bg-line'}`}
-                    style={{ height: completedSet.has(sid) ? '60%' : '3%' }}
-                  />
+                  <div className={`rounded-sm min-h-[2px] ${completedSet.has(sid) ? 'bg-fg' : 'bg-line'}`}
+                    style={{ height: completedSet.has(sid) ? '60%' : '3%' }} />
                 </div>
               ))}
-              {/* 데일리 히스토리 */}
               {dailyHistory.slice(0, 9).reverse().map((d, i) => (
                 <div key={`d-${i}`} className="flex-1 flex flex-col justify-end">
                   <div className="bg-fg rounded-sm min-h-[2px]"
                     style={{ height: `${Math.max(15, (d.authenticity_score || 0.5) * 100)}%` }} />
                 </div>
               ))}
-              {/* 빈 슬롯 */}
               {Array.from({ length: Math.max(0, 14 - done - dailyHistory.length) }).map((_, i) => (
                 <div key={`e-${i}`} className="flex-1 flex flex-col justify-end">
                   <div className="bg-line rounded-sm h-[2px]" />
@@ -206,11 +195,8 @@ export default async function HomePage() {
         ) : (
           <p className="text-xs text-faint text-center py-4">매일 신호를 보내면 여기에 변화가 그려집니다.</p>
         )}
-
         {user.measurement_start && (
-          <p className="text-[10px] text-faint mt-1">
-            시작: {new Date(user.measurement_start).toLocaleDateString('ko-KR')}
-          </p>
+          <p className="text-[10px] text-faint mt-1">시작: {new Date(user.measurement_start).toLocaleDateString('ko-KR')}</p>
         )}
       </section>
     </div>

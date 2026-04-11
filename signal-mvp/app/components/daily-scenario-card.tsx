@@ -88,7 +88,7 @@ export default function DailyScenarioCard({ userId }: { userId: string }) {
       {/* 상태별 CTA */}
       {finished ? (
         <div className="flex items-center justify-between">
-          <p className="text-xs text-dim">✓ 오늘 완료</p>
+          <p className="text-xs text-dim">✓ Signaling이 완료되었습니다</p>
           <p className="text-[10px] text-faint">내일 새 시나리오가 생성됩니다</p>
         </div>
       ) : started ? (
