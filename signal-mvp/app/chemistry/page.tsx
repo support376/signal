@@ -12,6 +12,8 @@ interface ScoredUser {
   completed_count: number;
   score: number | null;
   reliability: string | null;
+  instagram: string | null;
+  sns_handles: string[];
 }
 
 function readCookie(name: string): string | null {
@@ -27,6 +29,7 @@ export default function ChemistryPage() {
   const [loading, setLoading] = useState(true);
   const [shareOpen, setShareOpen] = useState(false);
   const [noVector, setNoVector] = useState(false);
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     const id = readCookie('signal_user_id');
@@ -56,15 +59,25 @@ export default function ChemistryPage() {
     }
   }
 
-  const withScore = users.filter((u) => u.score !== null);
-  const withoutScore = users.filter((u) => u.score === null);
+  // 검색 필터 — 이름, slug, SNS 핸들로 검색
+  const q = query.toLowerCase().replace(/^@/, '');
+  const filtered = q
+    ? users.filter((u) =>
+        u.name.toLowerCase().includes(q) ||
+        u.slug.toLowerCase().includes(q) ||
+        u.sns_handles.some((h) => h.toLowerCase().includes(q))
+      )
+    : users;
+
+  const withScore = filtered.filter((u) => u.score !== null);
+  const withoutScore = filtered.filter((u) => u.score === null);
 
   return (
     <div className="max-w-lg mx-auto px-5 py-8 pb-20">
       <p className="text-lg font-bold mb-6 text-fg">Signalogy</p>
 
       {/* 초대 */}
-      <section className="p-4 border border-line rounded-xl mb-6">
+      <section className="p-4 border border-line rounded-xl mb-4">
         <p className="text-sm text-fg mb-1">케미 보고 싶은 사람 초대하기</p>
         <p className="text-[10px] text-faint mb-3">상대도 시나리오를 완료하면 케미가 계산됩니다.</p>
         <button onClick={() => setShareOpen(true)}
@@ -72,6 +85,17 @@ export default function ChemistryPage() {
           초대 링크 보내기
         </button>
       </section>
+
+      {/* 검색 */}
+      {!loading && !noVector && (
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="이름, @핸들, SNS로 검색"
+          className="w-full px-4 py-3 bg-card border border-line rounded-xl text-sm text-fg placeholder:text-faint focus:outline-none focus:border-dim mb-4"
+        />
+      )}
 
       {/* 로딩 */}
       {loading && (
@@ -94,20 +118,21 @@ export default function ChemistryPage() {
         <>
           {withScore.length > 0 && (
             <section className="mb-6">
-              <p className="text-xs text-dim mb-3">매칭</p>
+              <p className="text-xs text-dim mb-3">매칭 {q && `· ${withScore.length}명`}</p>
               <div className="space-y-1">
                 {withScore.map((u) => (
                   <button key={u.id} onClick={() => router.push(`/chemistry/${u.id}`)}
                     className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-card text-left transition">
                     <div>
                       <p className="text-sm text-fg">{u.name}</p>
-                      <p className="text-[10px] text-faint">@{u.slug}</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-faint">@{u.slug}</span>
+                        {u.instagram && <span className="text-[10px] text-faint">· IG @{u.instagram}</span>}
+                      </div>
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-mono text-fg">{u.score}%</p>
-                      {u.reliability && (
-                        <p className="text-[9px] text-faint">{u.reliability}</p>
-                      )}
+                      {u.reliability && <p className="text-[9px] text-faint">{u.reliability}</p>}
                     </div>
                   </button>
                 ))}
@@ -117,14 +142,17 @@ export default function ChemistryPage() {
 
           {withoutScore.length > 0 && (
             <section>
-              <p className="text-xs text-dim mb-3">측정 대기</p>
+              <p className="text-xs text-dim mb-3">측정 대기 {q && `· ${withoutScore.length}명`}</p>
               <div className="space-y-1">
                 {withoutScore.map((u) => (
                   <div key={u.id}
                     className="flex items-center justify-between p-3 rounded-xl text-left opacity-40">
                     <div>
                       <p className="text-sm text-dim">{u.name}</p>
-                      <p className="text-[10px] text-faint">@{u.slug}</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-faint">@{u.slug}</span>
+                        {u.instagram && <span className="text-[10px] text-faint">· IG @{u.instagram}</span>}
+                      </div>
                     </div>
                     <p className="text-[10px] text-faint">시나리오 {u.completed_count}/5</p>
                   </div>
@@ -133,10 +161,9 @@ export default function ChemistryPage() {
             </section>
           )}
 
-          {withScore.length === 0 && withoutScore.length === 0 && (
+          {filtered.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-sm text-faint">아직 다른 사용자가 없습니다.</p>
-              <p className="text-[10px] text-faint mt-1">초대 링크를 보내세요.</p>
+              <p className="text-sm text-faint">{q ? '검색 결과 없음' : '아직 다른 사용자가 없습니다.'}</p>
             </div>
           )}
         </>

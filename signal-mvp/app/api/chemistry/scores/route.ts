@@ -23,7 +23,20 @@ export async function POST(req: Request) {
     const all = await listAllUsersWithVectors(userId);
 
     // 각 사용자에 대해 수학만 계산 (LLM 0)
+    // SNS 핸들 목록 수집 (검색용)
+    function collectHandles(u: typeof all[0]): string[] {
+      const handles: string[] = [];
+      if (u.instagram) handles.push(u.instagram);
+      if (u.sns_links) {
+        for (const v of Object.values(u.sns_links)) {
+          if (v?.handle) handles.push(v.handle);
+        }
+      }
+      return handles;
+    }
+
     const scored = all.map((u) => {
+      const sns_handles = collectHandles(u);
       if (!u.vector) {
         return {
           id: u.id,
@@ -34,6 +47,8 @@ export async function POST(req: Request) {
           reliability: null,
           effective_axes: 0,
           major_conflicts_count: 0,
+          instagram: u.instagram,
+          sns_handles,
         };
       }
       const math = computeChemistry(myVector, u.vector, lens as Lens);
@@ -46,6 +61,8 @@ export async function POST(req: Request) {
         reliability: math.reliability_label,
         effective_axes: math.effective_axes,
         major_conflicts_count: math.major_conflicts.length,
+        instagram: u.instagram,
+        sns_handles,
       };
     });
 

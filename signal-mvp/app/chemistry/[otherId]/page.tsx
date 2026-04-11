@@ -52,11 +52,18 @@ export default async function ChemistryProfilePage({ params }: { params: { other
   }
 
   const sns = other.sns_links || {};
-  const snsEntries: { label: string; handle: string; verified: boolean }[] = [];
-  if (other.instagram) snsEntries.push({ label: 'IG', handle: other.instagram, verified: !!(sns as any).instagram?.verified });
+  const SNS_URLS: Record<string, (h: string) => string> = {
+    IG: (h) => `https://instagram.com/${h}`,
+    TH: (h) => `https://threads.net/@${h}`,
+    X: (h) => `https://x.com/${h}`,
+    YT: (h) => `https://youtube.com/@${h}`,
+    TT: (h) => `https://tiktok.com/@${h}`,
+  };
+  const snsEntries: { label: string; handle: string; verified: boolean; url: string }[] = [];
+  if (other.instagram) snsEntries.push({ label: 'IG', handle: other.instagram, verified: !!(sns as any).instagram?.verified, url: SNS_URLS.IG(other.instagram) });
   for (const [key, label] of [['threads', 'TH'], ['twitter', 'X'], ['youtube', 'YT'], ['tiktok', 'TT']] as const) {
     const s = (sns as any)[key];
-    if (s?.handle) snsEntries.push({ label, handle: s.handle, verified: s.verified });
+    if (s?.handle) snsEntries.push({ label, handle: s.handle, verified: s.verified, url: SNS_URLS[label](s.handle) });
   }
 
   return (
@@ -85,9 +92,10 @@ export default async function ChemistryProfilePage({ params }: { params: { other
         {snsEntries.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-4">
             {snsEntries.map((s) => (
-              <span key={s.label} className="text-[10px] text-faint border border-line rounded px-2 py-0.5">
+              <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer"
+                className="text-[10px] text-faint border border-line rounded px-2 py-0.5 hover:text-fg hover:border-dim transition">
                 {s.label} @{s.handle} {s.verified ? '✓' : ''}
-              </span>
+              </a>
             ))}
           </div>
         )}
