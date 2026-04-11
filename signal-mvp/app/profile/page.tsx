@@ -5,6 +5,7 @@ import { getUser, getCredits, countMyReferrals, getIntegratedVector } from '@/li
 import MyLinkCard from '@/app/components/my-link-card';
 import FingerprintToggle from '@/app/components/fingerprint-toggle';
 import ApiUsage from '@/app/components/api-usage';
+import ProfileSettings from '@/app/components/profile-settings';
 
 export const dynamic = 'force-dynamic';
 
@@ -51,6 +52,23 @@ export default async function MorePage() {
           <p className="text-lg font-bold text-fg">{referredCount}명</p>
         </div>
         <MyLinkCard userId={userId} initialSlug={userSlug} name={user.name} referredCount={referredCount} />
+      </section>
+
+      <section className="mb-3">
+        <ProfileSettings
+          userId={userId}
+          initial={{
+            email: user.email ?? null,
+            birth_year: user.birth_year ?? null,
+            gender: user.gender ?? null,
+            nationality: user.nationality ?? null,
+            location_current: user.location_current ?? null,
+            search_visibility: user.search_visibility ?? 'public',
+            gender_preference: user.gender_preference ?? 'any',
+            age_range: user.age_range ?? null,
+            privacy_settings: user.privacy_settings ?? {},
+          }}
+        />
       </section>
 
       <section className="p-4 border border-line rounded-xl mb-3">

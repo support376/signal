@@ -13,7 +13,7 @@ async function schemaFastCheck(): Promise<boolean> {
     // 가장 최근에 추가된 컬럼을 체크 — 이게 있으면 모든 ALTER 완료된 상태
     const r = await sql`
       SELECT 1 FROM information_schema.columns
-      WHERE table_name = 'users' AND column_name = 'fingerprint_enabled'
+      WHERE table_name = 'users' AND column_name = 'privacy_settings'
       LIMIT 1;
     `;
     return r.rows.length > 0;
@@ -122,6 +122,54 @@ async function runSchemaBootstrap() {
   await safeRun('users.fingerprint_enabled column', () =>
     sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS fingerprint_enabled BOOLEAN DEFAULT FALSE;`
   );
+
+  // ── Phase 2: 프로필 + 매칭 + 프라이버시 ──
+  await safeRun('users.email column', () =>
+    sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT;`
+  );
+  await safeRun('users.birth_year column', () =>
+    sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS birth_year INT;`
+  );
+  await safeRun('users.nationality column', () =>
+    sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS nationality TEXT;`
+  );
+  await safeRun('users.location_current column', () =>
+    sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS location_current JSONB;`
+  );
+  // search_visibility: 'public' | 'match_only' | 'private'
+  await safeRun('users.search_visibility column', () =>
+    sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS search_visibility TEXT DEFAULT 'public';`
+  );
+  await safeRun('users.gender_preference column', () =>
+    sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS gender_preference TEXT DEFAULT 'any';`
+  );
+  // age_range: { min: number, max: number }
+  await safeRun('users.age_range column', () =>
+    sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS age_range JSONB;`
+  );
+  await safeRun('users.trust_score column', () =>
+    sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS trust_score REAL DEFAULT 0;`
+  );
+  // privacy_settings: { birth_year, gender, nationality, location, sns_handles } → 'public' | 'match_only' | 'private'
+  await safeRun('users.privacy_settings column', () =>
+    sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS privacy_settings JSONB DEFAULT '{}';`
+  );
+
+  // vector_history — 시점별 벡터 이력 (append-only)
+  await safeRun('vector_history table', () => sql`
+    CREATE TABLE IF NOT EXISTS vector_history (
+      id SERIAL PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      vector JSONB NOT NULL,
+      scenario_count INT NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+  `);
+  await safeRun('vector_history index', () => sql`
+    CREATE INDEX IF NOT EXISTS idx_vector_history_user
+    ON vector_history(user_id, created_at DESC);
+  `);
+
   await sql`
     CREATE TABLE IF NOT EXISTS scenario_runs (
       user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -333,9 +381,9 @@ export async function listUsersWithProgress(excludeId?: string) {
 
 export async function getUser(id: string) {
   await ensureSchema();
-  const r = await sql`SELECT id, name, slug, bio, referred_by, free_credits, gender, instagram, sns_links, link_type, link_price, fingerprint_enabled FROM users WHERE id = ${id};`;
+  const r = await sql`SELECT id, name, slug, bio, referred_by, free_credits, gender, instagram, sns_links, link_type, link_price, fingerprint_enabled, email, birth_year, nationality, location_current, search_visibility, gender_preference, age_range, trust_score, privacy_settings FROM users WHERE id = ${id};`;
   return r.rows[0] as
-    | { id: string; name: string; slug: string | null; bio: string | null; referred_by: string | null; free_credits: number | null; gender: string | null; instagram: string | null; sns_links: Record<string, { handle: string; verified: boolean }> | null; link_type: string | null; link_price: number | null; fingerprint_enabled: boolean | null }
+    | { id: string; name: string; slug: string | null; bio: string | null; referred_by: string | null; free_credits: number | null; gender: string | null; instagram: string | null; sns_links: Record<string, { handle: string; verified: boolean }> | null; link_type: string | null; link_price: number | null; fingerprint_enabled: boolean | null; email: string | null; birth_year: number | null; nationality: string | null; location_current: { label: string; precision: string } | null; search_visibility: string | null; gender_preference: string | null; age_range: { min: number; max: number } | null; trust_score: number | null; privacy_settings: Record<string, string> | null }
     | undefined;
 }
 
@@ -465,10 +513,17 @@ export async function getCompletedScenarios(userId: string): Promise<ScenarioId[
 // ──────────────────────────────────────────
 export async function saveIntegratedVector(userId: string, vector: IntegratedVector) {
   await ensureSchema();
+  const vectorJson = JSON.stringify(vector);
   await sql`
     INSERT INTO integrated_vectors (user_id, vector)
-    VALUES (${userId}, ${JSON.stringify(vector)})
+    VALUES (${userId}, ${vectorJson})
     ON CONFLICT (user_id) DO UPDATE SET vector = EXCLUDED.vector, created_at = NOW();
+  `;
+  // vector_history에도 append (시계열 이력)
+  const scenarioCount = vector.scenarios_completed?.length ?? 0;
+  await sql`
+    INSERT INTO vector_history (user_id, vector, scenario_count)
+    VALUES (${userId}, ${vectorJson}, ${scenarioCount});
   `;
 }
 
