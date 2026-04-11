@@ -12,8 +12,8 @@ async function schemaFastCheck(): Promise<boolean> {
   try {
     // 가장 최근에 추가된 컬럼을 체크 — 이게 있으면 모든 ALTER 완료된 상태
     const r = await sql`
-      SELECT 1 FROM information_schema.columns
-      WHERE table_name = 'users' AND column_name = 'privacy_settings'
+      SELECT 1 FROM information_schema.tables
+      WHERE table_name = 'daily_scenarios'
       LIMIT 1;
     `;
     return r.rows.length > 0;
@@ -168,6 +168,54 @@ async function runSchemaBootstrap() {
   await safeRun('vector_history index', () => sql`
     CREATE INDEX IF NOT EXISTS idx_vector_history_user
     ON vector_history(user_id, created_at DESC);
+  `);
+
+  // 사용자 측정 시작일 (시계열 기준점)
+  await safeRun('users.measurement_start column', () =>
+    sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS measurement_start TIMESTAMPTZ;`
+  );
+
+  // daily_scenarios — 매일 자동 생성되는 시나리오
+  await safeRun('daily_scenarios table', () => sql`
+    CREATE TABLE IF NOT EXISTS daily_scenarios (
+      id SERIAL PRIMARY KEY,
+      date_key TEXT NOT NULL UNIQUE,
+      scenario_prompt TEXT NOT NULL,
+      agent_name TEXT NOT NULL,
+      agent_label TEXT NOT NULL,
+      trigger_text TEXT NOT NULL,
+      domain_hint TEXT NOT NULL,
+      target_axes JSONB NOT NULL DEFAULT '[]',
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+  `);
+
+  // daily_scenario_runs — 데일리 시나리오 풀이 (append-only, 삭제 불가)
+  await safeRun('daily_scenario_runs table', () => sql`
+    CREATE TABLE IF NOT EXISTS daily_scenario_runs (
+      id SERIAL PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      date_key TEXT NOT NULL,
+      turn_idx INT NOT NULL,
+      agent_msg TEXT NOT NULL,
+      user_msg TEXT,
+      input_meta JSONB,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      UNIQUE (user_id, date_key, turn_idx)
+    );
+  `);
+
+  // daily_scenario_payloads — 데일리 분석 결과 (append-only)
+  await safeRun('daily_scenario_payloads table', () => sql`
+    CREATE TABLE IF NOT EXISTS daily_scenario_payloads (
+      id SERIAL PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      date_key TEXT NOT NULL,
+      payload JSONB NOT NULL,
+      authenticity_score REAL,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      UNIQUE (user_id, date_key)
+    );
   `);
 
   await sql`
@@ -647,4 +695,92 @@ export async function listMyChemistries(userId: string) {
     score: number;
     created_at: string;
   }[];
+}
+
+// ──────────────────────────────────────────
+// Daily Scenarios
+// ──────────────────────────────────────────
+
+/** 오늘(dateKey)의 시나리오 조회 */
+export async function getDailyScenario(dateKey: string) {
+  await ensureSchema();
+  const r = await sql`SELECT * FROM daily_scenarios WHERE date_key = ${dateKey};`;
+  return r.rows[0] as {
+    id: number; date_key: string; scenario_prompt: string;
+    agent_name: string; agent_label: string; trigger_text: string;
+    domain_hint: string; target_axes: string[];
+  } | undefined;
+}
+
+/** 시나리오 저장 (생성 API에서 호출) */
+export async function saveDailyScenario(data: {
+  dateKey: string; scenarioPrompt: string;
+  agentName: string; agentLabel: string; triggerText: string;
+  domainHint: string; targetAxes: string[];
+}) {
+  await ensureSchema();
+  await sql`
+    INSERT INTO daily_scenarios (date_key, scenario_prompt, agent_name, agent_label, trigger_text, domain_hint, target_axes)
+    VALUES (${data.dateKey}, ${data.scenarioPrompt}, ${data.agentName}, ${data.agentLabel}, ${data.triggerText}, ${data.domainHint}, ${JSON.stringify(data.targetAxes)})
+    ON CONFLICT (date_key) DO NOTHING;
+  `;
+}
+
+/** 사용자의 오늘 데일리 턴 조회 */
+export async function getDailyTurns(userId: string, dateKey: string) {
+  await ensureSchema();
+  const r = await sql`
+    SELECT turn_idx, agent_msg, user_msg FROM daily_scenario_runs
+    WHERE user_id = ${userId} AND date_key = ${dateKey}
+    ORDER BY turn_idx ASC;
+  `;
+  return r.rows as { turn_idx: number; agent_msg: string; user_msg: string | null }[];
+}
+
+/** 데일리 턴 append (update/delete 불가 — append-only) */
+export async function appendDailyTurn(
+  userId: string, dateKey: string, turnIdx: number,
+  agentMsg: string, userMsg: string | null, inputMeta?: object | null
+) {
+  await ensureSchema();
+  await sql`
+    INSERT INTO daily_scenario_runs (user_id, date_key, turn_idx, agent_msg, user_msg, input_meta)
+    VALUES (${userId}, ${dateKey}, ${turnIdx}, ${agentMsg}, ${userMsg}, ${inputMeta ? JSON.stringify(inputMeta) : null})
+    ON CONFLICT (user_id, date_key, turn_idx)
+    DO UPDATE SET user_msg = COALESCE(EXCLUDED.user_msg, daily_scenario_runs.user_msg),
+                  input_meta = COALESCE(EXCLUDED.input_meta, daily_scenario_runs.input_meta);
+  `;
+}
+
+/** 데일리 분석 결과 저장 (append-only) */
+export async function saveDailyPayload(
+  userId: string, dateKey: string, payload: object, authenticityScore: number | null
+) {
+  await ensureSchema();
+  await sql`
+    INSERT INTO daily_scenario_payloads (user_id, date_key, payload, authenticity_score)
+    VALUES (${userId}, ${dateKey}, ${JSON.stringify(payload)}, ${authenticityScore})
+    ON CONFLICT (user_id, date_key) DO NOTHING;
+  `;
+}
+
+/** 사용자의 측정 시작일 설정 (최초 시나리오 완료 시 1회) */
+export async function setMeasurementStart(userId: string) {
+  await ensureSchema();
+  await sql`
+    UPDATE users SET measurement_start = NOW()
+    WHERE id = ${userId} AND measurement_start IS NULL;
+  `;
+}
+
+/** 사용자의 데일리 완료 히스토리 (날짜 목록) */
+export async function getDailyHistory(userId: string) {
+  await ensureSchema();
+  const r = await sql`
+    SELECT date_key, authenticity_score, created_at
+    FROM daily_scenario_payloads
+    WHERE user_id = ${userId}
+    ORDER BY date_key DESC;
+  `;
+  return r.rows as { date_key: string; authenticity_score: number | null; created_at: string }[];
 }

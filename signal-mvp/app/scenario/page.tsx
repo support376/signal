@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { getCompletedScenarios, getIntegratedVector } from '@/lib/db';
 import { computeCompleteness } from '@/lib/integrator';
 import { SCENARIO_ORDER, SCENARIO_LABELS, SCENARIO_CONTEXTS } from '@/lib/scenario-meta';
+import DailyScenarioCard from '@/app/components/daily-scenario-card';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +24,10 @@ export default async function SignalPage() {
     <div className="max-w-lg mx-auto px-5 py-8 pb-20">
       <p className="text-lg font-bold mb-6 text-fg">Signalogy</p>
 
+      {/* 오늘의 데일리 시나리오 */}
+      <DailyScenarioCard userId={userId} />
+
+      {/* 기본 시나리오 완성도 */}
       <section className="p-5 border border-line rounded-xl mb-6">
         <div className="flex items-center justify-between mb-3">
           <p className="text-xs text-dim">signal 읽기</p>
