@@ -429,9 +429,9 @@ export async function listUsersWithProgress(excludeId?: string) {
 
 export async function getUser(id: string) {
   await ensureSchema();
-  const r = await sql`SELECT id, name, slug, bio, referred_by, free_credits, gender, instagram, sns_links, link_type, link_price, fingerprint_enabled, email, birth_year, nationality, location_current, search_visibility, gender_preference, age_range, trust_score, privacy_settings FROM users WHERE id = ${id};`;
+  const r = await sql`SELECT id, name, slug, bio, referred_by, free_credits, gender, instagram, sns_links, link_type, link_price, fingerprint_enabled, email, birth_year, nationality, location_current, search_visibility, gender_preference, age_range, trust_score, privacy_settings, measurement_start FROM users WHERE id = ${id};`;
   return r.rows[0] as
-    | { id: string; name: string; slug: string | null; bio: string | null; referred_by: string | null; free_credits: number | null; gender: string | null; instagram: string | null; sns_links: Record<string, { handle: string; verified: boolean }> | null; link_type: string | null; link_price: number | null; fingerprint_enabled: boolean | null; email: string | null; birth_year: number | null; nationality: string | null; location_current: { label: string; precision: string } | null; search_visibility: string | null; gender_preference: string | null; age_range: { min: number; max: number } | null; trust_score: number | null; privacy_settings: Record<string, string> | null }
+    | { id: string; name: string; slug: string | null; bio: string | null; referred_by: string | null; free_credits: number | null; gender: string | null; instagram: string | null; sns_links: Record<string, { handle: string; verified: boolean }> | null; link_type: string | null; link_price: number | null; fingerprint_enabled: boolean | null; email: string | null; birth_year: number | null; nationality: string | null; location_current: { label: string; precision: string } | null; search_visibility: string | null; gender_preference: string | null; age_range: { min: number; max: number } | null; trust_score: number | null; privacy_settings: Record<string, string> | null; measurement_start: string | null }
     | undefined;
 }
 

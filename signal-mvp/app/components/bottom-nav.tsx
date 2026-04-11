@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 const TABS = [
   { href: '/dashboard', label: 'Home', icon: '⌂' },
   { href: '/chemistry', label: 'Chemistry', icon: '◎' },
-  { href: '/scenario', label: 'Signal', icon: '◈' },
+  { href: '/me', label: 'Me', icon: '◉' },
   { href: '/profile', label: 'More', icon: '≡' },
 ];
 
@@ -36,6 +36,7 @@ export default function BottomNav() {
   const pathname = usePathname();
   if (pathname === '/' || pathname === '/logout') return null;
   if (pathname.startsWith('/u/')) return null;
+  // 시나리오/데일리 채팅 중에는 숨김
   if (pathname.match(/^\/scenario\/[^/]+$/) && pathname !== '/scenario') return null;
   if (pathname.startsWith('/daily/')) return null;
 
@@ -44,8 +45,9 @@ export default function BottomNav() {
       <div className="flex max-w-lg mx-auto">
         {TABS.map((tab) => {
           const isActive =
-            tab.href === '/scenario' ? pathname === '/scenario' || pathname.startsWith('/scenario/')
+            tab.href === '/dashboard' ? pathname === '/dashboard' || pathname.startsWith('/scenario') || pathname === '/report'
             : tab.href === '/chemistry' ? pathname.startsWith('/chemistry')
+            : tab.href === '/me' ? pathname === '/me'
             : pathname === tab.href;
           return (
             <Link key={tab.href} href={tab.href}
