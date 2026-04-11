@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import ShareModal from './share-modal';
 import ApiUsage from './api-usage';
 
@@ -73,6 +74,7 @@ const SNS_PLATFORMS = [
 /* ════════════════════════════════════════════ */
 
 export default function ProfileSettings({ userId, initial }: { userId: string; initial: ProfileData }) {
+  const router = useRouter();
   // 공개 프로필
   const [birthYear, setBirthYear] = useState(initial.birth_year?.toString() || '');
   const [gender, setGender] = useState(initial.gender || '');
@@ -168,7 +170,9 @@ export default function ProfileSettings({ userId, initial }: { userId: string; i
         privacy_settings: privacy, instagram: snsHandles.instagram || null, sns_links: snsObj, fingerprint_enabled: fingerprintText,
       })});
       if (!r.ok) { const d = await r.json().catch(() => ({})); throw new Error(d.error || '저장 실패'); }
-      setSaved(true); setTimeout(() => setSaved(false), 2000);
+      setSaved(true);
+      router.refresh();
+      setTimeout(() => setSaved(false), 2000);
     } catch (e: any) { console.error(e); setSaveError(e.message || '저장 실패'); setTimeout(() => setSaveError(''), 3000); }
     finally { setSaving(false); }
   }

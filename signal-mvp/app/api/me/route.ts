@@ -7,13 +7,7 @@ export async function POST(req: Request) {
     if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 });
     const user = await getUser(userId);
     if (!user) return NextResponse.json({ error: 'not found' }, { status: 404 });
-    return NextResponse.json({
-      id: user.id,
-      name: user.name,
-      slug: user.slug || user.id,
-      bio: user.bio,
-      referred_by: user.referred_by,
-    });
+    return NextResponse.json(user);
   } catch (e: any) {
     return NextResponse.json({ error: e.message || 'unknown' }, { status: 500 });
   }
