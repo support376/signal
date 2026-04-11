@@ -33,8 +33,8 @@ export async function POST(req: Request) {
     });
 
     const scenario = parseJsonResponse(raw);
-    if (!scenario?.agent_name || !scenario?.scenario_prompt) {
-      throw new Error('Invalid scenario JSON from LLM');
+    if (!scenario?.agent_name || !scenario?.scenario_prompt || !scenario?.agent_label || !scenario?.trigger || !scenario?.domain_hint) {
+      throw new Error('Invalid scenario JSON — missing required fields: agent_name, agent_label, trigger, domain_hint, scenario_prompt');
     }
 
     // prompt에 공통 규칙 추가

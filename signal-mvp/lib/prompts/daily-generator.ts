@@ -9,17 +9,19 @@ export function selectTargetAxes(dateKey: string): Axis[] {
   const dayNum = parseInt(dateKey.replace(/-/g, '')) || 0;
   const groupIdx = dayNum % 5;
 
+  // 15축을 5그룹으로 분배 — 각 축이 정확히 1회씩만 등장
+  // 5일이면 15축 전부 커버, 중복 없음
   const groups: Axis[][] = [
-    // 가치관 중심
+    // Day 0: 가치관 + 성실
     ['value_security', 'value_self_direction', 'value_achievement', 'big5_conscientiousness'],
-    // 관계/친밀 중심
+    // Day 1: 관계 + 친밀
     ['value_benevolence', 'big5_agreeableness', 'attach_anxiety', 'attach_avoidance'],
-    // 도덕/갈등 중심
+    // Day 2: 도덕 + 갈등/복구
     ['moral_loyalty', 'moral_care', 'conflict_style', 'repair_capacity'],
-    // 정서/전통 중심
-    ['big5_neuroticism', 'value_tradition', 'value_universalism', 'attach_anxiety'],
-    // 복합 (혼합)
-    ['value_self_direction', 'conflict_style', 'big5_agreeableness', 'moral_care', 'repair_capacity'],
+    // Day 3: 정서 + 전통 + 보편
+    ['big5_neuroticism', 'value_tradition', 'value_universalism'],
+    // Day 4: 성취 + 돌봄 + 자율 (크로스 그룹 재측정)
+    ['value_achievement', 'value_benevolence', 'big5_agreeableness'],
   ];
 
   return groups[groupIdx];
