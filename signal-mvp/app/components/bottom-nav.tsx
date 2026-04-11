@@ -37,7 +37,6 @@ export default function BottomNav() {
   if (pathname === '/' || pathname === '/logout') return null;
   if (pathname.startsWith('/u/')) return null;
   if (pathname.match(/^\/scenario\/[^/]+$/) && pathname !== '/scenario') return null;
-  if (pathname.match(/^\/scenario\/[^/]+\/voice$/)) return null;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-bg border-t border-line safe-bottom">
