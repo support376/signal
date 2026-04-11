@@ -112,9 +112,9 @@ export default function ProfileSettings({ userId, initial }: { userId: string; i
   const [shareOpen, setShareOpen] = useState(false);
   // GPS
   const [gpsLoading, setGpsLoading] = useState(false);
-  // 글로벌
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  // 저장 상태 (섹션별)
+  const [savingSection, setSavingSection] = useState<string | null>(null);
+  const [savedSection, setSavedSection] = useState<string | null>(null);
   const [saveError, setSaveError] = useState('');
   const [openSection, setOpenSection] = useState<string | null>(null);
 
@@ -157,24 +157,48 @@ export default function ProfileSettings({ userId, initial }: { userId: string; i
     }
   }
 
-  async function save() {
-    setSaving(true); setSaved(false);
+  async function saveSection(section: string) {
+    setSavingSection(section); setSavedSection(null); setSaveError('');
     try {
-      const snsObj: Record<string, { handle: string; verified: boolean }> = {};
-      for (const [k, h] of Object.entries(snsHandles)) { if (h) snsObj[k] = { handle: h, verified: snsVerified[k] || false }; }
-      const r = await fetch('/api/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-        userId, email: email || null, birth_year: birthYear ? parseInt(birthYear) : null, gender: gender || null,
-        nationality: nationality || null, location_current: locationLabel ? { label: locationLabel, precision: locationPrecision } : null,
-        search_visibility: searchVisibility, gender_preference: genderPref,
-        age_range: { min: parseInt(ageMin) || 18, max: parseInt(ageMax) || 60 },
-        privacy_settings: privacy, instagram: snsHandles.instagram || null, sns_links: snsObj, fingerprint_enabled: fingerprintText,
-      })});
+      let body: Record<string, any> = { userId };
+
+      if (section === 'profile') {
+        body = { ...body, birth_year: birthYear ? parseInt(birthYear) : null, gender: gender || null, nationality: nationality || null,
+          location_current: locationLabel ? { label: locationLabel, precision: locationPrecision } : null };
+      } else if (section === 'verify') {
+        const snsObj: Record<string, { handle: string; verified: boolean }> = {};
+        for (const [k, h] of Object.entries(snsHandles)) { if (h) snsObj[k] = { handle: h, verified: snsVerified[k] || false }; }
+        body = { ...body, email: email || null, instagram: snsHandles.instagram || null, sns_links: snsObj };
+      } else if (section === 'matching') {
+        body = { ...body, search_visibility: searchVisibility, gender_preference: genderPref,
+          age_range: { min: parseInt(ageMin) || 18, max: parseInt(ageMax) || 60 } };
+      } else if (section === 'security') {
+        body = { ...body, fingerprint_enabled: fingerprintText };
+      } else if (section === 'privacy') {
+        body = { ...body, privacy_settings: privacy };
+      }
+
+      const r = await fetch('/api/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       if (!r.ok) { const d = await r.json().catch(() => ({})); throw new Error(d.error || '저장 실패'); }
-      setSaved(true);
+      setSavedSection(section);
       router.refresh();
-      setTimeout(() => setSaved(false), 2000);
+      setTimeout(() => setSavedSection(null), 2000);
     } catch (e: any) { console.error(e); setSaveError(e.message || '저장 실패'); setTimeout(() => setSaveError(''), 3000); }
-    finally { setSaving(false); }
+    finally { setSavingSection(null); }
+  }
+
+  function SaveBtn({ section }: { section: string }) {
+    const isSaving = savingSection === section;
+    const isSaved = savedSection === section;
+    return (
+      <div className="mt-3">
+        {saveError && savingSection === null && <p className="text-xs text-red-500 mb-1">{saveError}</p>}
+        <button onClick={() => saveSection(section)} disabled={isSaving}
+          className="w-full py-2.5 border border-line rounded-lg text-xs text-dim hover:text-fg hover:bg-card transition disabled:opacity-40">
+          {isSaving ? '저장 중...' : isSaved ? '✓ 저장됨' : '저장'}
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -208,6 +232,7 @@ export default function ProfileSettings({ userId, initial }: { userId: string; i
             {LOC_PRECISION.map((o) => <Chip key={o.value} selected={locationPrecision === o.value} onClick={() => setLocationPrecision(o.value)} small>{o.label}</Chip>)}
           </div>
         </Field>
+        <SaveBtn section="profile" />
       </Accordion>
 
       {/* ② 인증하기 */}
@@ -230,6 +255,7 @@ export default function ProfileSettings({ userId, initial }: { userId: string; i
             ))}
           </div>
         </div>
+        <SaveBtn section="verify" />
       </Accordion>
 
       {/* ③ 매칭 설정 */}
@@ -261,6 +287,7 @@ export default function ProfileSettings({ userId, initial }: { userId: string; i
             <span className="text-faint text-[10px]">세</span>
           </div>
         </Field>
+        <SaveBtn section="matching" />
       </Accordion>
 
       {/* ④ 보안 */}
@@ -273,6 +300,7 @@ export default function ProfileSettings({ userId, initial }: { userId: string; i
           <ToggleRow label="인격지문 by Voice" desc="음성 패턴으로 인증" enabled={false} disabled tag="준비 중" onToggle={() => {}} />
           <ToggleRow label="인격지문 by Face" desc="표정 반응으로 인증" enabled={false} disabled tag="준비 중" onToggle={() => {}} />
         </div>
+        <SaveBtn section="security" />
       </Accordion>
 
       {/* ⑤ 정보 공개 범위 */}
@@ -290,6 +318,7 @@ export default function ProfileSettings({ userId, initial }: { userId: string; i
             </div>
           ))}
         </div>
+        <SaveBtn section="privacy" />
       </Accordion>
 
       {/* ⑥ 크레딧 & 초대 */}
@@ -371,13 +400,6 @@ export default function ProfileSettings({ userId, initial }: { userId: string; i
       <Accordion title="API 사용량" desc="이번 세션" open={openSection === 'api'} onToggle={() => toggle('api')}>
         <ApiUsage />
       </Accordion>
-
-      {/* 저장 */}
-      {saveError && <p className="text-xs text-red-500 text-center">{saveError}</p>}
-      <button onClick={save} disabled={saving}
-        className="w-full py-3 bg-fg text-bg rounded-xl text-sm font-semibold hover:opacity-80 transition disabled:opacity-50 mt-1">
-        {saving ? '저장 중...' : saved ? '✓ 저장됨' : '저장'}
-      </button>
 
       <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} slug={slug} name={initial.name} />
     </div>
