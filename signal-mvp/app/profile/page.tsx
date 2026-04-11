@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getUser, getCredits, countMyReferrals, getIntegratedVector } from '@/lib/db';
 import MyLinkCard from '@/app/components/my-link-card';
-import FingerprintToggle from '@/app/components/fingerprint-toggle';
 import ApiUsage from '@/app/components/api-usage';
 import ProfileSettings from '@/app/components/profile-settings';
 
@@ -28,6 +27,7 @@ export default async function MorePage() {
     <div className="max-w-md mx-auto px-5 py-8 pb-20">
       <p className="text-lg font-bold mb-6 text-fg">Signalogy</p>
 
+      {/* 프로필 헤더 */}
       <section className="flex items-center gap-4 mb-6">
         <div className="w-12 h-12 rounded-full bg-card border border-line flex items-center justify-center text-dim">
           {user.name[0]?.toUpperCase()}
@@ -38,6 +38,7 @@ export default async function MorePage() {
         </div>
       </section>
 
+      {/* 크레딧 */}
       <section className="p-4 border border-line rounded-xl mb-3">
         <div className="flex items-center justify-between">
           <p className="text-sm text-fg">크레딧</p>
@@ -46,6 +47,7 @@ export default async function MorePage() {
         <p className="text-[10px] text-faint mt-1">케미 분석 1회 = 1 · 초대 = +1</p>
       </section>
 
+      {/* 초대 */}
       <section className="p-4 border border-line rounded-xl mb-3">
         <div className="flex items-center justify-between mb-3">
           <p className="text-sm text-fg">초대</p>
@@ -54,6 +56,7 @@ export default async function MorePage() {
         <MyLinkCard userId={userId} initialSlug={userSlug} name={user.name} referredCount={referredCount} />
       </section>
 
+      {/* 통합 아코디언 설정 */}
       <section className="mb-3">
         <ProfileSettings
           userId={userId}
@@ -67,39 +70,15 @@ export default async function MorePage() {
             gender_preference: user.gender_preference ?? 'any',
             age_range: user.age_range ?? null,
             privacy_settings: user.privacy_settings ?? {},
+            instagram: user.instagram ?? null,
+            sns_links: user.sns_links ?? null,
+            fingerprint_enabled: !!user.fingerprint_enabled,
+            hasVector: !!vector,
           }}
         />
       </section>
 
-      <section className="p-4 border border-line rounded-xl mb-3">
-        <p className="text-sm mb-3 text-fg">SNS 연결</p>
-        <p className="text-[10px] text-faint mb-3">
-          연결하면 공개 프로필에 표시돼. 인증하면 ✓ 표시.
-        </p>
-        <div className="space-y-2 text-xs">
-          {[
-            { key: 'instagram', label: 'Instagram', prefix: 'instagram.com/', value: user.instagram },
-            { key: 'threads', label: 'Threads', prefix: 'threads.net/@', value: (user.sns_links as any)?.threads?.handle },
-            { key: 'twitter', label: 'X (Twitter)', prefix: 'x.com/', value: (user.sns_links as any)?.twitter?.handle },
-            { key: 'youtube', label: 'YouTube', prefix: 'youtube.com/@', value: (user.sns_links as any)?.youtube?.handle },
-            { key: 'tiktok', label: 'TikTok', prefix: 'tiktok.com/@', value: (user.sns_links as any)?.tiktok?.handle },
-          ].map((s) => (
-            <div key={s.key} className="flex items-center justify-between py-1.5">
-              <span className="text-dim">{s.label}</span>
-              {s.value ? (
-                <span className="text-dim">@{s.value} {(user.sns_links as any)?.[s.key]?.verified ? '✓' : ''}</span>
-              ) : (
-                <span className="text-faint">—</span>
-              )}
-            </div>
-          ))}
-        </div>
-        <p className="text-[10px] text-faint mt-3 leading-relaxed">
-          SNS 등록/수정: <span className="text-dim">@signalogy.official</span> 에 DM으로 요청.
-          Signalogy ID와 SNS 핸들을 보내면 연결해줄게.
-        </p>
-      </section>
-
+      {/* 크리에이터 */}
       <section className="p-4 border border-line rounded-xl mb-3">
         {isCreator ? (
           <>
@@ -118,16 +97,6 @@ export default async function MorePage() {
                 <p>L3 (1k-10k) — 50%</p>
                 <p>L4 (10k-50k) — 60%</p>
                 <p>L5 (50k+) — 70%</p>
-              </div>
-            </div>
-            <div className="mt-4 space-y-2">
-              <div className="p-3 border border-line rounded-lg">
-                <p className="text-[10px] text-faint mb-1">계좌 등록 (한국)</p>
-                <p className="text-[10px] text-faint">준비 중 — Toss 연동 예정</p>
-              </div>
-              <div className="p-3 border border-line rounded-lg">
-                <p className="text-[10px] text-faint mb-1">PayPal</p>
-                <p className="text-[10px] text-faint">준비 중</p>
               </div>
             </div>
           </>
@@ -151,15 +120,6 @@ export default async function MorePage() {
             </a>
           </>
         )}
-      </section>
-
-      {/* 인격지문 */}
-      <section className="p-4 border border-line rounded-xl mb-3">
-        <FingerprintToggle
-          userId={userId}
-          initialEnabled={!!user.fingerprint_enabled}
-          hasVector={!!vector}
-        />
       </section>
 
       {/* API 사용량 */}

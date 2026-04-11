@@ -12,6 +12,12 @@ interface ProfileData {
   gender_preference: string | null;
   age_range: { min: number; max: number } | null;
   privacy_settings: Record<string, string> | null;
+  // SNS
+  instagram: string | null;
+  sns_links: Record<string, { handle: string; verified: boolean }> | null;
+  // 보안
+  fingerprint_enabled: boolean;
+  hasVector: boolean;
 }
 
 const GENDER_OPTIONS = [
@@ -34,7 +40,7 @@ const GENDER_PREF_OPTIONS = [
   { value: 'NB', label: '논바이너리' },
 ];
 
-const LOCATION_PRECISION_OPTIONS = [
+const LOCATION_PRECISION = [
   { value: 'country', label: '국가만' },
   { value: 'city', label: '도시까지' },
   { value: 'district', label: '구/군까지' },
@@ -48,7 +54,7 @@ const PRIVACY_FIELDS = [
   { key: 'sns_handles', label: 'SNS' },
 ];
 
-const PRIVACY_LEVEL_OPTIONS = [
+const PRIVACY_LEVELS = [
   { value: 'public', label: '공개' },
   { value: 'match_only', label: '매칭만' },
   { value: 'private', label: '비공개' },
@@ -58,6 +64,14 @@ const NATIONALITIES = [
   '한국', '미국', '일본', '중국', '영국', '캐나다', '호주', '독일', '프랑스', '기타',
 ];
 
+const SNS_PLATFORMS = [
+  { key: 'instagram', label: 'Instagram', icon: '📷' },
+  { key: 'threads', label: 'Threads', icon: '🔗' },
+  { key: 'twitter', label: 'X', icon: '𝕏' },
+  { key: 'youtube', label: 'YouTube', icon: '▶' },
+  { key: 'tiktok', label: 'TikTok', icon: '♪' },
+];
+
 export default function ProfileSettings({
   userId,
   initial,
@@ -65,19 +79,48 @@ export default function ProfileSettings({
   userId: string;
   initial: ProfileData;
 }) {
-  const [email, setEmail] = useState(initial.email || '');
+  // 공개 프로필
   const [birthYear, setBirthYear] = useState(initial.birth_year?.toString() || '');
   const [gender, setGender] = useState(initial.gender || '');
   const [nationality, setNationality] = useState(initial.nationality || '');
   const [locationLabel, setLocationLabel] = useState(initial.location_current?.label || '');
   const [locationPrecision, setLocationPrecision] = useState(initial.location_current?.precision || 'city');
+
+  // 인증
+  const [email, setEmail] = useState(initial.email || '');
+  const [snsHandles, setSnsHandles] = useState<Record<string, string>>(() => {
+    const handles: Record<string, string> = {};
+    if (initial.instagram) handles.instagram = initial.instagram;
+    if (initial.sns_links) {
+      for (const [key, val] of Object.entries(initial.sns_links)) {
+        if (val?.handle) handles[key] = val.handle;
+      }
+    }
+    return handles;
+  });
+  const [snsVerified, setSnsVerified] = useState<Record<string, boolean>>(() => {
+    const verified: Record<string, boolean> = {};
+    if (initial.sns_links) {
+      for (const [key, val] of Object.entries(initial.sns_links)) {
+        if (val?.verified) verified[key] = true;
+      }
+    }
+    return verified;
+  });
+
+  // 매칭
   const [searchVisibility, setSearchVisibility] = useState(initial.search_visibility || 'public');
   const [genderPref, setGenderPref] = useState(initial.gender_preference || 'any');
   const [ageMin, setAgeMin] = useState(initial.age_range?.min?.toString() || '18');
   const [ageMax, setAgeMax] = useState(initial.age_range?.max?.toString() || '60');
-  const [privacy, setPrivacy] = useState<Record<string, string>>(
-    initial.privacy_settings || {}
-  );
+
+  // 보안
+  const [fingerprintText, setFingerprintText] = useState(initial.fingerprint_enabled);
+  const [fingerprintVoice] = useState(false);
+  const [fingerprintFace] = useState(false);
+
+  // 프라이버시
+  const [privacy, setPrivacy] = useState<Record<string, string>>(initial.privacy_settings || {});
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -87,14 +130,22 @@ export default function ProfileSettings({
     setOpenSection(openSection === key ? null : key);
   }
 
-  function setPrivacyField(field: string, value: string) {
-    setPrivacy((prev) => ({ ...prev, [field]: value }));
+  function setSnsHandle(platform: string, value: string) {
+    setSnsHandles((prev) => ({ ...prev, [platform]: value.replace(/^@/, '').trim() }));
   }
 
   async function save() {
     setSaving(true);
     setSaved(false);
     try {
+      // SNS links 구조 변환
+      const snsLinksObj: Record<string, { handle: string; verified: boolean }> = {};
+      for (const [key, handle] of Object.entries(snsHandles)) {
+        if (handle) {
+          snsLinksObj[key] = { handle, verified: snsVerified[key] || false };
+        }
+      }
+
       await fetch('/api/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -111,6 +162,9 @@ export default function ProfileSettings({
           gender_preference: genderPref,
           age_range: { min: parseInt(ageMin) || 18, max: parseInt(ageMax) || 60 },
           privacy_settings: privacy,
+          instagram: snsHandles.instagram || null,
+          sns_links: snsLinksObj,
+          fingerprint_enabled: fingerprintText,
         }),
       });
       setSaved(true);
@@ -123,128 +177,103 @@ export default function ProfileSettings({
   }
 
   return (
-    <div className="space-y-3">
-      {/* ── 본인 인증 ── */}
-      <Section
-        title="본인 인증"
-        desc="비공개 — 인증용으로만 사용"
-        open={openSection === 'auth'}
-        onToggle={() => toggleSection('auth')}
-      >
-        <Field label="이메일">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="example@email.com"
-            className="w-full px-3 py-2 bg-bg border border-line rounded-lg text-sm text-fg placeholder:text-faint focus:outline-none focus:border-dim"
-          />
-        </Field>
-      </Section>
-
-      {/* ── 공개 프로필 ── */}
-      <Section
+    <div className="space-y-2">
+      {/* ①  공개 프로필 */}
+      <Accordion
         title="공개 프로필"
         desc="다른 사용자에게 보이는 정보"
         open={openSection === 'profile'}
         onToggle={() => toggleSection('profile')}
       >
         <Field label="출생연도">
-          <input
-            type="number"
-            value={birthYear}
-            onChange={(e) => setBirthYear(e.target.value)}
-            placeholder="1995"
-            min={1940}
-            max={2010}
-            className="w-full px-3 py-2 bg-bg border border-line rounded-lg text-sm text-fg placeholder:text-faint focus:outline-none focus:border-dim"
-          />
+          <input type="number" value={birthYear} onChange={(e) => setBirthYear(e.target.value)}
+            placeholder="1995" min={1940} max={2010} className={inputCls} />
         </Field>
 
         <Field label="성별">
           <div className="flex gap-2">
-            {GENDER_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => setGender(opt.value)}
-                className={`flex-1 py-2 text-xs rounded-lg border transition ${
-                  gender === opt.value
-                    ? 'border-fg text-fg bg-card'
-                    : 'border-line text-dim hover:text-fg'
-                }`}
-              >
-                {opt.label}
-              </button>
+            {GENDER_OPTIONS.map((o) => (
+              <Chip key={o.value} selected={gender === o.value} onClick={() => setGender(o.value)}>{o.label}</Chip>
             ))}
           </div>
         </Field>
 
         <Field label="국적">
-          <select
-            value={nationality}
-            onChange={(e) => setNationality(e.target.value)}
-            className="w-full px-3 py-2 bg-bg border border-line rounded-lg text-sm text-fg focus:outline-none focus:border-dim"
-          >
+          <select value={nationality} onChange={(e) => setNationality(e.target.value)} className={inputCls}>
             <option value="">선택 안 함</option>
-            {NATIONALITIES.map((n) => (
-              <option key={n} value={n}>{n}</option>
-            ))}
+            {NATIONALITIES.map((n) => <option key={n} value={n}>{n}</option>)}
           </select>
         </Field>
 
         <Field label="위치">
-          <input
-            type="text"
-            value={locationLabel}
-            onChange={(e) => setLocationLabel(e.target.value)}
-            placeholder="서울, 강남구"
-            className="w-full px-3 py-2 bg-bg border border-line rounded-lg text-sm text-fg placeholder:text-faint focus:outline-none focus:border-dim mb-2"
-          />
-          <p className="text-[10px] text-faint mb-1.5">공개 정밀도</p>
+          <input type="text" value={locationLabel} onChange={(e) => setLocationLabel(e.target.value)}
+            placeholder="서울, 강남구" className={inputCls + ' mb-2'} />
+          <p className="text-[10px] text-faint mb-1.5">어디까지 공개할지</p>
           <div className="flex gap-2">
-            {LOCATION_PRECISION_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => setLocationPrecision(opt.value)}
-                className={`flex-1 py-1.5 text-[11px] rounded-lg border transition ${
-                  locationPrecision === opt.value
-                    ? 'border-fg text-fg bg-card'
-                    : 'border-line text-dim hover:text-fg'
-                }`}
-              >
-                {opt.label}
-              </button>
+            {LOCATION_PRECISION.map((o) => (
+              <Chip key={o.value} selected={locationPrecision === o.value} onClick={() => setLocationPrecision(o.value)} small>{o.label}</Chip>
             ))}
           </div>
         </Field>
-      </Section>
+      </Accordion>
 
-      {/* ── 매칭 설정 ── */}
-      <Section
+      {/* ② 인증하기 */}
+      <Accordion
+        title="인증하기"
+        desc="이메일 + SNS 계정 연결"
+        open={openSection === 'verify'}
+        onToggle={() => toggleSection('verify')}
+      >
+        <Field label="이메일">
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+            placeholder="example@email.com" className={inputCls} />
+        </Field>
+
+        <div className="border-t border-line pt-3 mt-1">
+          <p className="text-xs text-dim mb-2">SNS 계정</p>
+          <p className="text-[10px] text-faint mb-3">
+            핸들을 입력하면 자동으로 @signalogy.official 에 인증 요청이 전송됩니다.
+          </p>
+          <div className="space-y-2.5">
+            {SNS_PLATFORMS.map((p) => (
+              <div key={p.key} className="flex items-center gap-2">
+                <span className="w-6 text-center text-sm">{p.icon}</span>
+                <span className="text-xs text-dim w-16 flex-shrink-0">{p.label}</span>
+                <input
+                  type="text"
+                  value={snsHandles[p.key] || ''}
+                  onChange={(e) => setSnsHandle(p.key, e.target.value)}
+                  placeholder="@handle"
+                  className="flex-1 px-2.5 py-1.5 bg-bg border border-line rounded-lg text-xs text-fg placeholder:text-faint focus:outline-none focus:border-dim"
+                />
+                {snsVerified[p.key] && (
+                  <span className="text-xs text-fg">✓</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </Accordion>
+
+      {/* ③ 매칭 설정 */}
+      <Accordion
         title="매칭 설정"
-        desc="알고리즘이 사용하는 필터"
+        desc="검색 노출과 매칭 필터"
         open={openSection === 'matching'}
         onToggle={() => toggleSection('matching')}
       >
         <Field label="검색 노출">
-          <div className="space-y-2">
-            {VISIBILITY_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => setSearchVisibility(opt.value)}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg border transition text-left ${
-                  searchVisibility === opt.value
-                    ? 'border-fg bg-card'
-                    : 'border-line hover:border-dim'
-                }`}
-              >
+          <div className="space-y-1.5">
+            {VISIBILITY_OPTIONS.map((o) => (
+              <button key={o.value} onClick={() => setSearchVisibility(o.value)}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg border text-left transition ${
+                  searchVisibility === o.value ? 'border-fg bg-card' : 'border-line hover:border-dim'
+                }`}>
                 <div>
-                  <p className={`text-xs ${searchVisibility === opt.value ? 'text-fg' : 'text-dim'}`}>{opt.label}</p>
-                  <p className="text-[10px] text-faint">{opt.desc}</p>
+                  <p className={`text-xs ${searchVisibility === o.value ? 'text-fg' : 'text-dim'}`}>{o.label}</p>
+                  <p className="text-[10px] text-faint">{o.desc}</p>
                 </div>
-                {searchVisibility === opt.value && (
-                  <span className="text-xs text-fg">✓</span>
-                )}
+                {searchVisibility === o.value && <span className="text-xs text-fg">✓</span>}
               </button>
             ))}
           </div>
@@ -252,130 +281,152 @@ export default function ProfileSettings({
 
         <Field label="매칭 성별">
           <div className="flex gap-2">
-            {GENDER_PREF_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => setGenderPref(opt.value)}
-                className={`flex-1 py-2 text-xs rounded-lg border transition ${
-                  genderPref === opt.value
-                    ? 'border-fg text-fg bg-card'
-                    : 'border-line text-dim hover:text-fg'
-                }`}
-              >
-                {opt.label}
-              </button>
+            {GENDER_PREF_OPTIONS.map((o) => (
+              <Chip key={o.value} selected={genderPref === o.value} onClick={() => setGenderPref(o.value)}>{o.label}</Chip>
             ))}
           </div>
         </Field>
 
         <Field label="매칭 나이대">
           <div className="flex items-center gap-3">
-            <input
-              type="number"
-              value={ageMin}
-              onChange={(e) => setAgeMin(e.target.value)}
-              min={18}
-              max={80}
-              className="w-20 px-3 py-2 bg-bg border border-line rounded-lg text-sm text-fg text-center focus:outline-none focus:border-dim"
-            />
+            <input type="number" value={ageMin} onChange={(e) => setAgeMin(e.target.value)} min={18} max={80}
+              className="w-20 px-3 py-2 bg-bg border border-line rounded-lg text-sm text-fg text-center focus:outline-none focus:border-dim" />
             <span className="text-faint text-xs">~</span>
-            <input
-              type="number"
-              value={ageMax}
-              onChange={(e) => setAgeMax(e.target.value)}
-              min={18}
-              max={80}
-              className="w-20 px-3 py-2 bg-bg border border-line rounded-lg text-sm text-fg text-center focus:outline-none focus:border-dim"
-            />
+            <input type="number" value={ageMax} onChange={(e) => setAgeMax(e.target.value)} min={18} max={80}
+              className="w-20 px-3 py-2 bg-bg border border-line rounded-lg text-sm text-fg text-center focus:outline-none focus:border-dim" />
             <span className="text-faint text-[10px]">세</span>
           </div>
         </Field>
-      </Section>
+      </Accordion>
 
-      {/* ── 정보 공개 범위 ── */}
-      <Section
+      {/* ④ 보안 */}
+      <Accordion
+        title="보안"
+        desc="인격지문 로그인"
+        open={openSection === 'security'}
+        onToggle={() => toggleSection('security')}
+      >
+        <p className="text-[10px] text-faint mb-3">
+          {initial.hasVector
+            ? '시나리오 응답 패턴으로 본인을 인증합니다. 활성화하면 로그인 시 인격지문 검증이 필요합니다.'
+            : '시나리오를 1개 이상 완료하면 사용할 수 있습니다.'}
+        </p>
+        <div className="space-y-2">
+          <ToggleRow
+            label="인격지문 by Text"
+            desc="텍스트 답변 패턴으로 인증"
+            enabled={fingerprintText}
+            disabled={!initial.hasVector}
+            onToggle={() => setFingerprintText(!fingerprintText)}
+          />
+          <ToggleRow
+            label="인격지문 by Voice"
+            desc="음성 패턴으로 인증"
+            enabled={fingerprintVoice}
+            disabled={true}
+            tag="준비 중"
+            onToggle={() => {}}
+          />
+          <ToggleRow
+            label="인격지문 by Face"
+            desc="표정 반응으로 인증"
+            enabled={fingerprintFace}
+            disabled={true}
+            tag="준비 중"
+            onToggle={() => {}}
+          />
+        </div>
+      </Accordion>
+
+      {/* ⑤ 정보 공개 범위 */}
+      <Accordion
         title="정보 공개 범위"
-        desc="각 정보를 누구에게 보여줄지 설정"
+        desc="각 정보를 누구에게 보여줄지"
         open={openSection === 'privacy'}
         onToggle={() => toggleSection('privacy')}
       >
         <div className="space-y-3">
-          {PRIVACY_FIELDS.map((field) => (
-            <div key={field.key} className="flex items-center justify-between">
-              <span className="text-xs text-fg">{field.label}</span>
+          {PRIVACY_FIELDS.map((f) => (
+            <div key={f.key} className="flex items-center justify-between">
+              <span className="text-xs text-fg">{f.label}</span>
               <div className="flex gap-1">
-                {PRIVACY_LEVEL_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => setPrivacyField(field.key, opt.value)}
+                {PRIVACY_LEVELS.map((l) => (
+                  <button key={l.value}
+                    onClick={() => setPrivacy((p) => ({ ...p, [f.key]: l.value }))}
                     className={`px-2 py-1 text-[10px] rounded border transition ${
-                      (privacy[field.key] || 'public') === opt.value
+                      (privacy[f.key] || 'public') === l.value
                         ? 'border-fg text-fg bg-card'
                         : 'border-line text-faint hover:text-dim'
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
+                    }`}>{l.label}</button>
                 ))}
               </div>
             </div>
           ))}
         </div>
-      </Section>
+      </Accordion>
 
-      {/* ── 저장 ── */}
-      <button
-        onClick={save}
-        disabled={saving}
-        className="w-full py-3 bg-fg text-bg rounded-xl text-sm font-semibold hover:opacity-80 transition disabled:opacity-50"
-      >
+      {/* 저장 */}
+      <button onClick={save} disabled={saving}
+        className="w-full py-3 bg-fg text-bg rounded-xl text-sm font-semibold hover:opacity-80 transition disabled:opacity-50 mt-1">
         {saving ? '저장 중...' : saved ? '✓ 저장됨' : '저장'}
       </button>
     </div>
   );
 }
 
-/* ── Helper components ── */
+/* ── Shared UI ── */
 
-function Section({
-  title,
-  desc,
-  open,
-  onToggle,
-  children,
-}: {
-  title: string;
-  desc: string;
-  open: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
+const inputCls = 'w-full px-3 py-2 bg-bg border border-line rounded-lg text-sm text-fg placeholder:text-faint focus:outline-none focus:border-dim';
+
+function Accordion({ title, desc, open, onToggle, children }: {
+  title: string; desc: string; open: boolean; onToggle: () => void; children: React.ReactNode;
 }) {
   return (
     <div className="border border-line rounded-xl overflow-hidden">
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between p-4 hover:bg-card transition text-left"
-      >
+      <button onClick={onToggle}
+        className="w-full flex items-center justify-between p-4 hover:bg-card transition text-left">
         <div>
           <p className="text-sm font-medium text-fg">{title}</p>
           <p className="text-[10px] text-faint">{desc}</p>
         </div>
         <span className={`text-dim text-xs transition-transform ${open ? 'rotate-90' : ''}`}>▸</span>
       </button>
-      {open && (
-        <div className="px-4 pb-4 space-y-4 border-t border-line pt-4">
-          {children}
-        </div>
-      )}
+      {open && <div className="px-4 pb-4 space-y-4 border-t border-line pt-4">{children}</div>}
     </div>
   );
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return <div><p className="text-xs text-dim mb-1.5">{label}</p>{children}</div>;
+}
+
+function Chip({ selected, onClick, children, small }: {
+  selected: boolean; onClick: () => void; children: React.ReactNode; small?: boolean;
+}) {
   return (
-    <div>
-      <p className="text-xs text-dim mb-1.5">{label}</p>
-      {children}
+    <button onClick={onClick}
+      className={`flex-1 ${small ? 'py-1.5 text-[11px]' : 'py-2 text-xs'} rounded-lg border transition ${
+        selected ? 'border-fg text-fg bg-card' : 'border-line text-dim hover:text-fg'
+      }`}>{children}</button>
+  );
+}
+
+function ToggleRow({ label, desc, enabled, disabled, tag, onToggle }: {
+  label: string; desc: string; enabled: boolean; disabled: boolean; tag?: string; onToggle: () => void;
+}) {
+  return (
+    <div className={`flex items-center justify-between p-3 border border-line rounded-lg ${disabled ? 'opacity-40' : ''}`}>
+      <div>
+        <div className="flex items-center gap-2">
+          <p className="text-xs text-fg">{label}</p>
+          {tag && <span className="text-[9px] text-faint px-1.5 py-0.5 border border-line rounded">{tag}</span>}
+        </div>
+        <p className="text-[10px] text-faint mt-0.5">{desc}</p>
+      </div>
+      <button onClick={onToggle} disabled={disabled}
+        className={`w-11 h-6 rounded-full relative flex-shrink-0 transition ${enabled ? 'bg-fg' : 'bg-line'}`}>
+        <span className={`block w-4 h-4 rounded-full bg-bg absolute top-1 transition-all ${enabled ? 'left-6' : 'left-1'}`} />
+      </button>
     </div>
   );
 }
