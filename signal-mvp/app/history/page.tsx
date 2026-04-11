@@ -38,7 +38,7 @@ export default async function HistoryPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
-      <Link href="/dashboard" className="text-xs text-dim hover:text-accent">← 대시보드</Link>
+      <Link href="/dashboard" className="text-xs text-dim hover:text-accent">← Home</Link>
 
       <header className="mt-4 mb-8">
         <h1 className="text-3xl font-bold text-fg">{me.name}의 과거 내역</h1>

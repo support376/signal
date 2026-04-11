@@ -217,7 +217,7 @@ function ScenarioPageInner() {
           onClick={() => router.push('/dashboard')}
           className="text-xs text-dim hover:text-accent self-start"
         >
-          ← 대시보드
+          ← Home
         </button>
 
         <div className="flex-1 flex items-center justify-center">
@@ -272,7 +272,7 @@ function ScenarioPageInner() {
           onClick={() => router.push('/dashboard')}
           className="text-xs text-dim hover:text-accent"
         >
-          ← 대시보드
+          ← Home
         </button>
         <h1 className="text-lg font-bold mt-2 text-fg">{SCENARIO_LABELS[scenarioId]}</h1>
         <p className="text-xs text-dim mt-1">

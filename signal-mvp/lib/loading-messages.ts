@@ -38,12 +38,6 @@ export const CHEMISTRY_PHASES: LoadingPhase[] = [
   { startAt: 40, message: '조금만 더...' },
 ];
 
-export const SCENARIO_TURN_PHASES: LoadingPhase[] = [
-  { startAt: 0, message: '답장 쓰는 중...' },
-  { startAt: 4, message: '...' },
-  { startAt: 8, message: '잠시만...' },
-];
-
 export const LOGIN_PHASES: LoadingPhase[] = [
   { startAt: 0, message: '시작 중...' },
   { startAt: 1.5, message: '서버 깨우는 중...' },

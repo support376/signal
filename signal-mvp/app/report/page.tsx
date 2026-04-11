@@ -146,7 +146,7 @@ export default function ReportPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-12">
-      <Link href="/dashboard" className="text-xs text-dim hover:text-accent">← 대시보드</Link>
+      <Link href="/dashboard" className="text-xs text-dim hover:text-accent">← Home</Link>
 
       {(loading || regenerating) && (
         <div className="mt-8 bg-card border border-line rounded-2xl p-6">

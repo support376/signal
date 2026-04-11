@@ -57,7 +57,7 @@ export default async function HomePage() {
         /* 신규 유저 → 초기 캘리브레이션 */
         <section className="p-5 border border-fg rounded-xl mb-6 bg-card">
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-lg">◈</span>
+            <span className="text-sm font-mono text-dim">&gt;</span>
             <div>
               <p className="text-sm font-semibold text-fg">초기 캘리브레이션</p>
               <p className="text-[10px] text-faint">기본 성격 벡터를 구축합니다</p>

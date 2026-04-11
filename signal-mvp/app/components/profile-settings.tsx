@@ -63,11 +63,11 @@ const PRIVACY_LEVELS = [
 ];
 const NATIONALITIES = ['한국', '미국', '일본', '중국', '영국', '캐나다', '호주', '독일', '프랑스', '기타'];
 const SNS_PLATFORMS = [
-  { key: 'instagram', label: 'Instagram', icon: '📷' },
-  { key: 'threads', label: 'Threads', icon: '🔗' },
-  { key: 'twitter', label: 'X', icon: '𝕏' },
-  { key: 'youtube', label: 'YouTube', icon: '▶' },
-  { key: 'tiktok', label: 'TikTok', icon: '♪' },
+  { key: 'instagram', label: 'Instagram', icon: 'IG' },
+  { key: 'threads', label: 'Threads', icon: 'TH' },
+  { key: 'twitter', label: 'X', icon: 'X' },
+  { key: 'youtube', label: 'YouTube', icon: 'YT' },
+  { key: 'tiktok', label: 'TikTok', icon: 'TT' },
 ];
 
 /* ════════════════════════════════════════════ */

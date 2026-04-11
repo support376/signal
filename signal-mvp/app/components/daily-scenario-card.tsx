@@ -44,7 +44,7 @@ export default function DailyScenarioCard({ userId }: { userId: string }) {
     return (
       <div className="p-5 border border-line rounded-xl mb-6">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-lg">📅</span>
+          <span className="text-sm font-mono text-dim">//</span>
           <p className="text-sm font-semibold text-fg">오늘의 시나리오</p>
         </div>
         <p className="text-xs text-faint">아직 준비 중... 곧 새로운 시나리오가 생성됩니다.</p>
@@ -61,7 +61,7 @@ export default function DailyScenarioCard({ userId }: { userId: string }) {
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span className="text-lg">📅</span>
+          <span className="text-sm font-mono text-dim">//</span>
           <div>
             <p className="text-sm font-semibold text-fg">오늘의 시나리오</p>
             <p className="text-[10px] text-faint">{dateKey}</p>
@@ -70,7 +70,7 @@ export default function DailyScenarioCard({ userId }: { userId: string }) {
         <div className="flex items-center gap-3 text-[10px] text-faint">
           {streak > 0 && (
             <span className="px-2 py-0.5 border border-line rounded text-fg">
-              🔥 {streak}일 연속
+              {streak}일 연속
             </span>
           )}
           <span>총 {totalDays}일</span>

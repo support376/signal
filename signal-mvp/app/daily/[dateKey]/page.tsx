@@ -140,14 +140,14 @@ function DailyScenarioInner() {
   if (showIntro && turns.length === 0 && scenario) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-12 min-h-screen flex flex-col">
-        <button onClick={() => router.push('/scenario')} className="text-xs text-dim hover:text-fg self-start">
-          ← Signal
+        <button onClick={() => router.push('/dashboard')} className="text-xs text-dim hover:text-fg self-start">
+          ← Home
         </button>
         <div className="flex-1 flex items-center justify-center">
           <div className="w-full bg-card border border-line rounded-2xl p-8 space-y-6">
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-lg">📅</span>
+                <span className="text-sm font-mono text-dim">//</span>
                 <span className="text-[10px] font-mono text-dim px-2 py-0.5 border border-line rounded">{dateKey}</span>
               </div>
               <p className="text-xs text-dim uppercase tracking-wider">오늘의 시나리오</p>
@@ -190,7 +190,7 @@ function DailyScenarioInner() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 flex flex-col min-h-screen">
       <header className="mb-4">
-        <button onClick={() => router.push('/scenario')} className="text-xs text-dim hover:text-fg">← Signal</button>
+        <button onClick={() => router.push('/dashboard')} className="text-xs text-dim hover:text-fg">← Home</button>
         <div className="flex items-center gap-2 mt-2">
           <h1 className="text-lg font-bold text-fg">{scenario?.domainHint || '오늘의 시나리오'}</h1>
           <span className="text-[10px] font-mono text-dim px-1.5 py-0.5 border border-line rounded">{dateKey}</span>
@@ -267,9 +267,9 @@ function DailyScenarioInner() {
         <div className="bg-card border border-accent3 rounded-2xl p-6 text-center">
           <p className="text-accent3 font-semibold mb-2">✓ 오늘의 시나리오 완료</p>
           <p className="text-sm text-dim mb-4">내일 새로운 시나리오가 생성됩니다.</p>
-          <button onClick={() => router.push('/scenario')}
+          <button onClick={() => router.push('/dashboard')}
             className="px-6 py-3 border border-line rounded-lg text-sm text-dim hover:text-fg">
-            Signal로 돌아가기
+            Home으로 돌아가기
           </button>
         </div>
       )}
