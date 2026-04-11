@@ -590,7 +590,7 @@ export async function listAllUsersWithVectors(excludeId?: string) {
   await ensureSchema();
   const r = excludeId
     ? await sql`
-        SELECT u.id, u.name, u.slug, u.instagram, u.sns_links, iv.vector,
+        SELECT u.id, u.name, u.slug, u.instagram, u.sns_links, u.birth_year, u.gender, iv.vector,
                (SELECT COUNT(*)::int FROM scenario_payloads sp WHERE sp.user_id = u.id) AS completed_count
         FROM users u
         LEFT JOIN integrated_vectors iv ON iv.user_id = u.id
@@ -598,7 +598,7 @@ export async function listAllUsersWithVectors(excludeId?: string) {
         ORDER BY u.created_at DESC;
       `
     : await sql`
-        SELECT u.id, u.name, u.slug, u.instagram, u.sns_links, iv.vector,
+        SELECT u.id, u.name, u.slug, u.instagram, u.sns_links, u.birth_year, u.gender, iv.vector,
                (SELECT COUNT(*)::int FROM scenario_payloads sp WHERE sp.user_id = u.id) AS completed_count
         FROM users u
         LEFT JOIN integrated_vectors iv ON iv.user_id = u.id
@@ -610,6 +610,8 @@ export async function listAllUsersWithVectors(excludeId?: string) {
     slug: string | null;
     instagram: string | null;
     sns_links: Record<string, { handle: string; verified: boolean }> | null;
+    birth_year: number | null;
+    gender: string | null;
     vector: IntegratedVector | null;
     completed_count: number;
   }[];

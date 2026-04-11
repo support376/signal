@@ -3,16 +3,10 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getUser, getCompletedScenarios, getIntegratedVector, getDailyHistory } from '@/lib/db';
 import { computeCompleteness } from '@/lib/integrator';
-import { AXES, AXIS_LABELS_KO, LENSES, type Axis } from '@/lib/types';
+import { AXES, AXIS_LABELS_KO, type Axis } from '@/lib/types';
+import ChemistryAnalysis from './chemistry-analysis';
 
 export const dynamic = 'force-dynamic';
-
-const LENS_META: Record<string, { ko: string; desc: string }> = {
-  romantic: { ko: '연인', desc: '단기 끌림부터 장기 헌신까지' },
-  friend: { ko: '친구', desc: '일상의 편안함, 갈등 회피, 지속성' },
-  family: { ko: '가족', desc: '부모, 자식, 형제, 친척' },
-  work: { ko: '동료', desc: '프로젝트, 상사, 파트너' },
-};
 
 export default async function ChemistryProfilePage({ params }: { params: { otherId: string } }) {
   const myId = cookies().get('signal_user_id')?.value;
@@ -39,7 +33,6 @@ export default async function ChemistryProfilePage({ params }: { params: { other
   const trustPct = Math.round(avgConf * 100);
   const totalDays = completed.length + dailyHistory.length;
 
-  // 상위 축
   const topAxes: { label: string; value: number; confidence: number }[] = [];
   if (vector?.axes) {
     for (const axis of AXES) {
@@ -100,7 +93,6 @@ export default async function ChemistryProfilePage({ params }: { params: { other
           </div>
         )}
 
-        {/* 신뢰도 */}
         <div className="flex items-center justify-between mb-1">
           <span className="text-[10px] text-dim">signal 신뢰도</span>
           <span className="text-xs font-mono text-fg">{trustPct}%</span>
@@ -113,9 +105,8 @@ export default async function ChemistryProfilePage({ params }: { params: { other
           <span>{totalDays}일 측정</span>
         </div>
 
-        {/* 주요 축 */}
         {topAxes.length > 0 && (
-          <div className="space-y-1.5 mb-4">
+          <div className="space-y-1.5">
             {topAxes.slice(0, 5).map((a) => (
               <div key={a.label} className="flex items-center justify-between">
                 <span className="text-[10px] text-dim flex-1">{a.label}</span>
@@ -129,27 +120,8 @@ export default async function ChemistryProfilePage({ params }: { params: { other
         )}
       </section>
 
-      {/* 케미 분석 렌즈 선택 */}
-      <section className="border-t border-line pt-6">
-        <p className="text-xs text-dim mb-3">케미 분석</p>
-        <div className="space-y-2">
-          {LENSES.map((lens) => {
-            const meta = LENS_META[lens];
-            return (
-              <Link key={lens} href={`/chemistry/${other.id}/${lens}`}
-                className="block p-4 border border-line rounded-xl hover:bg-card transition">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-fg">{meta.ko}</p>
-                    <p className="text-[10px] text-faint">{meta.desc}</p>
-                  </div>
-                  <span className="text-faint text-xs">→</span>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
+      {/* 케미 분석 — 클라이언트 컴포넌트 */}
+      <ChemistryAnalysis otherId={other.id} otherName={other.name} />
     </div>
   );
 }

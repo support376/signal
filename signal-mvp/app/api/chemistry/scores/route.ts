@@ -48,6 +48,8 @@ export async function POST(req: Request) {
           effective_axes: 0,
           major_conflicts_count: 0,
           instagram: u.instagram,
+          birth_year: u.birth_year,
+          gender: u.gender,
           sns_handles,
         };
       }
@@ -62,6 +64,8 @@ export async function POST(req: Request) {
         effective_axes: math.effective_axes,
         major_conflicts_count: math.major_conflicts.length,
         instagram: u.instagram,
+        birth_year: u.birth_year,
+        gender: u.gender,
         sns_handles,
       };
     });

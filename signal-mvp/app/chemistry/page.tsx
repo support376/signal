@@ -13,8 +13,12 @@ interface ScoredUser {
   score: number | null;
   reliability: string | null;
   instagram: string | null;
+  birth_year: number | null;
+  gender: string | null;
   sns_handles: string[];
 }
+
+const GENDER_LABEL: Record<string, string> = { M: '남', F: '여', NB: 'NB' };
 
 function readCookie(name: string): string | null {
   if (typeof document === 'undefined') return null;
@@ -124,7 +128,14 @@ export default function ChemistryPage() {
                   <button key={u.id} onClick={() => router.push(`/chemistry/${u.id}`)}
                     className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-card text-left transition">
                     <div>
-                      <p className="text-sm text-fg">{u.name}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm text-fg">{u.name}</p>
+                        {(u.birth_year || u.gender) && (
+                          <span className="text-[10px] text-faint">
+                            {u.birth_year ? `${new Date().getFullYear() - u.birth_year}세` : ''}{u.gender ? ` ${GENDER_LABEL[u.gender] || u.gender}` : ''}
+                          </span>
+                        )}
+                      </div>
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] text-faint">@{u.slug}</span>
                         {u.instagram && <span className="text-[10px] text-faint">· IG @{u.instagram}</span>}
@@ -148,7 +159,14 @@ export default function ChemistryPage() {
                   <div key={u.id}
                     className="flex items-center justify-between p-3 rounded-xl text-left opacity-40">
                     <div>
-                      <p className="text-sm text-dim">{u.name}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm text-dim">{u.name}</p>
+                        {(u.birth_year || u.gender) && (
+                          <span className="text-[10px] text-faint">
+                            {u.birth_year ? `${new Date().getFullYear() - u.birth_year}세` : ''}{u.gender ? ` ${GENDER_LABEL[u.gender] || u.gender}` : ''}
+                          </span>
+                        )}
+                      </div>
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] text-faint">@{u.slug}</span>
                         {u.instagram && <span className="text-[10px] text-faint">· IG @{u.instagram}</span>}
