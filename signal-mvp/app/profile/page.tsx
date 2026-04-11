@@ -58,7 +58,10 @@ export default async function MorePage() {
         }}
       />
 
-      <div className="mt-6">
+      <div className="mt-6 space-y-2">
+        <Link href="/about" className="block p-3 border border-line rounded-xl text-xs text-center text-dim hover:text-fg">
+          Signalogy에 대해서
+        </Link>
         <Link href="/logout" className="block p-3 border border-line rounded-xl text-xs text-center text-red-500 hover:text-red-600">
           로그아웃
         </Link>

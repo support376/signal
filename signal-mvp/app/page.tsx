@@ -199,7 +199,7 @@ function LandingInner() {
               시작하기
             </button>
 
-            <p className="text-[10px] text-faint mt-4">무료 · 광고 없음 · 데이터 안 팔림</p>
+            <a href="/about" className="block text-[10px] text-faint hover:text-dim mt-4">Signalogy 더 알아보기 →</a>
 
             {refParam && (
               <div className="mt-8 p-4 border border-line rounded-xl">
