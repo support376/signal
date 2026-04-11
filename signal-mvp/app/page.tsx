@@ -163,32 +163,27 @@ function LandingInner() {
         {!showLogin ? (
           <div className="text-center">
             <div className="mb-12">
-              <p className="text-faint text-xs tracking-wider mb-8">SIGNALOGY</p>
-
-              <div className="space-y-1 text-sm text-dim mb-8">
-                <p>사주가 아닙니다.</p>
-                <p>MBTI도 아닙니다.</p>
-              </div>
+              <p className="text-faint text-xs tracking-wider mb-10">SIGNALOGY</p>
 
               <h1 className="text-2xl md:text-3xl font-bold text-fg leading-snug mb-4">
-                당신과 그 사람의<br />진짜 케미를 봅니다.
+                매일 1분.<br />당신의 잠재의식이<br />신호를 보냅니다.
               </h1>
 
               <p className="text-sm text-dim leading-relaxed max-w-xs mx-auto">
-                MBTI는 16개 박스. 사주는 태어난 날.<br />
-                <span className="text-fg">Signalogy는 당신이 실제로 한 선택.</span><br />
-                그게 진짜.
+                선택이 쌓이면 성격이 보이고,<br />
+                성격이 보이면 <span className="text-fg">진짜 케미</span>가 보입니다.<br />
+                매일 달라지는 당신을, 매일 측정합니다.
               </p>
             </div>
 
             <div className="space-y-4 text-left max-w-xs mx-auto mb-12">
               {[
-                { n: '1', t: '나의 signal 읽기', sub: '15분, 카톡처럼 대화' },
-                { n: '2', t: '상대에게 링크 보내기', sub: '상대도 15분' },
-                { n: '3', t: '둘의 케미 결과 열림', sub: '진짜 맞는지, 어디서 부딪히는지' },
+                { n: '01', t: '매일 신호 보내기', sub: '카톡처럼 대화 5턴, 1분이면 끝' },
+                { n: '02', t: '15축 성격 벡터 측정', sub: '쌓일수록 정밀해지는 시계열 데이터' },
+                { n: '03', t: '상대와 케미 확인', sub: '누적된 신호가 만드는 진짜 궁합' },
               ].map((s) => (
                 <div key={s.n} className="flex items-start gap-4">
-                  <span className="text-faint text-xs mt-0.5">{s.n}</span>
+                  <span className="text-faint text-[10px] font-mono mt-1">{s.n}</span>
                   <div>
                     <p className="text-sm text-fg">{s.t}</p>
                     <p className="text-[11px] text-dim">{s.sub}</p>
@@ -210,9 +205,9 @@ function LandingInner() {
               <div className="mt-8 p-4 border border-line rounded-xl">
                 <p className="text-sm">
                   <span className="text-fg font-medium">@{refParam}</span>
-                  <span className="text-dim"> 가 너와의 케미를 보고 싶어해.</span>
+                  <span className="text-dim"> 이 당신과의 케미를 보고 싶어합니다.</span>
                 </p>
-                <p className="text-[10px] text-faint mt-2">너도 15분만 하면 둘의 결과가 열려.</p>
+                <p className="text-[10px] text-faint mt-2">신호를 보내면 둘의 결과가 열립니다.</p>
               </div>
             )}
           </div>
@@ -301,7 +296,7 @@ function LandingInner() {
           /* ── 일반 로그인 화면 ── */
           <div className="text-center">
             <p className="text-faint text-xs tracking-wider mb-6">SIGNALOGY</p>
-            <p className="text-dim text-sm mb-8">케미를 보려면 먼저 너의 signal을 읽어야 해.</p>
+            <p className="text-dim text-sm mb-8">신호를 보내려면 먼저 입장해야 합니다.</p>
 
             {loading ? (
               <LoadingState phases={LOGIN_PHASES} estimatedSec={5} hint="준비 중" size="sm" />
