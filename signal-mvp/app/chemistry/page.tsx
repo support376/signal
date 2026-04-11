@@ -12,6 +12,7 @@ interface ScoredUser {
   completed_count: number;
   score: number | null;
   reliability: string | null;
+  trust_pct: number;
   instagram: string | null;
   birth_year: number | null;
   gender: string | null;
@@ -143,7 +144,7 @@ export default function ChemistryPage() {
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-mono text-fg">{u.score}%</p>
-                      {u.reliability && <p className="text-[9px] text-faint">{u.reliability}</p>}
+                      <p className="text-[9px] text-faint">신뢰도 {u.trust_pct}%</p>
                     </div>
                   </button>
                 ))}

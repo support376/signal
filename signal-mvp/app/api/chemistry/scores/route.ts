@@ -37,6 +37,10 @@ export async function POST(req: Request) {
 
     const scored = all.map((u) => {
       const sns_handles = collectHandles(u);
+      const trustPct = u.vector?.summary?.average_confidence
+        ? Math.round(u.vector.summary.average_confidence * 100)
+        : 0;
+
       if (!u.vector) {
         return {
           id: u.id,
@@ -47,6 +51,7 @@ export async function POST(req: Request) {
           reliability: null,
           effective_axes: 0,
           major_conflicts_count: 0,
+          trust_pct: 0,
           instagram: u.instagram,
           birth_year: u.birth_year,
           gender: u.gender,
@@ -63,6 +68,7 @@ export async function POST(req: Request) {
         reliability: math.reliability_label,
         effective_axes: math.effective_axes,
         major_conflicts_count: math.major_conflicts.length,
+        trust_pct: trustPct,
         instagram: u.instagram,
         birth_year: u.birth_year,
         gender: u.gender,
