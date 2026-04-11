@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 });
 
     const user = await getUser(userId);
-    if (!user) return NextResponse.json({ error: '사용자를 찾을 수 없어' }, { status: 404 });
+    if (!user) return NextResponse.json({ fingerprintRequired: false });
 
     if (!user.fingerprint_enabled) {
       return NextResponse.json({ fingerprintRequired: false });
