@@ -108,9 +108,12 @@ export default function ProfileSettings({ userId, initial }: { userId: string; i
   const [slugSaving, setSlugSaving] = useState(false);
   const [slugError, setSlugError] = useState('');
   const [shareOpen, setShareOpen] = useState(false);
+  // GPS
+  const [gpsLoading, setGpsLoading] = useState(false);
   // 글로벌
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [openSection, setOpenSection] = useState<string | null>(null);
 
   function toggle(key: string) { setOpenSection(openSection === key ? null : key); }
@@ -127,20 +130,46 @@ export default function ProfileSettings({ userId, initial }: { userId: string; i
     finally { setSlugSaving(false); }
   }
 
+  async function fetchGPS() {
+    if (!navigator.geolocation) return;
+    setGpsLoading(true);
+    try {
+      const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 })
+      );
+      const { latitude, longitude } = pos.coords;
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=ko`
+      );
+      const geo = await res.json();
+      const addr = geo.address || {};
+      const city = addr.city || addr.town || addr.county || '';
+      const district = addr.suburb || addr.borough || addr.quarter || '';
+      const country = addr.country || '';
+      const label = [city, district].filter(Boolean).join(', ') || country || `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`;
+      setLocationLabel(label);
+    } catch {
+      // 위치 권한 거부 등
+    } finally {
+      setGpsLoading(false);
+    }
+  }
+
   async function save() {
     setSaving(true); setSaved(false);
     try {
       const snsObj: Record<string, { handle: string; verified: boolean }> = {};
       for (const [k, h] of Object.entries(snsHandles)) { if (h) snsObj[k] = { handle: h, verified: snsVerified[k] || false }; }
-      await fetch('/api/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+      const r = await fetch('/api/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
         userId, email: email || null, birth_year: birthYear ? parseInt(birthYear) : null, gender: gender || null,
         nationality: nationality || null, location_current: locationLabel ? { label: locationLabel, precision: locationPrecision } : null,
         search_visibility: searchVisibility, gender_preference: genderPref,
         age_range: { min: parseInt(ageMin) || 18, max: parseInt(ageMax) || 60 },
         privacy_settings: privacy, instagram: snsHandles.instagram || null, sns_links: snsObj, fingerprint_enabled: fingerprintText,
       })});
+      if (!r.ok) { const d = await r.json().catch(() => ({})); throw new Error(d.error || '저장 실패'); }
       setSaved(true); setTimeout(() => setSaved(false), 2000);
-    } catch (e) { console.error(e); }
+    } catch (e: any) { console.error(e); setSaveError(e.message || '저장 실패'); setTimeout(() => setSaveError(''), 3000); }
     finally { setSaving(false); }
   }
 
@@ -163,7 +192,13 @@ export default function ProfileSettings({ userId, initial }: { userId: string; i
           </select>
         </Field>
         <Field label="위치">
-          <input type="text" value={locationLabel} onChange={(e) => setLocationLabel(e.target.value)} placeholder="서울, 강남구" className={inputCls + ' mb-2'} />
+          <div className="flex gap-2 mb-2">
+            <input type="text" value={locationLabel} onChange={(e) => setLocationLabel(e.target.value)} placeholder="서울, 강남구" className={inputCls + ' flex-1'} />
+            <button type="button" onClick={fetchGPS} disabled={gpsLoading}
+              className="px-3 py-2 border border-line rounded-lg text-[10px] text-dim hover:text-fg transition whitespace-nowrap disabled:opacity-40">
+              {gpsLoading ? '...' : 'GPS'}
+            </button>
+          </div>
           <p className="text-[10px] text-faint mb-1.5">어디까지 공개할지</p>
           <div className="flex gap-2">
             {LOC_PRECISION.map((o) => <Chip key={o.value} selected={locationPrecision === o.value} onClick={() => setLocationPrecision(o.value)} small>{o.label}</Chip>)}
@@ -334,6 +369,7 @@ export default function ProfileSettings({ userId, initial }: { userId: string; i
       </Accordion>
 
       {/* 저장 */}
+      {saveError && <p className="text-xs text-red-500 text-center">{saveError}</p>}
       <button onClick={save} disabled={saving}
         className="w-full py-3 bg-fg text-bg rounded-xl text-sm font-semibold hover:opacity-80 transition disabled:opacity-50 mt-1">
         {saving ? '저장 중...' : saved ? '✓ 저장됨' : '저장'}
