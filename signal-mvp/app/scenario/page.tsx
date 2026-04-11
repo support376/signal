@@ -22,6 +22,7 @@ export default function SignalPage() {
   const [mode, setMode] = useState<SignalMode>('text');
   const [userId, setUserId] = useState<string | null>(null);
   const [completed, setCompleted] = useState<string[]>([]);
+  const [voiceCompleted, setVoiceCompleted] = useState<string[]>([]);
   const [completeness, setCompleteness] = useState<CompletenessData>({ percent: 0, measured_axes: 0 });
   const [loading, setLoading] = useState(true);
 
@@ -41,7 +42,9 @@ export default function SignalPage() {
       }).then(r => r.json()),
       fetch(`/api/scenario/completed?userId=${encodeURIComponent(uid)}`)
         .then(r => r.json()),
-    ]).then(([compResult, scenResult]) => {
+      fetch(`/api/scenario/voice-completed?userId=${encodeURIComponent(uid)}`)
+        .then(r => r.json()),
+    ]).then(([compResult, scenResult, voiceResult]) => {
       if (compResult.status === 'fulfilled' && compResult.value?.completeness) {
         setCompleteness({
           percent: compResult.value.completeness.percent ?? 0,
@@ -51,11 +54,15 @@ export default function SignalPage() {
       if (scenResult.status === 'fulfilled' && scenResult.value?.completed) {
         setCompleted(scenResult.value.completed);
       }
+      if (voiceResult.status === 'fulfilled' && voiceResult.value?.completed) {
+        setVoiceCompleted(voiceResult.value.completed);
+      }
       setLoading(false);
     });
   }, []);
 
   const completedSet = new Set(completed);
+  const voiceCompletedSet = new Set(voiceCompleted);
   const nextSid = SCENARIO_ORDER.find((sid) => !completedSet.has(sid));
 
   const MODES: { key: SignalMode; label: string; icon: string }[] = [
@@ -99,7 +106,7 @@ export default function SignalPage() {
           completeness={completeness}
         />
       ) : mode === 'voice' ? (
-        <VoiceSignalTab completedSet={completedSet} />
+        <VoiceSignalTab textCompletedSet={completedSet} voiceCompletedSet={voiceCompletedSet} />
       ) : (
         <FaceSignalTab />
       )}
@@ -196,11 +203,14 @@ function TextSignalTab({
    VOICE Signal 탭
    ════════════════════════════════════════════ */
 function VoiceSignalTab({
-  completedSet,
+  textCompletedSet,
+  voiceCompletedSet,
 }: {
-  completedSet: Set<string>;
+  textCompletedSet: Set<string>;
+  voiceCompletedSet: Set<string>;
 }) {
-  const voiceNextSid = SCENARIO_ORDER.find((sid) => completedSet.has(sid));
+  const voiceCount = SCENARIO_ORDER.filter((sid) => voiceCompletedSet.has(sid)).length;
+  const voiceNextSid = SCENARIO_ORDER.find((sid) => textCompletedSet.has(sid) && !voiceCompletedSet.has(sid));
 
   return (
     <>
@@ -214,34 +224,35 @@ function VoiceSignalTab({
         </div>
         <p className="text-xs text-dim leading-relaxed">
           텍스트와 동일한 5개 시나리오에 목소리로 답합니다.
-          당신의 음성 패턴이 기록되며, 이후 <span className="text-fg font-medium">음성 로그인</span>의 본인 인증에 사용됩니다.
+          음성 특성 (피치, 에너지, 톤)이 기록되며, 이후 <span className="text-fg font-medium">음성 로그인</span>의 본인 인증에 사용됩니다.
         </p>
         <div className="flex gap-1.5 mt-4 mb-1">
           {SCENARIO_ORDER.map((_, i) => (
-            <div key={i} className="flex-1 h-2 rounded-full bg-line" />
+            <div key={i} className={`flex-1 h-2 rounded-full ${i < voiceCount ? 'bg-accent' : 'bg-line'}`} />
           ))}
         </div>
-        <p className="text-[10px] text-faint">0/5 음성 시나리오</p>
+        <p className="text-[10px] text-faint">{voiceCount}/5 음성 시나리오</p>
       </section>
 
       <div className="space-y-3">
         {SCENARIO_ORDER.map((sid, idx) => {
           const ctx = SCENARIO_CONTEXTS[sid];
-          const textDone = completedSet.has(sid);
+          const textDone = textCompletedSet.has(sid);
+          const voiceDone = voiceCompletedSet.has(sid);
           const isNext = sid === voiceNextSid;
 
           return (
             <div key={sid}
               className={`rounded-xl border ${
-                isNext && textDone ? 'border-accent bg-card' : 'border-line opacity-30'
+                voiceDone ? 'border-line' : isNext ? 'border-accent bg-card' : 'border-line opacity-30'
               }`}>
               <div className="p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
-                    <span className={`text-xs ${isNext && textDone ? 'text-fg' : 'text-faint'}`}>
-                      ○ {String(idx + 1).padStart(2, '0')}
+                    <span className={`text-xs ${voiceDone ? 'text-dim' : isNext ? 'text-fg' : 'text-faint'}`}>
+                      {voiceDone ? '✓' : isNext ? '▸' : '○'} {String(idx + 1).padStart(2, '0')}
                     </span>
-                    <p className={`font-medium text-sm ${textDone ? 'text-fg' : 'text-dim'}`}>
+                    <p className={`font-medium text-sm ${voiceDone || isNext ? 'text-fg' : 'text-dim'}`}>
                       {ctx.domainHint}
                     </p>
                   </div>
@@ -254,22 +265,28 @@ function VoiceSignalTab({
                 </div>
 
                 <div className="flex gap-2 mt-3">
-                  {isNext && textDone && (
+                  {voiceDone && (
+                    <Link href={`/scenario/${sid}/voice`}
+                      className="flex-1 py-2 text-center text-[10px] border border-line rounded-lg text-dim hover:text-fg">
+                      다시 녹음
+                    </Link>
+                  )}
+                  {!voiceDone && isNext && (
                     <Link href={`/scenario/${sid}/voice`}
                       className="flex-1 py-2 text-center text-xs border border-line rounded-lg text-fg hover:bg-card">
                       🎙 음성으로 시작 →
+                    </Link>
+                  )}
+                  {!voiceDone && !isNext && textDone && (
+                    <Link href={`/scenario/${sid}/voice`}
+                      className="flex-1 py-2 text-center text-[10px] border border-line rounded-lg text-dim hover:text-fg">
+                      🎙 음성으로 시작
                     </Link>
                   )}
                   {!textDone && (
                     <div className="flex-1 py-2 text-center text-xs border border-line rounded-lg text-faint cursor-not-allowed">
                       TEXT 시나리오를 먼저 완료하세요
                     </div>
-                  )}
-                  {textDone && !isNext && (
-                    <Link href={`/scenario/${sid}/voice`}
-                      className="flex-1 py-2 text-center text-[10px] border border-line rounded-lg text-dim hover:text-fg">
-                      🎙 음성으로 시작
-                    </Link>
                   )}
                 </div>
               </div>

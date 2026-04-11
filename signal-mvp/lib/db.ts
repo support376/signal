@@ -12,8 +12,8 @@ async function schemaFastCheck(): Promise<boolean> {
   try {
     // 가장 최근에 추가된 컬럼을 체크 — 이게 있으면 모든 ALTER 완료된 상태
     const r = await sql`
-      SELECT 1 FROM information_schema.columns
-      WHERE table_name = 'users' AND column_name = 'fingerprint_enabled'
+      SELECT 1 FROM information_schema.tables
+      WHERE table_name = 'voice_scenario_runs'
       LIMIT 1;
     `;
     return r.rows.length > 0;
@@ -156,6 +156,22 @@ async function runSchemaBootstrap() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
   `;
+  // Voice 시나리오 — 텍스트와 완전 분리된 별도 테이블
+  await safeRun('voice_scenario_runs table', () => sql`
+    CREATE TABLE IF NOT EXISTS voice_scenario_runs (
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      scenario_id TEXT NOT NULL,
+      turn_idx INT NOT NULL,
+      agent_msg TEXT NOT NULL,
+      user_msg TEXT,
+      audio_base64 TEXT,
+      audio_duration_sec REAL,
+      voice_features JSONB,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      PRIMARY KEY (user_id, scenario_id, turn_idx)
+    );
+  `);
+
   await sql`
     CREATE TABLE IF NOT EXISTS chemistry_results (
       user_a_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -591,5 +607,103 @@ export async function listMyChemistries(userId: string) {
     lens: string;
     score: number;
     created_at: string;
+  }[];
+}
+
+// ──────────────────────────────────────────
+// Voice scenario runs (TEXT와 완전 분리)
+// voice_features: { pitch_mean, pitch_std, energy_mean, spectral_centroid, mfcc_summary, ... }
+// audio_data: webm/opus blob (BYTEA)
+// ──────────────────────────────────────────
+export interface VoiceTurn {
+  turn_idx: number;
+  agent_msg: string;
+  user_msg: string | null;
+  audio_duration_sec: number | null;
+  voice_features: VoiceFeatures | null;
+}
+
+export interface VoiceFeatures {
+  pitch_mean: number | null;
+  pitch_std: number | null;
+  energy_mean: number | null;
+  spectral_centroid: number | null;
+  mfcc_summary: number[] | null;  // 13-dim MFCC 평균
+  duration_sec: number;
+  sample_rate: number;
+}
+
+export async function getVoiceTurns(userId: string, scenarioId: ScenarioId): Promise<VoiceTurn[]> {
+  await ensureSchema();
+  const r = await sql`
+    SELECT turn_idx, agent_msg, user_msg, audio_duration_sec, voice_features
+    FROM voice_scenario_runs
+    WHERE user_id = ${userId} AND scenario_id = ${scenarioId}
+    ORDER BY turn_idx ASC;
+  `;
+  return r.rows as VoiceTurn[];
+}
+
+export async function appendVoiceTurn(
+  userId: string,
+  scenarioId: ScenarioId,
+  turnIdx: number,
+  agentMsg: string,
+  userMsg: string | null,
+  audioBase64: string | null,
+  audioDurationSec: number | null,
+  voiceFeatures: VoiceFeatures | null
+) {
+  await ensureSchema();
+  await sql`
+    INSERT INTO voice_scenario_runs
+      (user_id, scenario_id, turn_idx, agent_msg, user_msg, audio_base64, audio_duration_sec, voice_features)
+    VALUES (
+      ${userId}, ${scenarioId}, ${turnIdx}, ${agentMsg}, ${userMsg},
+      ${audioBase64}, ${audioDurationSec},
+      ${voiceFeatures ? JSON.stringify(voiceFeatures) : null}
+    )
+    ON CONFLICT (user_id, scenario_id, turn_idx)
+    DO UPDATE SET
+      agent_msg = EXCLUDED.agent_msg,
+      user_msg = EXCLUDED.user_msg,
+      audio_base64 = COALESCE(EXCLUDED.audio_base64, voice_scenario_runs.audio_base64),
+      audio_duration_sec = COALESCE(EXCLUDED.audio_duration_sec, voice_scenario_runs.audio_duration_sec),
+      voice_features = COALESCE(EXCLUDED.voice_features, voice_scenario_runs.voice_features);
+  `;
+}
+
+export async function resetVoiceScenario(userId: string, scenarioId: ScenarioId) {
+  await ensureSchema();
+  await sql`DELETE FROM voice_scenario_runs WHERE user_id = ${userId} AND scenario_id = ${scenarioId};`;
+}
+
+export async function getVoiceCompletedScenarios(userId: string): Promise<ScenarioId[]> {
+  await ensureSchema();
+  // 5턴 모두 user_msg가 채워진 시나리오만 완료 취급
+  const r = await sql`
+    SELECT scenario_id
+    FROM voice_scenario_runs
+    WHERE user_id = ${userId} AND user_msg IS NOT NULL
+    GROUP BY scenario_id
+    HAVING COUNT(*) >= 5;
+  `;
+  return r.rows.map((row: any) => row.scenario_id as ScenarioId);
+}
+
+/** 특정 사용자의 모든 voice 오디오 + 피처를 가져옴 (음성 로그인 비교용) */
+export async function getVoiceProfile(userId: string) {
+  await ensureSchema();
+  const r = await sql`
+    SELECT scenario_id, turn_idx, audio_duration_sec, voice_features
+    FROM voice_scenario_runs
+    WHERE user_id = ${userId} AND voice_features IS NOT NULL
+    ORDER BY scenario_id, turn_idx;
+  `;
+  return r.rows as {
+    scenario_id: string;
+    turn_idx: number;
+    audio_duration_sec: number;
+    voice_features: VoiceFeatures;
   }[];
 }
